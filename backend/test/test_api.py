@@ -35,13 +35,13 @@ def test_post_message_missing_fields(client):
 # Test POST request for valid chat message
 def test_post_message_valid(client, mocker):
     mocker.patch('iaServer.ask', return_value="Test Response")
-    res = client.post('/api/v1/chat', json={"user": "Alice", "question": "What is AI?"})
+    res = client.post('/api/v1/chat', json={"user": "me", "question": "What is AI?"})
     assert res.status_code == 200
     assert res.json == {"response": "<p>Test Response</p>"}
 
 # Test GET request for chat messages
 def test_get_messages(client, mocker):
-    mocker.patch('iaServer.list', return_value=[{"q": "Question?", "a": "Answer"}])
-    res = client.get('/api/v1/chat/Alice')
+    mocker.patch('iaServer.list', return_value=[{'q': 'Hola, soy humano!'}, {'a': 'Hola soy IA.'}])
+    res = client.get('/api/v1/chat/me')
     assert res.status_code == 200
-    assert res.json == {"response": [{"q": "<p>Question?</p>", "a": "<p>Answer</p>"}]}
+    assert res.json == {"response": [{'q': '<p>Hola, soy humano!</p>'}, {'a': '<p>Hola soy IA.</p>'}]}

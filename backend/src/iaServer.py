@@ -29,7 +29,7 @@ runnable = prompt | model
 
 with_message_history = RunnableWithMessageHistory(runnable, get_session_history, input_messages_key="input", history_messages_key="history")
 
-def ask(user: str, question:str):
+def ask(user: str, question:str): # todo parameterize ability, session_id, history
     logger.info(f"asked to: {question}")
     res:AIMessage = with_message_history.invoke(
         input={"history": "history1", "ability": "Ciencia de datos", "input": question},
@@ -37,7 +37,7 @@ def ask(user: str, question:str):
     logger.info(f"IA returns {res}")
     return res.content
 
-def list(user: str):
+def list(user: str): # todo parameterize ability, session_id, history
     logger.info(f"User {user} list...")
     res:InMemoryChatMessageHistory = get_session_history("session_1")
     messages:list[BaseMessage]=res.messages

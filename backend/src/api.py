@@ -13,7 +13,9 @@ def markDownToHtml(mkdwn):
 #todo refactor move to mapper
 def listMapper(msg: Dict):
     key = 'a' if 'q' not in msg else 'q'
-    return {key: markDownToHtml(msg.get(key, ''))}
+    value = msg.get(key, '')
+    logger.info(f"mapping key/value => {key}/{value}")
+    return {key: markDownToHtml(value)}
 
 
 @app.route('/api/v1/chat', methods=['OPTIONS'])
