@@ -1,6 +1,6 @@
 # Local IA chat (Vue->Python(langchain/openai)->Ollama)
 
-[![Backend tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-python-conda.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-python-conda.yml)
+[![Backend unit tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
 
 ## Ollama (local setup)
 
