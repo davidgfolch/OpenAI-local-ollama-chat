@@ -31,6 +31,7 @@ jobs:
     # CondaValueError: You have chosen a non-default solver backend (libmamba) but it was not recognized. Choose one of: classic
       run: |
         cd backend
+        conda install --solver=classic conda-forge::conda-libmamba-solver conda-forge::libmamba conda-forge::libmambapy conda-forge::libarchive
         conda install flake8
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
