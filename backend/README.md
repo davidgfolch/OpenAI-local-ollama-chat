@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-[Install](https://docs.anaconda.com/miniconda/#quick-command-line-install) Conda. 
+[Install](https://docs.anaconda.com/miniconda/#quick-command-line-install) Conda.
 
 > See also: [Conda getting started](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html#before-you-start)
 
@@ -19,13 +19,15 @@ eval "$(/home/slks/miniconda3/bin/conda shell.zsh hook)"
 [Activate environment](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html#installing-packages) to install dependencies:
 
 ```bash
-conda activate ./.venv
+conda create langchain
+conda deactivate # deactivate any active conda environment
+conda activate langchain
 ```
 
 NOTE: if dependencies added should be exported to `env.yml`:
   
 ```bash
-conda env export > env.yml 
+conda env export > env.yml --from-history
 ```
 
 ## Run the backend
