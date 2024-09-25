@@ -76,28 +76,6 @@ sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
 sudo systemctl start ollama
 ```
 
-## Project setup
-
-### Prerequisites
-
-[Install](https://docs.anaconda.com/miniconda/#quick-command-line-install) Conda. 
-
-> See also: [Conda getting started](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html#before-you-start)
-
-```bash
-source ~/miniconda3/bin/activate
-conda init zsh
-eval "$(/home/slks/miniconda3/bin/conda shell.zsh hook)"
-```
-
-### Install dependencies
-
-[Activate environment](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html#installing-packages) to install dependencies:
-
-```bash
-conda activate ./.venv
-```
-
 ## Project run
 
 ### Run Ollama and load model
