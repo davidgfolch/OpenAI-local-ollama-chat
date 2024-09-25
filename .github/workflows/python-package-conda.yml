@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd backend
-        conda env update --file environment.yml --name base
+        conda env update --file env.yml --name base
     - name: Lint with flake8
       run: |
         conda install flake8
