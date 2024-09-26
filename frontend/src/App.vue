@@ -11,12 +11,20 @@ export default {
   components: {
     ChatHeader,
     ChatContainer
+  },
+  data() {
+    return {
+      messages: [{
+        'q': 'Hola AI!',
+        'a': 'Hola! en que puedo ayudarte?'
+      }]
+    }
   }
 }
 </script>
 
 <template>
   <ChatHeader msg="Ask local Ollama"/>
-  <ChatContainer/>
+  <ChatContainer :initial-messages="messages"/>
 </template>
 

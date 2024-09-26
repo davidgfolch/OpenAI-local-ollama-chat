@@ -1,6 +1,10 @@
-# Local IA chat (Vue->Python(langchain/openai)->Ollama)
+# Local IA chat
 
 [![Backend unit tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
+
+This project implements a chat with the following tech-stack:
+
+Vue -> Python (langchain/openai) -> Ollama
 
 ## Ollama (local setup)
 
