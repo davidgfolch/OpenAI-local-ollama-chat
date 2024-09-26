@@ -7,12 +7,12 @@ function show(err) {
     error.value = err
     console.error(err)
 }
+
 function reset() {
     error.value = ''
 }
 
 defineExpose({ show, reset })
-
 </script>
 
 <template>

@@ -1,8 +1,10 @@
 <script setup>
-import { ref, onMounted, defineProps, nextTick } from 'vue';
+import { ref, onMounted, defineProps } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatError from './ChatError.vue';
 import ApiClient from './ApiClient.js';
+import scrollDown from './utils.js';
+
 // Props
 const props = defineProps({
   initialMessages: {
@@ -19,15 +21,6 @@ const messages = ref([]);
 const scrollDiv = ref(null);
 const error = ref();
 // Methods
-const scrollDown = () => {
-  const el = scrollDiv.value;
-  if (el) {
-    nextTick().then(() => el.scrollIntoView({ behavior: 'smooth' }));
-  } else {
-    console.error("Can't scroll down scrollDiv not found!");
-  }
-};
-
 const loadHistory = () => {
   let q = null, a = null;
   ApiClient.get(`/api/v1/chat/${user.value}`)
@@ -40,7 +33,7 @@ const loadHistory = () => {
         if (msg.a) a = msg.a;
         if (a != null && q != null) {
           messages.value.push({ q, a });
-          scrollDown();
+          scrollDown(scrollDiv.value);
           q = null, a = null;
         }
       });
@@ -52,7 +45,7 @@ const loadHistory = () => {
 const setAnswer = (answer, resetQuestion) => {
   messages.value.push({ q: question.value, a: answer });
   if (resetQuestion) question.value = '';
-  scrollDown();
+  scrollDown(scrollDiv.value);
 };
 
 const handleError = (err) => {
@@ -62,7 +55,7 @@ const handleError = (err) => {
 
 const resetApiCall = () => {
   loading.value = false;
-  scrollDown();
+  scrollDown(scrollDiv.value);
 };
 
 const sendMessage = async () => {
@@ -82,21 +75,59 @@ const sendMessage = async () => {
 onMounted(() => { // Lifecycle hook
   loadHistory();
 });
-
 </script>
 
 <template>
   <div class="chat-container">
     <ul class="chat">
-      <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index" :loading="loading"/>
-      <ChatError ref="error"/>
-      <li><p></p></li>
+      <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index"
+        :loading="loading" />
+      <ChatError ref="error" />
+      <li>
+        <p></p>
+      </li>
     </ul>
-    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage" :disabled="loading"/>
+    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
+      :disabled="loading" />
   </div>
-  <div ref="scrollDiv"></div>
+  <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 
-<style>
-@import url("../assets/chatContainer.css");
+<style scoped>
+.chat-container {
+	background-color: rgba(0, 0, 0, 0.4);
+	border-radius: 25px;
+	box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
+	overflow: hidden;
+	padding: 15px;
+	position: relative;
+	min-width: 100em;
+	/* min-width: 50%; */
+	margin-left: 2em;
+	margin-right: 2em;
+}
+
+.chat {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.text_input {
+	font-size: 16px;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 10px 15px;
+	width: 100%;
+}
+.scrollDiv {
+  padding:0;
+  margin:0;
+}
 </style>
