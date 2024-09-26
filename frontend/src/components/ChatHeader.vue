@@ -1,13 +1,12 @@
-
-<template>
-  <h2>{{ msg }}</h2>
-</template>
-
 <script>
 export default {
   props: ["msg"]
 }
 </script>
+
+<template>
+<h2>{{ msg }}</h2>
+</template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>

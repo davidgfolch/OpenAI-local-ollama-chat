@@ -1,95 +1,102 @@
-<style>
-@import url("../assets/chatContainer.css");
-</style>
-
-<script>
-import { nextTick } from 'vue';
-// https://github.com/miaolz123/vue-markdown?tab=readme-ov-file#es6-vue-cli-users
-// import VueMarkdown from 'vue-markdown'; don't work properly, too complicated
-import ChatMessage from './ChatMessage.vue'
-
-export default {
-  components: {
-    ChatMessage
-  },
-  data() {
-    return {
-      user: "me",
-      loading: false,
-      error: '',
-      question: '¿Cuál es es framework de AI mas popular para Python?',
-      messages: []
-    }
-  },
-  props: ['initialMessages'],
-  methods: {
-    scrollDown() {
-      const el = this.$refs.scrollDiv;
-      if (el) { // Use el.scrollIntoView() to instantly scroll to the element
-        nextTick().then(() => el.scrollIntoView({behavior: 'smooth'}));
-      } else console.error("Can't scroll down @chatContainer not found!");
-    },
-    loadHistory() {
-      var q,a=null;
-      this.$apiClient.get('/api/v1/chat/'+this.user)
-        .then(res => {
-          if (res.data.response.length == 0)
-             this.messages=this.initialMessages;
-          res.data.response.map(msg => {
-            if (msg.q) q=msg.q;
-            if (msg.a) a=msg.a;
-            if (a!=null & q!=null) {
-              this.messages.push({"q": q, "a": a});
-              this.scrollDown();
-              q=null;
-              a=null;
-            }
-          })
-        })
-      .catch(error => this.handleError(error))
-      .finally(() => this.resetApiCall());
-    },
-    setAnswer(answer, resetQuestion=false) {
-      this.messages.push({"q": this.question, "a": answer});
-      if (resetQuestion) this.question='';
-      this.scrollDown();
-    },
-    handleError(error) {
-      this.messages.pop();
-      this.error=error;
-      console.error(error);
-    },
-    resetApiCall() {
-      this.loading = false;
-      this.scrollDown();
-    },
-    async sendMessage() {
-      this.loading=true;
-      this.error='';
-      this.setAnswer("Waiting for response...")
-      this.$apiClient.post('/api/v1/chat', { user: this.user, question: this.question }).then(res => {
-          this.messages.pop();
-          this.setAnswer(res.data.response)
-          this.question='';
-        })
-        .catch(error => this.handleError(error))
-        .finally(() => this.resetApiCall());
-    },
-  },
-  mounted() {
-    this.loadHistory();
+<script setup>
+import { ref, onMounted, defineProps, nextTick } from 'vue';
+import ChatMessage from './ChatMessage.vue';
+import ChatError from './ChatError.vue';
+import ApiClient from './ApiClient.js';
+// Props
+const props = defineProps({
+  initialMessages: {
+    type: Array,
+    default: () => []
   }
-}
+});
+// Reactive data
+const user = ref('me');
+const loading = ref(false);
+const question = ref('¿Cuál es el framework de AI más popular para Python?');
+const messages = ref([]);
+// Refs
+const scrollDiv = ref(null);
+const error = ref();
+// Methods
+const scrollDown = () => {
+  const el = scrollDiv.value;
+  if (el) {
+    nextTick().then(() => el.scrollIntoView({ behavior: 'smooth' }));
+  } else {
+    console.error("Can't scroll down scrollDiv not found!");
+  }
+};
+
+const loadHistory = () => {
+  let q = null, a = null;
+  ApiClient.get(`/api/v1/chat/${user.value}`)
+    .then(res => {
+      if (res.data.response.length === 0) {
+        messages.value = props.initialMessages;
+      }
+      res.data.response.forEach((msg) => {
+        if (msg.q) q = msg.q;
+        if (msg.a) a = msg.a;
+        if (a != null && q != null) {
+          messages.value.push({ q, a });
+          scrollDown();
+          q = null, a = null;
+        }
+      });
+    })
+    .catch(handleError)
+    .finally(resetApiCall);
+};
+
+const setAnswer = (answer, resetQuestion) => {
+  messages.value.push({ q: question.value, a: answer });
+  if (resetQuestion) question.value = '';
+  scrollDown();
+};
+
+const handleError = (err) => {
+  messages.value.pop()
+  error.value.show(err)
+};
+
+const resetApiCall = () => {
+  loading.value = false;
+  scrollDown();
+};
+
+const sendMessage = async () => {
+  loading.value = true;
+  error.value.reset()
+  setAnswer('Waiting for response...');
+  ApiClient.post('/api/v1/chat', { user: user.value, question: question.value })
+    .then(res => {
+      messages.value.pop();
+      setAnswer(res.data.response);
+      question.value = '';
+    })
+    .catch(handleError)
+    .finally(resetApiCall);
+};
+
+onMounted(() => { // Lifecycle hook
+  loadHistory();
+});
+
 </script>
 
 <template>
   <div class="chat-container">
     <ul class="chat">
-      <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index" v-bind:loading="loading"/>
-      <li class="api-error" v-if="error!=''" v-html="error"></li>
+      <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index" :loading="loading"/>
+      <ChatError ref="error"/>
       <li><p></p></li>
     </ul>
-    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage" v-bind:disabled="loading"/>
+    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage" :disabled="loading"/>
   </div>
   <div ref="scrollDiv"></div>
 </template>
+
+<style>
+@import url("../assets/chatContainer.css");
+</style>

@@ -67,15 +67,4 @@
 	padding: 10px 15px;
 	width: 100%;
 }
-.api-error {
-    max-width: 80%;
-    margin: 40px auto;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    background-color: #faa;
-    color: #fff
-  }
   
