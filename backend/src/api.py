@@ -1,14 +1,19 @@
+import re
 from ast import Dict
 from venv import logger
 from flask import Flask, Response, make_response, request
 from markdown import markdown
+import mdformat
 import iaServer
 
 app = Flask(__name__)
+# from flask_cors import CORS
+# CORS(app)
 
 #todo refactor move to mapper
-def markDownToHtml(mkdwn):
-    return markdown(mkdwn, extensions=['fenced_code'])
+def markDownToHtml(md:str):
+    formatted_md = mdformat.text(re.sub(r'\n+', '\n',md), options= {'end-of-line':'crlf'})
+    return markdown(formatted_md, extensions=['extra']) #https://python-markdown.github.io/extensions/
 
 #todo refactor move to mapper
 def listMapper(msg: Dict):
@@ -19,6 +24,7 @@ def listMapper(msg: Dict):
 
 
 @app.route('/api/v1/chat', methods=['OPTIONS'])
+@app.route('/api/v1/chat/delete', methods=['OPTIONS'])
 def handle_post_chat():
     # Add CORS allow for this method
     res = make_response()
@@ -28,7 +34,7 @@ def handle_post_chat():
 
 def corsHeaders(res: Response):
     res.headers['Access-Control-Allow-Origin'] = '*'
-    res.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    res.headers['Access-Control-Allow-Methods'] = 'DELETE,GET,POST,OPTIONS'
     res.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return res
 
@@ -55,6 +61,13 @@ def getMessages(user):
     msgs = [listMapper(msg) for msg in iaServer.list(user)]
     logger.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)
+
+# @app.delete('/api/v1/chat/<string:user>') dont work CORS
+@app.get('/api/v1/chat/delete/<string:user>')
+def deleteMessages(user):
+    if not user: return setResponseKO({'error': 'User is required'}, 400)
+    res=iaServer.delete(user)
+    return setResponseOK(res)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,4 +1,3 @@
-#from sqlalchemy import null
 from host import hostArgs
 from logConfig import console_handler
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -6,6 +5,7 @@ from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMess
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_community.chat_message_histories.file import FileChatMessageHistory
 
 from langchain_openai.chat_models import ChatOpenAI
 import logging
@@ -16,7 +16,7 @@ logger = console_handler(logging.getLogger('iaServer'))
 
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
-        store[session_id] = ChatMessageHistory()
+        store[session_id] = FileChatMessageHistory(file_path="./langchain.store",encoding="utf-8") #ChatMessageHistory()
     return store[session_id]
 
 model = ChatOpenAI(**hostArgs)
@@ -39,7 +39,7 @@ def ask(user: str, question:str): # todo parameterize ability, session_id, histo
 
 def list(user: str): # todo parameterize ability, session_id, history
     logger.info(f"User {user} list...")
-    res:InMemoryChatMessageHistory = get_session_history("session_1")
+    res = get_session_history("session_1")
     messages:list[BaseMessage]=res.messages
     logger.info(f"IA returns messages {messages}")
     res = []
@@ -50,8 +50,6 @@ def list(user: str): # todo parameterize ability, session_id, history
             res.append({"a": msg.content})
     logger.info(f"IA returns messages (mapped) {res}")
     return res
-    
-#           CPU  GPU (GTX960M)
-#tinyllama  ?:?? 2:56
-#llama2     2:24 1:34 (llama2 with host model llama3.1)
-#llama3.1   5:40 2:10
+
+def delete(user: str):
+    return get_session_history("session_1").clear()

@@ -10,8 +10,8 @@ export default {
   data() {
     return {
       messages: [{
-        'q': 'Hola AI!',
-        'a': 'Hola! en que puedo ayudarte?'
+        'q': '<p>Hola AI!</p>',
+        'a': '<p>Hola! en que puedo ayudarte?</p>'
       }]
     }
   }
@@ -31,22 +31,15 @@ export default {
 
 body {
 	background: url('assets/background1.png');
+  background-repeat: no-repeat;
 	background-size: cover;
-	background-position: center	center;
-	
+  background-attachment: fixed;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-
 	min-height: 100vh;
 	font-family: 'Lato', sans-serif;
 	margin: 0 0 50px;
-}
-
-/* Add some basic styling to the chat app */
-body {
-  color: gray;
-  background-color: black;
 }
 </style>
