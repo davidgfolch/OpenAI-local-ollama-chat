@@ -25,8 +25,8 @@ const props = defineProps({
 <style scoped>
 .message {
     color: lightgray;
-    border-radius: 2em;
-    box-shadow: 0em 1em 1em 0em rgba(0, 0, 0, 0.5);
+    border-radius: 1.5em;
+    box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.5);
     position: relative;
     margin-bottom: 30px;
 }
@@ -52,7 +52,7 @@ li span {
 
 .logo {
     border-radius: 50%;
-    box-shadow: 0px 10px 10px 0px rgba(26, 21, 21, 0.7);
+    box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
     object-fit: cover;
     position: absolute;
     left: 0.5em;

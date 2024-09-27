@@ -24,10 +24,9 @@ defineExpose({ show, reset })
     max-width: 80%;
     margin: 40px auto;
     padding: 20px;
-    border: 1px solid #ddd;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    border: 0px;
+    border-radius: 1.5em;
+    box-shadow: 0px 0px 10px 5px rgba(255, 255, 255, 0.7);
     background-color: #f66;
     color: #fff
 }

@@ -17,9 +17,9 @@ h2 {
 	text-transform: uppercase;
 	text-align: center;
 	background-color: rgba(0, 0, 0, 0.4);
-	border-radius: 25px;
+	border-radius: 1.5em;
 	box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
-	/* overflow: hidden; */
-	padding: 15px;
+	padding: 1em;
+	margin: 1em;
 }
 </style>

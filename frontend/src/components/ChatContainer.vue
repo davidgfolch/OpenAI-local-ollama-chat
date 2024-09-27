@@ -99,13 +99,12 @@ onMounted(() => { // Lifecycle hook
 
 .chat-container {
   background-color: rgba(0, 0, 0, 0.4);
-  border-radius: 25px;
+  border-radius: 1.5em;
   box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
   overflow: hidden;
-  padding: 15px;
+  padding: 1em;
   position: relative;
-  min-width: 100em;
-  /* min-width: 50%; */
+  min-width: 10em;
   margin-left: 2em;
   margin-right: 2em;
 }
@@ -137,7 +136,7 @@ onMounted(() => { // Lifecycle hook
 
 .icon {
   border-radius: 50%;
-  box-shadow: 0px 10px 10px 0px rgba(26, 21, 21, 0.7);
+  box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
   object-fit: cover;
   position: relative;
   float: right;
