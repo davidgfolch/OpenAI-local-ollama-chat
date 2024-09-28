@@ -16,6 +16,8 @@ const props = defineProps({
 const user = ref('me');
 const loading = ref(false);
 const question = ref('¿Cuál es el framework de AI más popular para Python?');
+const history = ref("myHistory");
+const ability = ref("Ingeniería de software");
 const messages = ref([]);
 // Refs
 const scrollDiv = ref(null);
@@ -49,7 +51,7 @@ const setAnswer = (answer, resetQuestion) => {
 };
 const handleError = (err) => {
   messages.value.pop()
-  error.value.show(err)
+  error.value.show("<p>"+err+"</p><p>"+ err.response.data.error+"</p>");
 };
 const resetApiCall = () => {
   loading.value = false;
@@ -59,7 +61,8 @@ const sendMessage = async () => {
   loading.value = true;
   error.value.reset()
   setAnswer('<p>Waiting for response...</p>');
-  ApiClient.post('/api/v1/chat', { user: user.value, question: question.value }).then(res => {
+  let body={ user: user.value, question: question.value, history: history.value, ability: ability.value };
+  ApiClient.post('/api/v1/chat', body).then(res => {
     messages.value.pop();
     setAnswer(res.data.response);
     question.value = '';
@@ -143,5 +146,4 @@ onMounted(() => { // Lifecycle hook
   width: 3em;
   height: 3em;
 }
-
 </style>

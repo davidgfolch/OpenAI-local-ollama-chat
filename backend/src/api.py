@@ -1,10 +1,16 @@
 import re
+from functools import reduce
 from ast import Dict
+from types import NoneType
 from venv import logger
 from flask import Flask, Response, make_response, request
 from markdown import markdown
 import mdformat
 import iaServer
+from logConfig import console_handler
+import logging
+
+logger = console_handler(logging.getLogger('api'))
 
 app = Flask(__name__)
 # from flask_cors import CORS
@@ -12,7 +18,7 @@ app = Flask(__name__)
 
 #todo refactor move to mapper
 def markDownToHtml(md:str):
-    formatted_md = mdformat.text(re.sub(r'\n+', '\n',md), options= {'end-of-line':'crlf'})
+    formatted_md = mdformat.text(re.sub(r'\n{3,}', '\n\n',md), options= {'end-of-line':'crlf'})
     return markdown(formatted_md, extensions=['extra']) #https://python-markdown.github.io/extensions/
 
 #todo refactor move to mapper
@@ -38,6 +44,15 @@ def corsHeaders(res: Response):
     res.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return res
 
+def getReqParams(request, params:list): #see https://pypi.org/project/Flask-Parameter-Validation/
+    values:list = list(map(lambda param: request.json.get(param), params))
+    invalidParams = reduce(lambda a,b: a | b, map(lambda value: isinstance(value,NoneType), values))
+    logger.info(f"getReqParams -> validParams={invalidParams}")
+    if invalidParams: 
+        invalidParams = setResponseKO(", ".join(params) + ' are required.')
+    values.insert(0, invalidParams)
+    return values
+
 def setResponseOK(res):
     return corsHeaders(make_response({'response': res}, 200))
 
@@ -47,11 +62,9 @@ def setResponseKO(errorMsg):
 # @app.route('/api/v1/chat', methods=['POST'])
 @app.post('/api/v1/chat')
 def postMessage():
-    #todo: simplify model & validation with json.loads(request.data) ??? -> from flask import Flask, request, json
-    user = request.json.get('user')
-    question = request.json.get('question')
-    if not user or not question: return setResponseKO('User and question are required')
-    return setResponseOK(markDownToHtml(iaServer.ask(user = user, question = question)))
+    errRes, user, question, history, ability = getReqParams(request, ('user', 'question', 'history', 'ability'))
+    if isinstance(errRes, Response): return errRes
+    return setResponseOK(markDownToHtml(iaServer.ask(user, question, history, ability)))
 
 # @app.route('/api/v1/chat/<string:user>', methods=['GET'])
 @app.get('/api/v1/chat/<string:user>')

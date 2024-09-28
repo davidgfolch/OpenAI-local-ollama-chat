@@ -31,9 +31,8 @@ Before installing check you have enough space in your HDD.  [Ollama3.1:8b](https
 **If you don't have enough space or want to store models in another disk partition see below: [Change Ollama models store folder](#change-ollama-models-store-folder)**
 
 ```bash
-  ollama run llama3.1:8b #recommended
-  #ollama run tinyllama
-  #ollama run llama2
+  ollama run codestral #recomended for code generation you'll need 32GB minimum memory
+  #ollama run llama3.1:8b #recommended
   ```
 
 ### Troubleshooting

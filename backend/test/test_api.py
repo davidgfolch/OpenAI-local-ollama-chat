@@ -30,12 +30,12 @@ def test_handle_post_chat_options(client):
 def test_post_message_missing_fields(client):
     res = client.post('/api/v1/chat', json={"user": ""})
     assert res.status_code == 400
-    assert res.json == {"error": "User and question are required"}
+    assert res.json == {"error": 'user, question, history, ability are required.'}
 
 # Test POST request for valid chat message
 def test_post_message_valid(client, mocker):
     mocker.patch('iaServer.ask', return_value="Test Response")
-    res = client.post('/api/v1/chat', json={"user": "me", "question": "What is AI?"})
+    res = client.post('/api/v1/chat', json={"user": "me", "question": "What is AI?", "history": "myHistory", "ability": "Ingeniería de software"})
     assert res.status_code == 200
     assert res.json == {"response": "<p>Test Response</p>"}
 

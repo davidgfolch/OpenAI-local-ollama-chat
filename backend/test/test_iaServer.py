@@ -38,4 +38,4 @@ def test_list(mock_get_session_history):
     response = list("me")
     expected_response = [{"q": "What is AI?"}, {"a": "AI is artificial intelligence."}]
     assert response == expected_response
-    mock_get_session_history.assert_called_once_with("session_1")
+    mock_get_session_history.assert_called_once_with("me")
