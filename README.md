@@ -92,4 +92,4 @@ ollama run llama3.1:8b # this will take a while the first time
 
 ### Run backend & frontend
 
-See respective README.md docs
+See respective README.md docs: [backend](backend/README.md) & [frontend](frontend/README.md)

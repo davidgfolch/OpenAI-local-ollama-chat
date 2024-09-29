@@ -2,19 +2,17 @@ import re
 from functools import reduce
 from ast import Dict
 from types import NoneType
-from venv import logger
 from flask import Flask, Response, make_response, request
 from markdown import markdown
 import mdformat
 import iaServer
-from logConfig import console_handler
+from logConfig import initLog
 import logging
 
-logger = console_handler(logging.getLogger('api'))
-
-app = Flask(__name__)
+app = Flask("api")
 # from flask_cors import CORS
 # CORS(app)
+log = initLog(__file__)
 
 #todo refactor move to mapper
 def markDownToHtml(md:str):
@@ -25,7 +23,7 @@ def markDownToHtml(md:str):
 def listMapper(msg: Dict):
     key = 'a' if 'q' not in msg else 'q'
     value = msg.get(key, '')
-    logger.info(f"mapping key/value => {key}/{value}")
+    log.info(f"mapping key/value => {key}/{value}")
     return {key: markDownToHtml(value)}
 
 
@@ -47,7 +45,7 @@ def corsHeaders(res: Response):
 def getReqParams(request, params:list): #see https://pypi.org/project/Flask-Parameter-Validation/
     values:list = list(map(lambda param: request.json.get(param), params))
     invalidParams = reduce(lambda a,b: a | b, map(lambda value: isinstance(value,NoneType), values))
-    logger.info(f"getReqParams -> validParams={invalidParams}")
+    log.info(f"getReqParams -> validParams={invalidParams}")
     if invalidParams: 
         invalidParams = setResponseKO(", ".join(params) + ' are required.')
     values.insert(0, invalidParams)
@@ -72,7 +70,7 @@ def getMessages(user):
     if not user: return setResponseKO({'error': 'User is required'}, 400)
     msgs = iaServer.list(user)
     msgs = [listMapper(msg) for msg in iaServer.list(user)]
-    logger.info(f"mapped messages {msgs}")
+    log.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)
 
 # @app.delete('/api/v1/chat/<string:user>') dont work CORS
