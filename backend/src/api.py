@@ -45,7 +45,6 @@ def corsHeaders(res: Response):
 def getReqParams(request, params:list): #see https://pypi.org/project/Flask-Parameter-Validation/
     values:list = list(map(lambda param: request.json.get(param), params))
     invalidParams = reduce(lambda a,b: a | b, map(lambda value: isinstance(value,NoneType), values))
-    log.info(f"getReqParams -> validParams={invalidParams}")
     if invalidParams: 
         invalidParams = setResponseKO(", ".join(params) + ' are required.')
     values.insert(0, invalidParams)

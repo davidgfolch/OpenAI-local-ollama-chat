@@ -20,7 +20,7 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
 
 model = ChatOpenAI(**hostArgs)
 prompt = ChatPromptTemplate.from_messages([
-        ("system","Eres un asistente especializado en {ability}.  Puedes responder preguntas sobre {ability}"),
+        ("system","{ability}"),
         MessagesPlaceholder(variable_name="history"),
         ("human", "{input}")
         ])

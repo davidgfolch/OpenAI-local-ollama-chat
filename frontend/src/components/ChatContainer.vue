@@ -16,8 +16,9 @@ const props = defineProps({
 const user = ref('me');
 const loading = ref(false);
 const question = ref('¿Cuál es el framework de AI más popular para Python?');
-const history = ref("myHistory");
-const ability = ref("Ingeniería de software");
+const viewSettings = ref(false);
+const history = ref("My history");
+const ability = ref("Eres un asistente especializado en ingenieria de software.");
 const messages = ref([]);
 // Refs
 const scrollDiv = ref(null);
@@ -51,7 +52,7 @@ const setAnswer = (answer, resetQuestion) => {
 };
 const handleError = (err) => {
   messages.value.pop()
-  error.value.show("<p>"+err+"</p><p>"+ err.response.data.error+"</p>");
+  error.value.show("<p>" + err + "</p><p>" + err.response.data.error + "</p>");
 };
 const resetApiCall = () => {
   loading.value = false;
@@ -61,7 +62,7 @@ const sendMessage = async () => {
   loading.value = true;
   error.value.reset()
   setAnswer('<p>Waiting for response...</p>');
-  let body={ user: user.value, question: question.value, history: history.value, ability: ability.value };
+  let body = { user: user.value, question: question.value, history: history.value, ability: ability.value };
   ApiClient.post('/api/v1/chat', body).then(res => {
     messages.value.pop();
     setAnswer(res.data.response);
@@ -77,6 +78,10 @@ const deleteChat = async () => {
     messages.value.length = 0;
   }).catch(handleError).finally(resetApiCall);
 };
+const settings = async () => {
+  viewSettings.value = !viewSettings.value;
+  scrollDown(scrollDiv.value);
+};
 onMounted(() => { // Lifecycle hook
   loadHistory();
 });
@@ -91,7 +96,20 @@ onMounted(() => { // Lifecycle hook
     </ul>
     <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
       :disabled="loading" />
-    <img class="icon" src="../assets/trash.webp" alt="Delete chat" title="Delete chat" @click="deleteChat"
+  </div>
+  <div class="buttons">
+    <div class="buttons" :hidden="viewSettings">
+      <input type="text" class="text_input" v-model="ability"
+        placeholder="Artificial intelligence system ability (describe any hability in natural language)"
+        title="Artificial intelligence system ability (describe any hability in natural language)" />
+    </div>
+    <div class="buttons" :hidden="viewSettings">
+      <input type="text" class="text_input" v-model="history" placeholder="Current chat history"
+        title="Current chat history" />
+    </div>
+    <img class="optionIcon" src="../assets/trash.webp" alt="Delete chat" title="Delete chat" @click="deleteChat"
+      :disabled="loading">
+    <img class="optionIcon" src="../assets/settings.webp" alt="Delete chat" title="Settings" @click="settings"
       :disabled="loading">
   </div>
   <div ref="scrollDiv" class="scrollDiv"></div>
@@ -99,6 +117,19 @@ onMounted(() => { // Lifecycle hook
 
 <style>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css");
+
+.buttons {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 1.5em;
+  box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
+  padding: 1em;
+  position: relative;
+  clear: both;
+  min-width: 5em;
+  margin-top: 2em;
+  margin-left: 2em;
+  margin-right: 2em;
+}
 
 .chat-container {
   background-color: rgba(0, 0, 0, 0.4);
@@ -123,12 +154,15 @@ onMounted(() => { // Lifecycle hook
 }
 
 .text_input {
+  background-color: black;
+  color: white;
   font-size: 16px;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 10px 15px;
+  padding: 1em 0em 1em 1em;
+  margin: 3em 2em 0em 0em;
   width: 100%;
 }
 
@@ -138,6 +172,16 @@ onMounted(() => { // Lifecycle hook
 }
 
 .icon {
+  border-radius: 50%;
+  box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
+  object-fit: cover;
+  position: relative;
+  float: right;
+  width: 3em;
+  height: 3em;
+}
+
+.optionIcon {
   border-radius: 50%;
   box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
   object-fit: cover;
