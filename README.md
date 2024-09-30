@@ -18,7 +18,7 @@ You will need a compatible GPU hardware to make it run reasonably fast.
 - See logs: `sudo journalctl -u ollama -f`
 - Checkout is using GPU (not CPU)
 
-### Run a model, depending on your hardware (GPU, CPU, etc)
+### Pull models, depending on your hardware (GPU, CPU, HDD)
 
 In my case I've tested local Ollama with the following hardware:
 
@@ -31,9 +31,13 @@ Before installing check you have enough space in your HDD.  [Ollama3.1:8b](https
 **If you don't have enough space or want to store models in another disk partition see below: [Change Ollama models store folder](#change-ollama-models-store-folder)**
 
 ```bash
-  ollama run codestral #recomended for code generation you'll need 32GB minimum memory
-  #ollama run llama3.1:8b #recommended
-  ```
+  #recomended for code generation you'll need 32GB minimum memory
+  ollama pull codestral
+  #recommended
+  ollama pull llama3.1:8b
+```
+
+NOTE: we don't need to `ollama run <model>`, ollama will run the model (if present) when requested by the api.
 
 ### Troubleshooting
 
