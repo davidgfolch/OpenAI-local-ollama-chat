@@ -37,8 +37,7 @@ def ask(user: str, question:str, history = "history1", ability="Ingeniería de s
             input={"history": history, "ability": ability, "input": question},
             config={"configurable": {"session_id": user}})
     except Exception as e:
-        raise RuntimeError(f'Error invoking openAI server: {hostArgs['base_url']}') from e
-        # raise ServiceException('Error invoking openAI server: '+json.dumps(hostArgs), e)
+        raise ServiceException(f'Error invoking openAI server: {hostArgs['base_url']}') from e
     log.info(f"IA returns {res}")
     return res.content
 
