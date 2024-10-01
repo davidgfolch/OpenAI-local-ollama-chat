@@ -74,5 +74,8 @@
         "langchain",
         "mdformat",
         "openai"
+    ],
+    "flake8.args": [
+        "--config=backend/.flake8"
     ]
 }
