@@ -71,6 +71,8 @@
     ],
     "cSpell.words": [
         "Axios",
-        "mdformat"
+        "langchain",
+        "mdformat",
+        "openai"
     ]
 }

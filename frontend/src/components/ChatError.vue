@@ -1,17 +1,14 @@
 <script setup>
 import { ref, defineExpose } from 'vue'
-
-const error = ref('');
-
-function show(err) {
-    error.value = err
-    console.error(err)
+const error = ref('')
+const show = (err) => {
+    error.value = "<p>" + (err.message ? err.message : err) + "</p>" +
+        (err.response? "<p>" + err.response.data.error.join("<br/>") + "</p>" : "")
+    console.error((err.message ? err.message : err) + " ==> " + (err.response ? err.response.data.error : ""));
 }
-
-function reset() {
-    error.value = ''
+const reset = () => {
+    error.value = '';
 }
-
 defineExpose({ show, reset })
 </script>
 
@@ -21,13 +18,13 @@ defineExpose({ show, reset })
 
 <style scoped>
 .api-error {
-    max-width: 80%;
-    margin: 40px auto;
-    padding: 20px;
+    margin: 1em auto;
+    margin-bottom: 4em;
+    padding: 0.5em 1em 0.5em 1em;
     border: 0px;
     border-radius: 1.5em;
-    box-shadow: 0px 0px 10px 5px rgba(255, 255, 255, 0.7);
-    background-color: #f66;
-    color: #fff
+    box-shadow: 0em 0em 0.5em 0.5em rgba(255, 255, 255, 0.3);
+    background-color: #f44;
+    color: #ddd
 }
 </style>

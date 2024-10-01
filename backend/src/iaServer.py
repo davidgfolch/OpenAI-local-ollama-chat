@@ -1,13 +1,15 @@
 from host import hostArgs
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory, BaseMessage
+from langchain_core.chat_history import BaseChatMessageHistory, BaseMessage #InMemoryChatMessageHistory,
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_community.chat_message_histories import ChatMessageHistory
+# from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
+import json
 
 from logConfig import initLog
+from serviceException import ServiceException
 
 store = {}
 
@@ -30,9 +32,13 @@ with_message_history = RunnableWithMessageHistory(runnable, get_session_history,
 
 def ask(user: str, question:str, history = "history1", ability="Ingeniería de software"):
     log.info(f"asked to: {question}")
-    res:AIMessage = with_message_history.invoke(
-        input={"history": history, "ability": ability, "input": question},
-        config={"configurable": {"session_id": user}})
+    try:
+        res:AIMessage = with_message_history.invoke(
+            input={"history": history, "ability": ability, "input": question},
+            config={"configurable": {"session_id": user}})
+    except Exception as e:
+        raise RuntimeError(f'Error invoking openAI server: {hostArgs['base_url']}') from e
+        # raise ServiceException('Error invoking openAI server: '+json.dumps(hostArgs), e)
     log.info(f"IA returns {res}")
     return res.content
 

@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, defineProps, nextTick } from 'vue';
+import { ref, onMounted, defineProps, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatError from './ChatError.vue';
+import ChatOptions from './ChatOptions.vue';
 import ApiClient from './ApiClient.js';
 import hljs from 'highlight.js';
 import scrollDown from './utils.js';
@@ -16,15 +17,16 @@ const props = defineProps({
 const user = ref('me');
 const loading = ref(false);
 const question = ref('¿Cuál es el framework de AI más popular para Python?');
-const viewSettings = ref(false);
-const history = ref("My history");
-const ability = ref("Eres un asistente especializado en ingenieria de software.");
 const messages = ref([]);
 // Refs
 const scrollDiv = ref(null);
-const error = ref();
+const chatError = ref('');
+const chatOptions = ref();
+const prompt = ref(null);
 // Methods
 const highLightCode = () => nextTick().then(() => hljs.highlightAll());
+const errorReset = () => chatError.value.reset();
+const scrollDownChat = () => scrollDown(scrollDiv.value);
 const loadHistory = () => {
   let q = null, a = null;
   loading.value = true;
@@ -37,54 +39,48 @@ const loadHistory = () => {
       if (msg.a) a = msg.a;
       if (a != null && q != null) {
         messages.value.push({ q, a });
-        scrollDown(scrollDiv.value);
+        scrollDownChat()
         highLightCode();
         q = null, a = null;
       }
     });
+    // nextTick(() => prompt.value.focus());
   }).catch(handleError).finally(resetApiCall);
 };
 const setAnswer = (answer, resetQuestion) => {
   messages.value.push({ q: '<p>' + question.value + '</p>', a: answer });
   if (resetQuestion) question.value = '';
-  scrollDown(scrollDiv.value);
+  scrollDownChat()
   highLightCode();
 };
-const handleError = (err) => {
+const handleError = (error) => {
   messages.value.pop()
-  error.value.show("<p>" + err + "</p><p>" + err.response.data.error + "</p>");
+  chatError.value.show(error);
+  // chatError.value.show((error.message?error.message:error) + (error.response?error.response.data.error:""));
 };
 const resetApiCall = () => {
   loading.value = false;
-  scrollDown(scrollDiv.value);
+  scrollDownChat()
 };
 const sendMessage = async () => {
   loading.value = true;
-  error.value.reset()
+  errorReset();
   setAnswer('<p>Waiting for response...</p>');
-  let body = { user: user.value, question: question.value, history: history.value, ability: ability.value };
+  const body = { user: user.value, question: question.value, history: chatOptions.value.history, ability: chatOptions.value.ability };
   ApiClient.post('/api/v1/chat', body).then(res => {
     messages.value.pop();
     setAnswer(res.data.response);
     question.value = '';
   }).catch(handleError).finally(resetApiCall);
 };
-const deleteChat = async () => {
-  loading.value = true;
-  error.value.reset()
-  setAnswer('Waiting for response...');
-  ApiClient.get(`/api/v1/chat/delete/${user.value}`).then(res => {
-    console.log("delete response=" + res);
-    messages.value.length = 0;
-  }).catch(handleError).finally(resetApiCall);
-};
-const settings = async () => {
-  viewSettings.value = !viewSettings.value;
-  scrollDown(scrollDiv.value);
+const messagesReset = () => {
+  messages.value = [];
+  nextTick(() => loadHistory());
 };
 onMounted(() => { // Lifecycle hook
   loadHistory();
 });
+defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat });
 </script>
 
 <template>
@@ -92,26 +88,13 @@ onMounted(() => { // Lifecycle hook
     <ul class="chat">
       <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index"
         :loading="loading" />
-      <ChatError ref="error" />
+      <ChatError ref="chatError" />
     </ul>
     <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
-      :disabled="loading" />
+      :disabled="loading" ref="prompt" autofocus />
   </div>
-  <div class="buttons">
-    <div class="buttons" :hidden="viewSettings">
-      <input type="text" class="text_input" v-model="ability"
-        placeholder="Artificial intelligence system ability (describe any hability in natural language)"
-        title="Artificial intelligence system ability (describe any hability in natural language)" />
-    </div>
-    <div class="buttons" :hidden="viewSettings">
-      <input type="text" class="text_input" v-model="history" placeholder="Current chat history"
-        title="Current chat history" />
-    </div>
-    <img class="optionIcon" src="../assets/trash.webp" alt="Delete chat" title="Delete chat" @click="deleteChat"
-      :disabled="loading">
-    <img class="optionIcon" src="../assets/settings.webp" alt="Delete chat" title="Settings" @click="settings"
-      :disabled="loading">
-  </div>
+  <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"
+    @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 
@@ -151,6 +134,7 @@ onMounted(() => { // Lifecycle hook
   list-style-type: none;
   padding: 0;
   margin: 0;
+  margin-bottom: 2em;
 }
 
 .text_input {
