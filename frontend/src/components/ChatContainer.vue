@@ -56,7 +56,6 @@ const setAnswer = (answer, resetQuestion) => {
 const handleError = (error) => {
   messages.value.pop()
   chatError.value.show(error);
-  // chatError.value.show((error.message?error.message:error) + (error.response?error.response.data.error:""));
 };
 const resetApiCall = () => {
   loading.value = false;
@@ -92,6 +91,8 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
     </ul>
     <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
       :disabled="loading" ref="prompt" autofocus />
+    <img class="icon" src="../assets/veloai/send.png" alt="AI response" title="AI response" @click="sendMessage"
+      :disabled="loading">
   </div>
   <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"
     @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat" ref="chatOptions" />

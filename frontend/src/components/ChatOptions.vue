@@ -10,11 +10,11 @@
                 title="Current chat history" />
         </div>
         <div>
-            <img class="optionIcon" src="../assets/trash.webp" alt="Delete chat" title="Delete chat"
+            <img class="optionIcon" src="../assets/veloai/trash.png" alt="Delete chat" title="Delete chat"
                 @click="deleteChat">
         </div>
         <div>
-            <img class="optionIcon" src="../assets/settings.webp" alt="Delete chat" title="Settings"
+            <img class="optionIcon" src="../assets/veloai/settings.png" alt="Delete chat" title="Settings"
                 @click="toggleSettings">
         </div>
     </div>
