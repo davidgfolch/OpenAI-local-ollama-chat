@@ -91,7 +91,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
     </ul>
     <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
       :disabled="loading" ref="prompt" autofocus />
-    <img class="icon" src="../assets/veloai/send.png" alt="AI response" title="AI response" @click="sendMessage"
+    <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="sendMessage"
       :disabled="loading">
   </div>
   <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"
