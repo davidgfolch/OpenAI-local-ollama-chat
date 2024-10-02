@@ -1,3 +1,4 @@
 backend/aiMessage.md
 backend/langchain.store
+backend/__pycache__/*
 backend/src/__pycache__/*

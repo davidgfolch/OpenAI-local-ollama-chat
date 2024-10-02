@@ -1,6 +1,5 @@
 import logging
 import logging.config
-import re
 
 green = "\x1b[32;20m"
 grey = "\x1b[38;20m"
@@ -10,6 +9,7 @@ red = "\x1b[31;20m"
 bold_red = "\x1b[31;1m"
 reset = "\x1b[0m"
 fmt = "%(asctime)s %(levelname)s %(name)s "
+
 
 class CustomFormatter(logging.Formatter):
     FORMATS = {
@@ -26,16 +26,17 @@ class CustomFormatter(logging.Formatter):
             log_fmt = self.FORMATS.get(record.levelno)
             formatter = logging.Formatter(log_fmt)
             return formatter.format(record)
-        except:
+        except Exception:
             fmt = "%(asctime)s %(levelname)s %(name)s %(message)s"
             return logging.Formatter(fmt).format(record)
 
 
 # Configure logger to print into console
-def initLog(file:str, level=logging.INFO):
+def initLog(file: str, level=logging.INFO):
     name = file.split("/").pop()
-    if (name=="" or name is None): name=file
-    logger =  logging.getLogger(name)
+    if (name == "" or name is None):
+        name = file
+    logger = logging.getLogger(name)
     logger.setLevel(level)
     formatter = CustomFormatter()
     handler = logging.StreamHandler()

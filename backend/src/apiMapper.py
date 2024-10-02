@@ -6,9 +6,12 @@ from logConfig import initLog
 
 log = initLog(__file__)
 
-def markDownToHtml(md:str):
-    formatted_md = mdformat.text(re.sub(r'\n{3,}', '\n\n',md), options= {'end-of-line':'crlf'})
-    return markdown(formatted_md, extensions=['extra']) #https://python-markdown.github.io/extensions/
+
+def markDownToHtml(md: str):
+    formatted_md = mdformat.text(re.sub(r'\n{3,}', '\n\n', md), options={'end-of-line': 'crlf'})
+    # https://python-markdown.github.io/extensions/
+    return markdown(formatted_md, extensions=['extra'])
+
 
 def listMapper(msg: Dict):
     key = 'a' if 'q' not in msg else 'q'
