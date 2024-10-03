@@ -16,7 +16,7 @@ const props = defineProps({
 // Reactive data
 const user = ref('me');
 const loading = ref(false);
-const question = ref('¿Cuál es el framework de AI más popular para Python?');
+const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
 const messages = ref([]);
 // Refs
 const scrollDiv = ref(null);
@@ -54,7 +54,6 @@ const setAnswer = (answer, resetQuestion) => {
   highLightCode();
 };
 const handleError = (error) => {
-  messages.value.pop()
   chatError.value.show(error);
 };
 const resetApiCall = () => {
@@ -62,15 +61,20 @@ const resetApiCall = () => {
   scrollDownChat()
 };
 const sendMessage = async () => {
+  if (question.value.trim() == '') return
   loading.value = true;
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
-  const body = { user: user.value, question: question.value, history: chatOptions.value.history, ability: chatOptions.value.ability };
+  const options = chatOptions.value;
+  const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
   ApiClient.post('/api/v1/chat', body).then(res => {
     messages.value.pop();
     setAnswer(res.data.response);
     question.value = '';
-  }).catch(handleError).finally(resetApiCall);
+  }).catch(e => {
+    messages.value.pop()
+    handleError(e);
+  }).finally(resetApiCall);
 };
 const messagesReset = () => {
   messages.value = [];
@@ -91,8 +95,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
     </ul>
     <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
       :disabled="loading" ref="prompt" autofocus />
-    <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="sendMessage"
-      :disabled="loading">
+    <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="sendMessage" :disabled="loading">
   </div>
   <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"
     @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat" ref="chatOptions" />

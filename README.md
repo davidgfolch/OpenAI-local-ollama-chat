@@ -97,3 +97,52 @@ ollama run llama3.1:8b # this will take a while the first time
 ### Run backend & frontend
 
 See respective README.md docs: [backend](backend/README.md) & [frontend](frontend/README.md)
+
+## Examples using the chat
+
+[Youtube demo](https://youtu.be/EkgyaqOtIxg)
+
+Select the model to use & ask your question:
+
+### deepseek-coder-v2:16b
+
+![deepseek-coder-v2:16b](deepseek-coder-v2_16b.png)
+
+### codegemma:7b
+
+![codegemma:7b](codegemma_7b.png)
+
+## References
+
+### Langchain
+
+- <https://python.langchain.com/docs/concepts/>
+- <https://python.langchain.com/docs/how_to/>
+- <https://python.langchain.com/docs/integrations/platforms/openai/>
+- <https://python.langchain.com/docs/integrations/chat/ollama/>
+- <https://python.langchain.com/api_reference/ollama/index.html>
+- <https://api.python.langchain.com/en/latest/llms/langchain_community.llms.ollama.Ollama.html>
+- <https://api.python.langchain.com/en/latest/ollama/index.html>
+- <https://api.python.langchain.com/en/latest/openai_api_reference.html>
+
+### OpenAI
+
+- <https://github.com/openai/openai-python>
+- <https://platform.openai.com/docs/api-reference/introduction>
+- <https://platform.openai.com/docs/libraries/python-library>
+
+### Ollama
+
+- <https://github.com/ollama/ollama>
+- <https://ollama.com/library>
+- <https://www.reddit.com/r/LocalLLaMA/>
+
+### Other libraries
+
+- <https://python-markdown.github.io/>
+- <https://python-markdown.github.io/reference/>
+- <https://github.com/Python-Markdown/markdown/wiki/Third-Party-Extensions>
+
+### Articles & examples
+
+- <https://docs.nvidia.com/ace/latest/modules/ace_agent/tutorials/build-langchain-bot.html>

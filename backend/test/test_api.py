@@ -51,7 +51,7 @@ def test_post_message_valid(client, mocker):
 
 def test_get_messages(client, mocker):
     """Test GET request for chat messages"""
-    mocker.patch('iaServer.list', return_value=[
+    mocker.patch('iaServer.getMessages', return_value=[
         {'q': 'Hola, soy humano!'}, {'a': 'Hola soy IA.'}])
     res = client.get('/api/v1/chat/me')
     assert res.status_code == 200

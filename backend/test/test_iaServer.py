@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch
-from iaServer import ask, list, get_session_history
+from iaServer import sendMessage, list, get_session_history
 from langchain_core.messages import HumanMessage, AIMessage
 
 
@@ -19,7 +19,7 @@ def mock_invoke():
 
 
 def test_ask(mock_invoke):
-    response = ask("me", "What is AI?")
+    response = sendMessage("me", "What is AI?")
     assert response == "Test AI Response"
     # mock_invoke.assert_called_once()
 

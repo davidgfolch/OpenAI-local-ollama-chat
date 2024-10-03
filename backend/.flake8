@@ -1,7 +1,11 @@
 [flake8]
-ignore = E226,E302,E41
-max-line-length = 90
+ignore = E501,E226,E302,E41
+max-line-length = 100
 exclude = .git/*,__pycache__
 max-complexity = 10
 
 # https://flake8.pycqa.org/en/latest/user/options.html#options-list
+
+[pycodestyle]  #autopep8 https://github.com/hhatto/autopep8?tab=readme-ov-file
+max_line_length = 100
+ignore = E501
