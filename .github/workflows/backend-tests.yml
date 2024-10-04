@@ -80,7 +80,7 @@ jobs:
       uses: tj-actions/verify-changed-files@v16
       id: verify-changed-files
       with:
-        files: coverage.svg
+        files: /home/runner/work/OpenAI-local-ollama-chat/OpenAI-local-ollama-chat/backend/coverage.svg
 
     - name: Commit files
       if: steps.verify-changed-files.outputs.files_changed == 'true'
