@@ -48,7 +48,8 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: covdata
-        path: /home/runner/coverage.svg
+        path: /home/runner/work/OpenAI-local-ollama-chat/OpenAI-local-ollama-chat/backend/coverage.svg
+        overwrite: true
 
     # coverage-badge-py https://github.com/tj-actions/coverage-badge-py?tab=readme-ov-file#example
     # - name: Coverage Badge
