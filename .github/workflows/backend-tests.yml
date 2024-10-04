@@ -39,11 +39,9 @@ jobs:
         coverage run --source=src -m pytest
     - name: Coverage report
       run: |
-        coverage report -m
+        coverage report --fail-under=90 -m
     - name: Coverage badge
       run: |
-        coverage-badge -o ../README.md_images/coverage.svg -f
-      # uses: tj-actions/coverage-badge-py@v2
-      # id: verify-changed-files
-      # with:
-      #   overwrite: ../REDME.md_images/coverage.svg      
+        coverage-badge
+        # coverage-badge -o ../README.md_images/coverage.svg -f
+ 
