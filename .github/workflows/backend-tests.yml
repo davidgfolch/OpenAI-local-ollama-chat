@@ -39,9 +39,9 @@ jobs:
         # coverage report --fail-under=90 -m
         coverage run --source=src -m pytest
         coverage report -m
-    # - name: Coverage badge
-    #   run: |
-    #     coverage-badge -o coverage.svg -f
+    - name: Coverage badge
+      run: |
+        coverage-badge -o coverage.svg -f
     # - name: Verify Changed files
     #   uses: tj-actions/verify-changed-files@v16
     #   id: verify-changed-files
@@ -72,8 +72,8 @@ jobs:
 
 
     # coverage-badge-py https://github.com/tj-actions/coverage-badge-py?tab=readme-ov-file#example
-    - name: Coverage Badge
-      uses: tj-actions/coverage-badge-py@v2
+    # - name: Coverage Badge
+    #   uses: tj-actions/coverage-badge-py@v2
       
 
     - name: Verify Changed files
