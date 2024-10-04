@@ -46,7 +46,7 @@ cd backend && python api.py
 # run tests
 cd backend && pytest 
 # run coverage
-cd backend && coverage run -m pytest
+cd backend && coverage run --source=src -m pytest
 # see coverage
 coverage html
 ```
