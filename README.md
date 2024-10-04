@@ -3,8 +3,6 @@
 [![Backend unit tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
 [![Backend unit tests coverage](README.md_images/coverage.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
 
-[![Backend unit tests coverage](https://github.com/davidgfolch/OpenAI-local-ollama-chat/artifacts/latest)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
-
 This project implements a chat with the following tech-stack:
 
 Vue -> Python (langchain/openai) -> Ollama

@@ -43,17 +43,23 @@ cd backend && python api.py
 ## Tests & coverage
 
 ```bash
+cd backend
 # run tests
-cd backend && pytest 
+pytest 
 # run coverage
-cd backend && coverage run --source=src -m pytest
+coverage run --source=src -m pytest
 # see coverage
 coverage html
 ```
 
-## generate badget for README.md
+## Generate coverage badge for README.md
 
+```bash
+cd backend
 coverage-badge -o ../README.md_images/coverage.svg -f
+```
+
+NOTE: pipeline generation don't work
 
 ## Project details
 
