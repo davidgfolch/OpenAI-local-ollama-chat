@@ -38,8 +38,8 @@ jobs:
     - name: coverage
       run: |
         cd backend
-        conda install pytest
-        coverage run --source=src -m pytest 
+        conda install coverage
+        coverage run --source=src --fail-under=90 -m pytest 
     - name: coverage badge
       run: |
         cd backend
