@@ -34,4 +34,15 @@ jobs:
     - name: Test
       run: |
         pytest
-    - uses: ./.github/workflows/backend-coverage.yml
+    - name: Coverage
+      run: |
+        coverage run --source=src -m pytest
+    - name: Coverage report
+      run: |
+        coverage report -m
+        # coverage report --fail-under=90 -m
+    - name: Coverage badge
+      run: |
+        # coverage-badge
+        coverage-badge -o ./README.md_images/coverage.svg -f
+ 
