@@ -35,7 +35,7 @@ jobs:
       run: |
         pytest
     - name: Coverage
-      working-directory: test
+      working-directory: .
       run: |
         # coverage report --fail-under=90 -m
         coverage run --source=src -m pytest
@@ -76,7 +76,7 @@ jobs:
     - name: Coverage Badge
       uses: tj-actions/coverage-badge-py@v2
       with:
-        working-directory: test
+        working-directory: .
       
 
     - name: Verify Changed files
