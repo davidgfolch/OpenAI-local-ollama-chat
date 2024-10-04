@@ -22,7 +22,6 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        # cd backend
         conda env update --file env.yml --name base
     # - name: Lint with flake8
     #   run: |
@@ -33,19 +32,9 @@ jobs:
     #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
     #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
     #     flake8 . --count --exit-zero --statistics --config=${{github.workspace}}/backend/.flake8
-    - name: Test with pytest
+    - name: Test & coverage
       run: |
-        # cd backend
-        # conda install pytest
         pytest
-    - name: coverage
-      run: |
-        # cd backend
-        # conda install coverage
-        # coverage run --source=src --fail-under=90 -m pytest 
         coverage run --source=src -m pytest 
-    - name: coverage badge
-      run: |
-        # cd backend
-        # conda install coverage-badge
-        coverage-badge coverage.svg -f
+    - name: Coverage badge
+      uses: tj-actions/coverage-badge-py@v2
