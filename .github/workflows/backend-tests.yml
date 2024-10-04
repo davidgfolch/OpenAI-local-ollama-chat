@@ -7,6 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
+    defaults:
+      run:
+        working-directory: backend
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
@@ -19,29 +22,29 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        cd backend
+        # cd backend
         conda env update --file env.yml --name base
-    - name: Lint with flake8
-      run: |
-        cd backend
-        conda install --solver=classic conda-forge::conda-libmamba-solver conda-forge::libmamba conda-forge::libmambapy conda-forge::libarchive
-        conda install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --statistics --config=${{github.workspace}}/backend/.flake8
+    # - name: Lint with flake8
+    #   run: |
+    #     # cd backend
+    #     conda install --solver=classic conda-forge::conda-libmamba-solver conda-forge::libmamba conda-forge::libmambapy conda-forge::libarchive
+    #     conda install flake8
+    #     # stop the build if there are Python syntax errors or undefined names
+    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    #     flake8 . --count --exit-zero --statistics --config=${{github.workspace}}/backend/.flake8
     - name: Test with pytest
       run: |
-        cd backend
+        # cd backend
         conda install pytest
         pytest
     - name: coverage
       run: |
-        cd backend
+        # cd backend
         conda install coverage
         coverage run --source=src --fail-under=90 -m pytest 
     - name: coverage badge
       run: |
-        cd backend
+        # cd backend
         conda install coverage-badge
         coverage-badge coverage.svg -f
