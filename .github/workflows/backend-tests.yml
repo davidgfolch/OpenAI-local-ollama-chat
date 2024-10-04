@@ -34,4 +34,4 @@ jobs:
     - name: Test
       run: |
         pytest
-    - uses: ./.github/workflows/backend-coverage.yml
+    - uses: .github/workflows/backend-coverage.yml
