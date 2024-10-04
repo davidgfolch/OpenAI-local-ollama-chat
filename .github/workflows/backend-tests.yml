@@ -40,6 +40,11 @@ jobs:
     - name: Coverage report
       run: |
         coverage report -m
+    - name: "Upload coverage data"
+      uses: actions/upload-artifact@v3
+      with:
+        name: covdata
+        path: .coverage
         # coverage report --fail-under=90 -m
     - name: Coverage badge
       run: |
