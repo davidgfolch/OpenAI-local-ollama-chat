@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
@@ -36,3 +35,13 @@ jobs:
         cd backend
         conda install pytest
         pytest
+    - name: coverage
+      run: |
+        cd backend
+        conda install pytest
+        coverage run --source=src -m pytest 
+    - name: coverage badge
+      run: |
+        cd backend
+        conda install coverage-badge
+        coverage-badge coverage.svg -f

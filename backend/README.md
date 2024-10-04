@@ -16,13 +16,13 @@ eval "$(/home/slks/miniconda3/bin/conda shell.zsh hook)"
 ### Install dependencies
 
 ```bash
-conda env update --file env.yml --name base --prune
+conda env update --file cd backend/env.yml --name base --prune
 ```
 
 NOTE: if dependencies added should be exported to `env.yml`:
   
 ```bash
-conda env export > env.yml --from-history
+conda env export > backend/env.yml --from-history
 ```
 
 Other [Conda](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html) commands:
@@ -31,14 +31,26 @@ Other [Conda](https://conda.io/projects/conda/en/latest/user-guide/getting-start
 conda create langchain
 conda deactivate # deactivate any active conda environment
 conda activate langchain
-conda env create -f env.yml
+conda env create -f backend/env.yml
 ```
 
 ## Run the backend
 
 ```bash
-cd backend 
-python api.py
+cd backend && python api.py
+```
+
+## Tests & coverage
+
+```bash
+# run tests
+cd backend && pytest 
+# run coverage
+cd backend && coverage run -m pytest
+# see coverage
+coverage html
+# generate badget for README.md
+coverage-badge -o ../README.md_images/coverage.svg -f
 ```
 
 ## Project details
@@ -50,3 +62,7 @@ You'll see operations' logs in console (see [logConfig.py](logConfig.py)).
 Flask api is implemented in [api.py](api.py), this is also the main entry point.
 
 OpenAi/langchain implementation in [iaServer.py](iaServer.py).
+
+## Reference
+
+- <https://coverage.readthedocs.io/en/7.6.1/>
