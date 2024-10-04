@@ -35,6 +35,7 @@ jobs:
       run: |
         pytest
     - name: Coverage
+      working-directory: test
       run: |
         # coverage report --fail-under=90 -m
         coverage run --source=src -m pytest
@@ -74,19 +75,22 @@ jobs:
     # coverage-badge-py https://github.com/tj-actions/coverage-badge-py?tab=readme-ov-file#example
     - name: Coverage Badge
       uses: tj-actions/coverage-badge-py@v2
+      with:
+        working-directory: test
+      
 
     - name: Verify Changed files
       uses: tj-actions/verify-changed-files@v16
       id: verify-changed-files
       with:
-        files: coverage.svg
+        files: test/coverage.svg
 
     - name: Commit files
       if: steps.verify-changed-files.outputs.files_changed == 'true'
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add coverage.svg
+        git add ${{ steps.verify-changed-files.outputs.changed_files }}
         git commit -m "Updated coverage.svg"
 
     - name: Push changes
