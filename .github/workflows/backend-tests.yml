@@ -36,11 +36,9 @@ jobs:
         pytest
     - name: Coverage
       run: |
-        coverage run --source=src -m pytest
-    - name: Coverage report
-      run: |
-        coverage report -m
         # coverage report --fail-under=90 -m
+        coverage run --source=src -m pytest
+        coverage report -m
     # - name: Coverage badge
     #   run: |
     #     coverage-badge -o coverage.svg -f
