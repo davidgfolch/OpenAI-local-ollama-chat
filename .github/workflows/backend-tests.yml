@@ -44,5 +44,5 @@ jobs:
     - name: Coverage badge
       run: |
         # coverage-badge
-        coverage-badge -o ./README.md_images/coverage.svg -f
+        coverage-badge -o ../README.md_images/coverage.svg -f
  
