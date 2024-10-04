@@ -1,4 +1,4 @@
-# Local IA chat
+# OpenAI langchain Local Ollama chat
 
 [![Backend unit tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
 [![Backend unit tests coverage](README.md_images/coverage.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)

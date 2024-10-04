@@ -9,12 +9,14 @@ from serviceException import ServiceException
 
 log = initLog(__file__)
 
+ERROR_OPENAI_GET_AVAILABLE_MODELS = f'Error invoking openAI server to get available models: {hostArgs['base_url']}'
+ERROR_LANGCHAIN_SEND_CHAT_MESSAGE = f'Error invoking openAI server: {hostArgs['base_url']}'
+
 def getModels() -> list:
     try:
         return openaiUtil.getModels()
     except Exception as e:
-        ex = ServiceException(f'Error invoking openAI server to get available models: {hostArgs['base_url']}')
-        raise ex from e
+        raise ServiceException(ERROR_OPENAI_GET_AVAILABLE_MODELS) from e
 
 
 def sendMessage(model: str, user: str, question: str, history="history1", ability="Ingeniería de software"):
@@ -24,8 +26,7 @@ def sendMessage(model: str, user: str, question: str, history="history1", abilit
             input={"history": history, "ability": ability, "input": question},
             config={"configurable": {"session_id": user, "model": model}})
     except Exception as e:
-        ex = ServiceException(f'Error invoking openAI server: {hostArgs['base_url']}')
-        raise ex from e
+        raise ServiceException(ERROR_LANGCHAIN_SEND_CHAT_MESSAGE) from e
     log.info(f"IA returns {res}")
     return res.content
 

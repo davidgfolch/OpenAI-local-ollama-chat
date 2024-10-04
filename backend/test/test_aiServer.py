@@ -1,7 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
-from aiServer import getModels, sendMessage, getMessages, deleteMessages
+from aiServer import (getModels, ERROR_OPENAI_GET_AVAILABLE_MODELS,
+                      sendMessage,    ERROR_LANGCHAIN_SEND_CHAT_MESSAGE,
+                      getMessages, deleteMessages)
 
 # Define fixtures for testing
 
@@ -12,19 +14,28 @@ def mock_openaiUtil():
         yield mock
 
 
-@pytest.fixture
-def mock_hostArgs():
-    with patch('aiServer.hostArgs', {'base_url': 'http://test-api'}):
-        yield
-
 # Test cases
 
+def test_getModels_exception(mock_openaiUtil):
+    mock_openaiUtil.getModels.side_effect = Exception("Mocked exception")
+    with pytest.raises(Exception) as ex_res:
+        getModels()
+    assert str(ex_res.value) == ERROR_OPENAI_GET_AVAILABLE_MODELS
 
-def test_getModels(mock_openaiUtil, mock_hostArgs):
+
+def test_getModels(mock_openaiUtil):
     mock_openaiUtil.getModels.return_value = ['model1', 'model2']
     models = getModels()
     assert models == ['model1', 'model2']
     mock_openaiUtil.getModels.assert_called_once()
+
+
+def test_sendMessage_exception():
+    with patch('aiServer.with_model') as mock_with_model:
+        mock_with_model.side_effect = Exception("Mocked exception")
+        with pytest.raises(Exception) as ex_res:
+            sendMessage('', '', '', '', '')
+        assert str(ex_res.value) == ERROR_LANGCHAIN_SEND_CHAT_MESSAGE
 
 
 @pytest.mark.parametrize("model, user, question, history, ability", [

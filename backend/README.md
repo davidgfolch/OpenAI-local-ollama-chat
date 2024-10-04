@@ -47,9 +47,16 @@ cd backend
 # run tests
 pytest 
 # run coverage
-coverage run --source=src -m pytest
+coverage run --source=src -m pytest 
+coverage report -m
 # see coverage
 coverage html
+```
+
+All in one:
+
+```bash
+pytest && coverage run --source=src -m pytest && coverage report -m
 ```
 
 ## Generate coverage badge for README.md
