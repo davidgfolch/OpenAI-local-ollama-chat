@@ -3,3 +3,4 @@ backend/langchain.store
 backend/__pycache__/*
 backend/src/__pycache__/*
 backend/.coverage
+README.md_images/coverage.svg
