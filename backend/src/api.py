@@ -1,4 +1,4 @@
-from flask import Flask, Response, make_response, request
+from flask import Flask, Response, request
 import logging
 import aiServer
 import apiMapper
@@ -19,10 +19,9 @@ def handle_error(e: Exception):
 @app.route('/api/v1/chat', methods=['OPTIONS'])
 @app.route('/api/v1/models', methods=['OPTIONS'])
 @app.route('/api/v1/chat/delete', methods=['OPTIONS'])
-def handle_post_chat():
+def cors():
     # Add CORS allow for this method
-    res = make_response()
-    flaskUtil.corsHeaders(res)
+    res = flaskUtil.corsHeaders()
     res.status_code = 200
     return res
 

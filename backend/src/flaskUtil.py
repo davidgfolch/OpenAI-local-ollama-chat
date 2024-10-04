@@ -5,7 +5,7 @@ import logging
 log = initLog(__file__, logging.DEBUG)
 
 
-def corsHeaders(res: Response):
+def corsHeaders(res: Response = Response()):
     res.headers['Access-Control-Allow-Origin'] = '*'
     res.headers['Access-Control-Allow-Methods'] = 'DELETE,GET,POST,OPTIONS'
     res.headers['Access-Control-Allow-Headers'] = 'Content-Type'
