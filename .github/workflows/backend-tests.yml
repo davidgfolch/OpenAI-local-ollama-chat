@@ -43,6 +43,7 @@ jobs:
         # coverage report --fail-under=90 -m
     - name: Coverage badge
       run: |
-        coverage-badge
-        # coverage-badge -o ../README.md_images/coverage.svg -f
+        # coverage-badge
+        coverage-badge -o ../README.md_images/coverage.svg -f
+        coverage-badge -o coverage-badge.svg -f
  
