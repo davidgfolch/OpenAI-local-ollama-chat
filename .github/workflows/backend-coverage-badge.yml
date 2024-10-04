@@ -1,4 +1,4 @@
-name: Reusable workflow example
+name: Backend coverage
 
 on:
     workflow_call:
