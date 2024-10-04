@@ -51,7 +51,8 @@ cd backend && coverage run -m pytest
 coverage html
 ```
 
-# generate badget for README.md
+## generate badget for README.md
+
 coverage-badge -o ../README.md_images/coverage.svg -f
 
 ## Project details
