@@ -40,15 +40,15 @@ jobs:
     - name: Coverage report
       run: |
         coverage report -m
+        # coverage report --fail-under=90 -m
+    - name: Coverage badge
+      run: |
+        coverage-badge -o coverage.svg -f
     - name: "Upload coverage data"
       uses: actions/upload-artifact@v3
       with:
         name: covdata
-        path: /home/runner/work/OpenAI-local-ollama-chat/OpenAI-local-ollama-chat/backend/.coverage
-        # coverage report --fail-under=90 -m
-    - name: Coverage badge
-      run: |
-        coverage-badge -o ../README.md_images/coverage.svg -f
+        path: /home/runner/coverage.svg
 
     # coverage-badge-py https://github.com/tj-actions/coverage-badge-py?tab=readme-ov-file#example
     # - name: Coverage Badge
