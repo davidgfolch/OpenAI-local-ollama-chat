@@ -44,7 +44,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: covdata
-        path: .coverage
+        path: /home/runner/work/OpenAI-local-ollama-chat/OpenAI-local-ollama-chat/backend/.coverage
         # coverage report --fail-under=90 -m
     - name: Coverage badge
       run: |
