@@ -4,7 +4,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
-from langchain_community.chat_models import ChatOllama
 
 from host import hostArgs
 from logConfig import initLog

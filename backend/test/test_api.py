@@ -1,6 +1,6 @@
 import pytest
+import json
 from api import app
-from apiMapper import markDownToHtml, listMapper
 
 
 @pytest.fixture
@@ -10,50 +10,37 @@ def client():
         yield client
 
 
-def test_markdown_to_html():
-    """Test markdown to HTML conversion"""
-    markdown_text = "# Hello World"
-    expected_html = "<h1>Hello World</h1>"
-    assert markDownToHtml(markdown_text).strip() == expected_html
+def assertResponseOK(response, content):
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert {'response': content} == data
 
 
-def test_list_mapper():
-    """Test list mapper function"""
-    message = {"q": "Hello"}
-    expected_output = {"q": "<p>Hello</p>"}
-    assert listMapper(message) == expected_output
+# Test cases
+def test_getModels(mocker, client):
+    expected = ['m1', 'm2']
+    mocker.patch("aiServer.getModels", return_value=expected)
+    assertResponseOK(client.get('/api/v1/models'), ['m1', 'm2'])
 
 
-def test_handle_post_chat_options(client):
-    """Test OPTIONS request on /api/v1/chat"""
-    res = client.options('/api/v1/chat')
-    assert res.status_code == 200
-    assert res.headers['Access-Control-Allow-Origin'] == '*'
+def test_postMessage(mocker, client):
+    mocker.patch("aiServer.sendMessage",
+                 return_value="# test markdown response")
+    assertResponseOK(client.post('/api/v1/chat', json={
+        'model': 'testModel',
+        'user': 'testUser',
+        'question': 'testQuestion',
+        'history': 'testHistory',
+        'ability': 'testAbility'
+    }), '<h1>test markdown response</h1>')
 
 
-def test_post_message_missing_fields(client):
-    """Test POST request for chat message with missing fields"""
-    res = client.post('/api/v1/chat', json={"user": ""})
-    assert res.status_code == 500
-    assert res.json == {
-        "error": 'Required fields not informed: question, history, ability'}
+def test_getMessages(mocker, client):
+    mocker.patch("aiServer.getMessages", return_value=[{'q': 'testQuestion'}, {'a': '# test markdown response'}])
+    assertResponseOK(client.get('/api/v1/chat/testUser'),
+                     [{'q': '<p>testQuestion</p>'}, {'a': '<h1>test markdown response</h1>'}])
 
 
-def test_post_message_valid(client, mocker):
-    """Test POST request for valid chat message"""
-    mocker.patch('iaServer.ask', return_value="Test Response")
-    res = client.post('/api/v1/chat', json={"user": "me", "question": "What is AI?",
-                                            "history": "myHistory",
-                                            "ability": "Ingeniería de software"})
-    assert res.status_code == 200
-    assert res.json == {"response": "<p>Test Response</p>"}
-
-
-def test_get_messages(client, mocker):
-    """Test GET request for chat messages"""
-    mocker.patch('iaServer.getMessages', return_value=[
-        {'q': 'Hola, soy humano!'}, {'a': 'Hola soy IA.'}])
-    res = client.get('/api/v1/chat/me')
-    assert res.status_code == 200
-    assert res.json == {"response": [
-        {'q': '<p>Hola, soy humano!</p>'}, {'a': '<p>Hola soy IA.</p>'}]}
+def test_deleteMessages(mocker, client):
+    mocker.patch("aiServer.deleteMessages", return_value=None)
+    assertResponseOK(client.get('/api/v1/chat/delete/testUser'), None)

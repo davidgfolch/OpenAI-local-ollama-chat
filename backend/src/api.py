@@ -1,6 +1,6 @@
 from flask import Flask, Response, make_response, request
 import logging
-import iaServer
+import aiServer
 import apiMapper
 import flaskUtil
 from logConfig import initLog
@@ -29,7 +29,7 @@ def handle_post_chat():
 
 @app.get('/api/v1/models')
 def getModels():
-    models = iaServer.getModels()
+    models = aiServer.getModels()
     log.info(f"getModels() = {models}")
     return flaskUtil.setResponseOK(models)
 
@@ -42,26 +42,24 @@ def postMessage():
         return errRes
     return flaskUtil.setResponseOK(
         apiMapper.markDownToHtml(
-            iaServer.sendMessage(model, user, question, history, ability)))
+            aiServer.sendMessage(model, user, question, history, ability)))
 
 
 @app.get('/api/v1/chat/<string:user>')
 def getMessages(user):
     if not user:
         return flaskUtil.setResponseKO('User is required')
-    msgs = iaServer.getMessages(user)
-    msgs = [apiMapper.listMapper(msg) for msg in iaServer.getMessages(user)]
+    msgs = aiServer.getMessages(user)
+    msgs = [apiMapper.listMapper(msg) for msg in aiServer.getMessages(user)]
     log.info(f"mapped messages {msgs}")
     return flaskUtil.setResponseOK(msgs)
 
-# TODO: @app.delete('/api/v1/chat/<string:user>') dont work CORS
 
-
-@app.get('/api/v1/chat/delete/<string:user>')
+@app.get('/api/v1/chat/delete/<string:user>')  # TODO: app.delete('/api/v1/chat/<string:user>') dont work CORS
 def deleteMessages(user):
     if not user:
         return flaskUtil.setResponseKO('User is required')
-    res = iaServer.deleteMessages(user)
+    res = aiServer.deleteMessages(user)
     return flaskUtil.setResponseOK(res)
 
 
