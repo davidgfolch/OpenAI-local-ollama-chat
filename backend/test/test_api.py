@@ -1,7 +1,8 @@
-from flask import Response
 import pytest
 import json
+from unittest.mock import patch
 from api import app
+from serviceException import ServiceException
 
 
 @pytest.fixture
@@ -11,6 +12,7 @@ def client():
         yield client
 
 
+# helper methods (abstractions)
 def assertResponseOK(res, content):
     """ Asserts http status 200 & response.data.response == content """
     assert res.status_code == 200
@@ -28,6 +30,14 @@ def assertResponseError(res, content):
 
 
 # Test cases
+def test_handle_error(client):
+    with patch('api.aiServer') as mock:
+        mock.getModels.side_effect = ServiceException("Mocked exception")
+        res = client.get('/api/v1/models')
+        assertResponseError(
+            res, [f"{ServiceException.__name__}: Mocked exception"])
+
+
 def test_cors(client):
     res = client.options('/api/v1/chat')
     assert res.headers['Access-Control-Allow-Origin'] == '*'
@@ -64,6 +74,14 @@ def test_getMessages(mocker, client):
                  {'q': 'testQuestion'}, {'a': '# test markdown response'}])
     assertResponseOK(client.get('/api/v1/chat/testUser'),
                      [{'q': '<p>testQuestion</p>'}, {'a': '<h1>test markdown response</h1>'}])
+
+
+def test_getMessages_validationError(client):
+    with patch('api.aiServer') as mock:
+        mock.getModels.side_effect = None
+        assertResponseError(client.get('/api/v1/chat'),  # no user param (query path)
+                            ['ServiceException: Mocked exception',
+                             'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
 
 
 def test_deleteMessages(mocker, client):

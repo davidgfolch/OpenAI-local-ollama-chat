@@ -46,8 +46,6 @@ def postMessage():
 
 @app.get('/api/v1/chat/<string:user>')
 def getMessages(user):
-    if not user:
-        return flaskUtil.setResponseKO('User is required')
     msgs = aiServer.getMessages(user)
     msgs = [apiMapper.listMapper(msg) for msg in aiServer.getMessages(user)]
     log.info(f"mapped messages {msgs}")
@@ -56,11 +54,9 @@ def getMessages(user):
 
 @app.get('/api/v1/chat/delete/<string:user>')  # TODO: app.delete('/api/v1/chat/<string:user>') dont work CORS
 def deleteMessages(user):
-    if not user:
-        return flaskUtil.setResponseKO('User is required')
     res = aiServer.deleteMessages(user)
     return flaskUtil.setResponseOK(res)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # TODO: how to test this?
     app.run(debug=True)
