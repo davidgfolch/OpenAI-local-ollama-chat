@@ -1,4 +1,5 @@
 from flask import Response, make_response, Request
+from exceptionUtil import getExceptionStackMessages
 from logConfig import initLog
 import logging
 
@@ -35,6 +36,10 @@ def setResponseOK(res):
 
 
 def setResponseKO(ex):
+    error = setResponseKO_internal__(ex)
+    return corsHeaders(make_response({'error': error}, 500))
+
+def setResponseKO_internal__(ex):
     if (isinstance(ex, Exception)):
         exceptions = getExceptionStackMessages(ex)
         error = list(dict.fromkeys(exceptions))
@@ -42,14 +47,4 @@ def setResponseKO(ex):
     else:
         error = ex
         log.error(ex)
-    return corsHeaders(make_response({'error': error}, 500))
-
-
-def getExceptionStackMessages(ex, msgs=[]):
-    if (isinstance(ex, Exception)):
-        msgs.append(type(ex).__name__+": "+str(ex))
-    else:
-        msgs.append(ex)
-    if (ex.__cause__):
-        getExceptionStackMessages(ex.__cause__, msgs)
-    return msgs
+    return error

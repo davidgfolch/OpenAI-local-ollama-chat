@@ -32,10 +32,10 @@ def assertResponseError(res, content):
 # Test cases
 def test_handle_error(client):
     with patch('api.aiServer') as mock:
-        mock.getModels.side_effect = ServiceException("Mocked exception")
+        mock.getModels.side_effect = ServiceException("Mocked exception", Exception("cause"))
         res = client.get('/api/v1/models')
         assertResponseError(
-            res, [f"{ServiceException.__name__}: Mocked exception"])
+            res, ["ServiceException: ('Mocked exception', Exception('cause'))"])
 
 
 def test_cors(client):
@@ -77,11 +77,9 @@ def test_getMessages(mocker, client):
 
 
 def test_getMessages_validationError(client):
-    with patch('api.aiServer') as mock:
-        mock.getModels.side_effect = None
-        assertResponseError(client.get('/api/v1/chat'),  # no user param (query path)
-                            ['ServiceException: Mocked exception',
-                             'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
+    assertResponseError(client.get('/api/v1/chat'),  # no user param (query path)
+                        ["ServiceException: ('Mocked exception', Exception('cause'))",
+                         'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
 
 
 def test_deleteMessages(mocker, client):

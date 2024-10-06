@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
 from aiServer import (getModels, ERROR_OPENAI_GET_AVAILABLE_MODELS,
-                      sendMessage,    ERROR_LANGCHAIN_SEND_CHAT_MESSAGE,
+                      sendMessage, ERROR_LANGCHAIN_SEND_CHAT_MESSAGE,
                       getMessages, deleteMessages)
 
 # Define fixtures for testing
@@ -15,7 +15,6 @@ def mock_openaiUtil():
 
 
 # Test cases
-
 def test_getModels_exception(mock_openaiUtil):
     mock_openaiUtil.getModels.side_effect = Exception("Mocked exception")
     with pytest.raises(Exception) as ex_res:
