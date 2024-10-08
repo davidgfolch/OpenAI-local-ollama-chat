@@ -26,7 +26,6 @@ const messages = ref([]);
 const scrollDiv = ref(null);
 const chatError = ref('');
 const chatOptions = ref();
-const prompt = ref(null);
 // Methods
 const highLightCode = () => nextTick().then(() => hljs.highlightAll());
 const errorReset = () => chatError.value.reset();
@@ -49,7 +48,6 @@ const loadHistory = () => {
         q = null, a = null;
       }
     });
-    // nextTick(() => prompt.value.focus());
   }).catch(handleError).finally(resetApiCall);
 };
 const setAnswer = (answer, resetQuestion) => {
@@ -132,8 +130,13 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
         :loading="loading" />
       <ChatError ref="chatError" />
     </ul>
-    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="invoke"
-      :disabled="loading" ref="prompt" autofocus />
+    <textarea rows="3" v-model="question"
+              class="text_input" placeholder="Message..."
+              :disabled="loading" autofocus>
+    </textarea>
+
+    <!-- <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="invoke"
+      :disabled="loading" autofocus /> -->
     <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="invoke" :disabled="loading">
   </div>
   <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"

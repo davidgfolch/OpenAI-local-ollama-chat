@@ -2,7 +2,7 @@ from langchain_core.chat_history import BaseMessage
 from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
-from service.langchainUtil import checkChunkError, get_session_history, with_model
+from service.langchainUtil import checkChunkError, get_session_history, invoke, stream, with_model
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog
@@ -26,10 +26,7 @@ def getModels() -> list:
 def sendMessage(r: ChatRequest):
     log.info(f"invoke to {r.model}: {r.question}")
     try:
-        res = with_model(r.model).invoke(
-            input={"history": r.history,
-                   "ability": r.ability, "input": r.question},
-            config={"configurable": {"session_id": r.user, "model": r.model}})
+        res = invoke(r)
     except Exception as e:
         raise ServiceException(ERROR_LANGCHAIN_SEND_CHAT_MESSAGE) from e
     log.info(f"IA returns {res}")
@@ -39,10 +36,7 @@ def sendMessage(r: ChatRequest):
 def sendMessageStream(r: ChatRequest):
     log.info(f"sendMessageStream to {r.model}: {r.question}")
     try:
-        call = with_model(r.model).stream(
-            input={"history": r.history,
-                   "ability": r.ability, "input": r.question},
-            config={"configurable": {"session_id": r.user, "model": r.model}})
+        call = stream(r)
         for chunk in call:
             yield chunk
             checkChunkError(chunk)

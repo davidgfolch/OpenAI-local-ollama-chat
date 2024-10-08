@@ -5,6 +5,7 @@ from langchain_community.chat_message_histories.file import FileChatMessageHisto
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.messages import AIMessageChunk
 
+from model.model import ChatRequest
 from service.host import hostArgs
 from util.logUtil import initLog
 
@@ -37,6 +38,16 @@ def chatInstance():
                                       history_messages_key="history")
 
 
+def invoke(r: ChatRequest):
+    return with_model(r.model).invoke(input={"history": r.history, "ability": r.ability, "input": r.question},
+                                      config={"configurable": {"session_id": r.user, "model": r.model}})
+
+
+def stream(r: ChatRequest):
+    return with_model(r.model).stream(input={"history": r.history, "ability": r.ability, "input": r.question},
+                                      config={"configurable": {"session_id": r.user, "model": r.model}})
+
+
 def with_model(model: str):
     global currentModel, chat
     m = model.strip()
@@ -50,7 +61,6 @@ def with_model(model: str):
 
 
 def checkChunkError(chunk: AIMessageChunk):
-    # response_metadata={'finish_reason': 'stop', 'model_name': 'deepseek-coder-v2:16b', 'system_fingerprint': 'fp_ollama'}
     reason = chunk.response_metadata.get('finish_reason', '')
     if (reason != '' and reason != 'stop'):
         raise Exception("Error in stream chunk finish_reason is not stop ")
