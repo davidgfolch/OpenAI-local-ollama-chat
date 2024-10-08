@@ -2,7 +2,7 @@ from langchain_core.chat_history import BaseMessage
 from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
-from service.langchainUtil import get_session_history, with_model
+from service.langchainUtil import checkChunkError, get_session_history, with_model
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog
@@ -10,8 +10,10 @@ from service.serviceException import ServiceException
 
 log = initLog(__file__)
 
-ERROR_OPENAI_GET_AVAILABLE_MODELS = f'Error invoking openAI server to get available models: {baseUrl}'
-ERROR_LANGCHAIN_SEND_CHAT_MESSAGE = f'Error invoking/streaming openAI server: {baseUrl}'
+ERROR_OPENAI_GET_AVAILABLE_MODELS = f'Error invoking openAI server to get available models: {
+    baseUrl}'
+ERROR_LANGCHAIN_SEND_CHAT_MESSAGE = f'Error invoking/streaming openAI server: {
+    baseUrl}'
 
 
 def getModels() -> list:
@@ -24,7 +26,7 @@ def getModels() -> list:
 def sendMessage(r: ChatRequest):
     log.info(f"invoke to {r.model}: {r.question}")
     try:
-        res: AIMessage = with_model(r.model).invoke(
+        res = with_model(r.model).invoke(
             input={"history": r.history,
                    "ability": r.ability, "input": r.question},
             config={"configurable": {"session_id": r.user, "model": r.model}})
@@ -35,7 +37,7 @@ def sendMessage(r: ChatRequest):
 
 
 def sendMessageStream(r: ChatRequest):
-    log.info(f"stream to {r.model}: {r.question}")
+    log.info(f"sendMessageStream to {r.model}: {r.question}")
     try:
         call = with_model(r.model).stream(
             input={"history": r.history,
@@ -43,6 +45,7 @@ def sendMessageStream(r: ChatRequest):
             config={"configurable": {"session_id": r.user, "model": r.model}})
         for chunk in call:
             yield chunk
+            checkChunkError(chunk)
     except Exception as e:
         raise ServiceException(ERROR_LANGCHAIN_SEND_CHAT_MESSAGE) from e
 

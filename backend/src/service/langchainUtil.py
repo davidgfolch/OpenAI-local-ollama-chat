@@ -3,6 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
+from langchain_core.messages import AIMessageChunk
 
 from service.host import hostArgs
 from util.logUtil import initLog
@@ -40,12 +41,19 @@ def with_model(model: str):
     global currentModel, chat
     m = model.strip()
     if model == '' or currentModel == m:
-        log.info(f"Using same model {currentModel}")
+        log.info(f"Using same model: '{currentModel}'")
         return chat
     log.info(f"New chat instance with model: {m}")
     currentModel = m
     chat = chatInstance()
     return chat
+
+
+def checkChunkError(chunk: AIMessageChunk):
+    # response_metadata={'finish_reason': 'stop', 'model_name': 'deepseek-coder-v2:16b', 'system_fingerprint': 'fp_ollama'}
+    reason = chunk.response_metadata.get('finish_reason', '')
+    if (reason != '' and reason != 'stop'):
+        raise Exception("Error in stream chunk finish_reason is not stop ")
 
 
 chat = chatInstance()

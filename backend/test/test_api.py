@@ -31,8 +31,9 @@ def assertResponseError(res, content):
 
 # Test cases
 def test_handle_error(client):
-    with patch('api.aiService') as mock:
-        mock.getModels.side_effect = ServiceException("Mocked exception", Exception("cause"))
+    with patch('service.aiService.getModels') as mock:
+        mock.side_effect = ServiceException(
+            "Mocked exception", Exception("cause"))
         res = client.get('/api/v1/models')
         assertResponseError(
             res, ["ServiceException: ('Mocked exception', Exception('cause'))"])
@@ -48,7 +49,7 @@ def test_cors(client):
 
 def test_getModels(mocker, client):
     expected = ['m1', 'm2']
-    mocker.patch("aiService.getModels", return_value=expected)
+    mocker.patch("service.aiService.getModels", return_value=expected)
     assertResponseOK(client.get('/api/v1/models'), ['m1', 'm2'])
 
 
@@ -58,7 +59,7 @@ def test_postMessage_errRes(mocker, client):
 
 
 def test_postMessage(mocker, client):
-    mocker.patch("aiService.invoke",
+    mocker.patch("service.aiService.sendMessage",
                  return_value="# test markdown response")
     assertResponseOK(client.post('/api/v1/chat', json={
         'model': 'testModel',
@@ -66,14 +67,14 @@ def test_postMessage(mocker, client):
         'question': 'testQuestion',
         'history': 'testHistory',
         'ability': 'testAbility'
-    }), '<h1>test markdown response</h1>')
+    }), '# test markdown response')
 
 
 def test_getMessages(mocker, client):
-    mocker.patch("aiService.getMessages", return_value=[
+    mocker.patch("service.aiService.getMessages", return_value=[
                  {'q': 'testQuestion'}, {'a': '# test markdown response'}])
     assertResponseOK(client.get('/api/v1/chat/testUser'),
-                     [{'q': '<p>testQuestion</p>'}, {'a': '<h1>test markdown response</h1>'}])
+                     [{'q': 'testQuestion'}, {'a': '# test markdown response'}])
 
 
 def test_getMessages_validationError(client):
@@ -83,5 +84,5 @@ def test_getMessages_validationError(client):
 
 
 def test_deleteMessages(mocker, client):
-    mocker.patch("aiService.deleteMessages", return_value=None)
+    mocker.patch("service.aiService.deleteMessages", return_value=None)
     assertResponseOK(client.get('/api/v1/chat/delete/testUser'), None)

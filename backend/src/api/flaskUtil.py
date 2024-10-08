@@ -7,7 +7,7 @@ log = initLog(__file__, logging.DEBUG)
 
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'DELETE,GET,POST,OPTIONS,STREAM',
+    'Access-Control-Allow-Methods': 'DELETE,GET,POST,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type'
 }
 
