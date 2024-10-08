@@ -108,11 +108,11 @@ Select the model to use & ask your question:
 
 ### deepseek-coder-v2:16b
 
-![deepseek-coder-v2:16b](deepseek-coder-v2_16b.png)
+![deepseek-coder-v2:16b](README.md_images/deepseek-coder-v2_16b.png)
 
 ### codegemma:7b
 
-![codegemma:7b](codegemma_7b.png)
+![codegemma:7b](README.md_images/codegemma_7b.png)
 
 ## References
 
@@ -148,3 +148,24 @@ Select the model to use & ask your question:
 ### Articles & examples
 
 - <https://docs.nvidia.com/ace/latest/modules/ace_agent/tutorials/build-langchain-bot.html>
+
+## TODO
+
+1. Multiline input message.
+2. Stop button when receiving backend stream response (stoping ollama server execution).
+3. Upload file or folder to give context to llm (RAG??).
+4. Agents?
+
+## Known issues (todo)
+
+### DeepSeekCoder V2 fails randomly
+
+```log
+oct 08 13:05:40 slks-GL752VW ollama[17132]: /go/src/github.com/ollama/ollama/llm/llama.cpp/src/llama.cpp:15110: Deepseek2 does not support K-shift
+oct 08 13:05:40 slks-GL752VW ollama[17132]: Could not attach to process.  If your uid matches the uid of the target
+oct 08 13:05:40 slks-GL752VW ollama[17132]: process, check the setting of /proc/sys/kernel/yama/ptrace_scope, or try
+oct 08 13:05:40 slks-GL752VW ollama[17132]: again as the root user.  For more details, see /etc/sysctl.d/10-ptrace.conf
+oct 08 13:05:40 slks-GL752VW ollama[17132]: ptrace: Inappropriate ioctl for device.
+oct 08 13:05:40 slks-GL752VW ollama[17132]: No stack.
+oct 08 13:05:40 slks-GL752VW ollama[17132]: The program is not being run.
+```

@@ -7,6 +7,7 @@
 Follow the conda documentation: [Installing Conda](https://docs.anaconda.com/miniconda/#quick-command-line-install). See also [Conda getting started](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html#before-you-start)
 
 Setup your terminal (zsh example):
+
 ```bash
 source ~/miniconda3/bin/activate
 conda init zsh
@@ -32,6 +33,9 @@ conda create langchain
 conda deactivate # deactivate any active conda environment
 conda activate langchain
 conda env create -f backend/env.yml
+
+# todo: try setting python version
+conda create -n tf_env python=3.8 
 ```
 
 ## Run the backend
@@ -70,14 +74,16 @@ NOTE: pipeline generation don't work
 
 ## Project details
 
-Default host/port is set in [host.py](host.py).
+Default host/port is set in [host.py](src/service/host.py).
 
-You'll see operations' logs in console (see [logConfig.py](logConfig.py)).
+You'll see operations' logs in console (see [logUtil.py](src/util/logUtil.py)).
 
-Flask api is implemented in [api.py](api.py), this is also the main entry point.
+Flask api is implemented in [api.py](src/api/api.py), this is also the main entry point.
 
-OpenAi/langchain implementation in [iaServer.py](iaServer.py).
+OpenAi/langchain implementation in [iaService.py](src/service/aiService.py).
 
 ## Reference
 
-- <https://coverage.readthedocs.io/en/7.6.1/>
+- [Flask](https://flask.palletsprojects.com/en/2.3.x/)
+- [Flask streaming](https://flask.palletsprojects.com/es/main/patterns/streaming/)
+- [Coverage](https://coverage.readthedocs.io/en/7.6.1/)

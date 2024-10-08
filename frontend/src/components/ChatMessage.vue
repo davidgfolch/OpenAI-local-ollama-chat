@@ -11,12 +11,12 @@ const props = defineProps({
 </script>
 
 <template>
-    <li class="message left">
+    <li class="message right">
         <img class="logo" src="../assets/veloai/user.png" alt="User question" title="User question">
         <!-- <img class="logo" :src="iconSets['user']" alt="User question" title="User question"> -->
         <span v-html="props.msg.q"></span>
     </li>
-    <li class="message right">
+    <li class="message left">
         <img class="logo" src="../assets/veloai/ai.png" alt="AI response" title="AI response">
         <img class="logo loading" src="../assets/loading.gif" v-if="total == index + 1 & loading"
             alt="Waiting for AI response" title="Waiting for AI response" />
@@ -80,7 +80,7 @@ li span {
 
 pre {
     overflow: auto;
-    max-width: 80%;
+    max-width: 90em;
     display: inline-block !important;
 }
 </style>

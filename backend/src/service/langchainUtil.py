@@ -1,12 +1,11 @@
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-# InMemoryChatMessageHistory,
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
 
-from host import hostArgs
-from logConfig import initLog
+from service.host import hostArgs
+from util.logUtil import initLog
 
 
 log = initLog(__file__)
@@ -14,7 +13,6 @@ store = {}
 # "llama3.1-claude" "mistral"  "llama3.1:8b"
 currentModel = "deepseek-coder-v2:16b"
 
-# TODO: checkout automatic model selection, but it will make the response slower: https://github.com/PromptEngineer48/LLM_Selector/blob/main/main_working.py
 
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
@@ -38,18 +36,13 @@ def chatInstance():
                                       history_messages_key="history")
 
 
-# TODO: streaming https://python.langchain.com/docs/how_to/structured_output/#streaming
-# asyncCallbackHandler = AsyncCallbackHandler()
-# model = ChatOpenAI(streaming=True, callbacks=asyncCallbackHandler**hostArgs)
-
-
 def with_model(model: str):
     global currentModel, chat
     m = model.strip()
     if model == '' or currentModel == m:
-        log.info("Same model!")
+        log.info(f"Using same model {currentModel}")
         return chat
-    log.info(f"New chatInscance with model: {m}")
+    log.info(f"New chat instance with model: {m}")
     currentModel = m
     chat = chatInstance()
     return chat

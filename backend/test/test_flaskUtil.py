@@ -1,6 +1,6 @@
-from api import app
+from api.api import app
 import pytest
-from flaskUtil import setResponseKO_internal__
+from api.flaskUtil import setResponseKO_internal__
 
 
 @pytest.fixture

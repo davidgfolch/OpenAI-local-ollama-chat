@@ -2,8 +2,8 @@ from openai import OpenAI
 from openai.pagination import SyncPage
 from openai.types import Model
 
-from host import hostArgs
-from logConfig import initLog
+from service.host import hostArgs
+from util.logUtil import initLog
 
 log = initLog(__file__)
 

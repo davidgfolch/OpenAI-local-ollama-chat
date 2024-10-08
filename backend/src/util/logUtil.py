@@ -31,7 +31,6 @@ class CustomFormatter(logging.Formatter):
             return logging.Formatter(fmt).format(record)
 
 
-# Configure logger to print into console
 def initLog(file: str, level=logging.INFO):
     name = file.split("/").pop()
     if (name == "" or name is None):
@@ -43,11 +42,3 @@ def initLog(file: str, level=logging.INFO):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
-
-# def initLog(file:str):
-#     logging.config.fileConfig('logging.conf')
-#     sh = logging.StreamHandler()
-#     sh.setFormatter(CustomFormatter())
-#     logger =  logging.getLogger(re.sub(r'(.*\/)(^.)+\.py', r'\1',file))
-#     logger.addHandler(sh);
-#     return logger

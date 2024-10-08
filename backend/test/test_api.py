@@ -1,8 +1,8 @@
 import pytest
 import json
 from unittest.mock import patch
-from api import app
-from serviceException import ServiceException
+from api.api import app
+from service.serviceException import ServiceException
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def assertResponseError(res, content):
 
 # Test cases
 def test_handle_error(client):
-    with patch('api.aiServer') as mock:
+    with patch('api.aiService') as mock:
         mock.getModels.side_effect = ServiceException("Mocked exception", Exception("cause"))
         res = client.get('/api/v1/models')
         assertResponseError(
@@ -48,7 +48,7 @@ def test_cors(client):
 
 def test_getModels(mocker, client):
     expected = ['m1', 'm2']
-    mocker.patch("aiServer.getModels", return_value=expected)
+    mocker.patch("aiService.getModels", return_value=expected)
     assertResponseOK(client.get('/api/v1/models'), ['m1', 'm2'])
 
 
@@ -58,7 +58,7 @@ def test_postMessage_errRes(mocker, client):
 
 
 def test_postMessage(mocker, client):
-    mocker.patch("aiServer.sendMessage",
+    mocker.patch("aiService.invoke",
                  return_value="# test markdown response")
     assertResponseOK(client.post('/api/v1/chat', json={
         'model': 'testModel',
@@ -70,7 +70,7 @@ def test_postMessage(mocker, client):
 
 
 def test_getMessages(mocker, client):
-    mocker.patch("aiServer.getMessages", return_value=[
+    mocker.patch("aiService.getMessages", return_value=[
                  {'q': 'testQuestion'}, {'a': '# test markdown response'}])
     assertResponseOK(client.get('/api/v1/chat/testUser'),
                      [{'q': '<p>testQuestion</p>'}, {'a': '<h1>test markdown response</h1>'}])
@@ -83,5 +83,5 @@ def test_getMessages_validationError(client):
 
 
 def test_deleteMessages(mocker, client):
-    mocker.patch("aiServer.deleteMessages", return_value=None)
+    mocker.patch("aiService.deleteMessages", return_value=None)
     assertResponseOK(client.get('/api/v1/chat/delete/testUser'), None)

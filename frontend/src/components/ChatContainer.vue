@@ -6,6 +6,8 @@ import ChatOptions from './ChatOptions.vue';
 import ApiClient from './ApiClient.js';
 import hljs from 'highlight.js';
 import scrollDown from './utils.js';
+import { showdown } from "vue-showdown";
+
 // Props
 const props = defineProps({
   initialMessages: {
@@ -13,6 +15,8 @@ const props = defineProps({
     default: () => []
   }
 });
+const mdConverter = new showdown.Converter();
+
 // Reactive data
 const user = ref('me');
 const loading = ref(false);
@@ -26,7 +30,8 @@ const prompt = ref(null);
 // Methods
 const highLightCode = () => nextTick().then(() => hljs.highlightAll());
 const errorReset = () => chatError.value.reset();
-const scrollDownChat = () => scrollDown(scrollDiv.value);
+var scrollDownEnabled = true;
+const scrollDownChat = () => { if (scrollDownEnabled) scrollDown(scrollDiv.value); }
 const loadHistory = () => {
   let q = null, a = null;
   loading.value = true;
@@ -36,7 +41,7 @@ const loadHistory = () => {
     }
     res.data.response.forEach((msg) => {
       if (msg.q) q = msg.q;
-      if (msg.a) a = msg.a;
+      if (msg.a) a = mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg.a));
       if (a != null && q != null) {
         messages.value.push({ q, a });
         scrollDownChat()
@@ -48,7 +53,7 @@ const loadHistory = () => {
   }).catch(handleError).finally(resetApiCall);
 };
 const setAnswer = (answer, resetQuestion) => {
-  messages.value.push({ q: '<p>' + question.value + '</p>', a: answer });
+  messages.value.push({ q: '<p>' + question.value + '</p>', a: mdConverter.makeHtml(answer) });
   if (resetQuestion) question.value = '';
   scrollDownChat()
   highLightCode();
@@ -57,25 +62,59 @@ const handleError = (error) => {
   chatError.value.show(error);
 };
 const resetApiCall = () => {
+  scrollDownEnabled = true;
   loading.value = false;
   scrollDownChat()
 };
-const sendMessage = async () => {
+const checkUnclosedCodeBlockMd = (data) => {
+  const codePos = data.lastIndexOf("```");
+  if (codePos != -1) {
+    console.log("found last markdown in pos=" + codePos);
+    const tail = data.substr(codePos - 3)
+    if (tail.match(/```[a-zA-Z]+/gm)) {
+      return data + '\n```'
+    }
+  }
+  return data
+}
+const useStream = true
+const invoke = async () => {
   if (question.value.trim() == '') return
   loading.value = true;
   errorReset();
+  scrollDownEnabled = true;
   setAnswer('<p>Waiting for response...</p>');
+  scrollDownEnabled = false;
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
-  ApiClient.post('/api/v1/chat', body).then(res => {
-    messages.value.pop();
-    setAnswer(res.data.response);
-    question.value = '';
+  const url = useStream ? '/api/v1/chat-stream' : '/api/v1/chat'
+  ApiClient.post(url, body, {
+    onDownloadProgress: (progressEvent) => {
+      let eventObj = undefined;
+      if (progressEvent.event?.currentTarget) {
+        eventObj = progressEvent.event?.currentTarget;
+      } else if (progressEvent.event?.srcElement) {
+        eventObj = progressEvent.event?.srcElement;
+      } else if (progressEvent.event?.target) {
+        eventObj = progressEvent.event?.target;
+      }
+      if (!eventObj) return;
+      var dataChunk = eventObj.response;
+      dataChunk = checkUnclosedCodeBlockMd(dataChunk)
+      messages.value.pop();
+      setAnswer(dataChunk);
+    }
+  }).then(() => {
+    question.value = ''
   }).catch(e => {
     messages.value.pop()
     handleError(e);
   }).finally(resetApiCall);
+  // https://stackoverflow.com/questions/72781074/piping-the-response-into-a-variable-using-streams-axios-node-js
+  // axios.get responseType: 'stream' https://stackoverflow.com/questions/71534322/http-stream-using-axios-node-js
 };
+
+
 const messagesReset = () => {
   messages.value = [];
   nextTick(() => loadHistory());
@@ -93,9 +132,9 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
         :loading="loading" />
       <ChatError ref="chatError" />
     </ul>
-    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="sendMessage"
+    <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="invoke"
       :disabled="loading" ref="prompt" autofocus />
-    <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="sendMessage" :disabled="loading">
+    <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="invoke" :disabled="loading">
   </div>
   <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"
     @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat" ref="chatOptions" />
