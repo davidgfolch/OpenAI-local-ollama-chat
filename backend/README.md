@@ -23,7 +23,7 @@ conda env update --file cd backend/env.yml --name base --prune
 NOTE: if dependencies added should be exported to `env.yml`:
   
 ```bash
-conda env export > backend/env.yml --from-history
+conda env export > backend/env.yml --no-builds
 ```
 
 Other [Conda](https://conda.io/projects/conda/en/latest/user-guide/getting-started.html) commands:

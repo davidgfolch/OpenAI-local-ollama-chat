@@ -45,7 +45,7 @@ def postMessage():
 
 
 @app.post('/api/v1/chat-stream')
-def postMessageAStream():
+def postMessageStream():
     params = getReqParams(request, ChatRequest.params)
     req = ChatRequest(*params)
     if isinstance(req.errRes, Response):

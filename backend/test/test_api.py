@@ -1,8 +1,13 @@
 import pytest
 import json
+import jsons
 from unittest.mock import patch
 from api.api import app
+from common import generateMsgChunks, mock_chatReq
 from service.serviceException import ServiceException
+
+
+chatReq = jsons.dump(mock_chatReq)
 
 
 @pytest.fixture
@@ -13,20 +18,31 @@ def client():
 
 
 # helper methods (abstractions)
-def assertResponseOK(res, content):
+def assertData(res, content, jsonNode=None):
+    if content:
+        if jsonNode:
+            data = json.loads(res.data)
+            assert {jsonNode: content} == data
+        else:
+            assert content == res.data
+
+
+def assertResponseOK(res, content, asJson=True):
     """ Asserts http status 200 & response.data.response == content """
     assert res.status_code == 200
-    if content:
-        data = json.loads(res.data)
-        assert {'response': content} == data
+    if asJson:
+        assertData(res, content, 'response')
+    else:
+        assertData(res, content)
 
 
-def assertResponseError(res, content):
+def assertResponseError(res, content, asJson=True):
     """ Asserts http status 500 & response.data.error == content """
     assert res.status_code == 500
-    if content:
-        data = json.loads(res.data)
-        assert {'error': content} == data
+    if asJson:
+        assertData(res, content, 'error')
+    else:
+        assertData(res, content)
 
 
 # Test cases
@@ -53,21 +69,28 @@ def test_getModels(mocker, client):
     assertResponseOK(client.get('/api/v1/models'), ['m1', 'm2'])
 
 
+def test_postMessage(mocker, client):
+    mocker.patch("service.aiService.sendMessage",
+                 return_value="# test markdown response")
+    assertResponseOK(client.post('/api/v1/chat', json=chatReq),
+                     '# test markdown response')
+
+
 def test_postMessage_errRes(mocker, client):
     assertResponseError(client.post('/api/v1/chat', json={}),
                         'Required fields not informed: model, user, question, history, ability')
 
 
-def test_postMessage(mocker, client):
-    mocker.patch("service.aiService.sendMessage",
-                 return_value="# test markdown response")
-    assertResponseOK(client.post('/api/v1/chat', json={
-        'model': 'testModel',
-        'user': 'testUser',
-        'question': 'testQuestion',
-        'history': 'testHistory',
-        'ability': 'testAbility'
-    }), '# test markdown response')
+def test_postMessageStream(mocker, client):
+    mocker.patch("service.aiService.sendMessageStream",
+                 return_value=generateMsgChunks())
+    assertResponseOK(client.post('/api/v1/chat-stream', json=chatReq),
+                     b'chunk1chunk2chunk3', asJson=False)
+
+
+def test_postMessageStream_errRes(mocker, client):
+    assertResponseError(client.post('/api/v1/chat-stream', json={}),
+                        'Required fields not informed: model, user, question, history, ability')
 
 
 def test_getMessages(mocker, client):
