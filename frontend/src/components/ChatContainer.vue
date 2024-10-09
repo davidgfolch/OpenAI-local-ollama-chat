@@ -3,9 +3,9 @@ import { ref, onMounted, defineProps, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
-import ApiClient from './ApiClient.js';
+import {apiClient, processDownloadProgress} from './ApiClient.js';
 import hljs from 'highlight.js';
-import scrollDown from './utils.js';
+import { checkUnclosedCodeBlockMd, scrollDown } from './utils.js';
 import { showdown } from "vue-showdown";
 
 // Props
@@ -18,7 +18,7 @@ const props = defineProps({
 const mdConverter = new showdown.Converter();
 
 // Reactive data
-const user = ref('me');
+const user = ref('localUser');
 const loading = ref(false);
 const question = ref('');
 const messages = ref([]);
@@ -32,11 +32,13 @@ const errorReset = () => chatError.value.reset();
 var scrollDownEnabled = true;
 const scrollDownChat = () => { if (scrollDownEnabled) scrollDown(scrollDiv.value); }
 const loadHistory = () => {
+  console.log("loadHistory");
   let q = null, a = null;
   loading.value = true;
-  ApiClient.get(`/api/v1/chat/${user.value}`).then(res => {
+  apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
     if (res.data.response.length === 0) {
       messages.value = props.initialMessages;
+      return;
     }
     res.data.response.forEach((msg) => {
       if (msg.q) q = msg.q;
@@ -65,15 +67,9 @@ const resetApiCall = () => {
   loading.value = false;
   scrollDownChat()
 };
-const checkUnclosedCodeBlockMd = (data) => {
-  const codePos = data.lastIndexOf("```");
-  if (codePos != -1) {
-    const tail = data.substr(codePos - 3)
-    if (tail.match(/```[a-zA-Z]+/gm)) {
-      return data + '\n```'
-    }
-  }
-  return data
+const errorCallbackFnc = () => {
+  loadHistory();
+  handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
 const useStream = true
 const invoke = async (q) => {
@@ -87,44 +83,24 @@ const invoke = async (q) => {
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
   const url = useStream ? '/api/v1/chat-stream' : '/api/v1/chat'
-  ApiClient.post(url, body, {
-    onDownloadProgress: (progressEvent) => {
-      // console.log("progressEvent=" + JSON.stringify(progressEvent));
-      let eventObj = undefined;
-      if (progressEvent.event?.currentTarget) {
-        eventObj = progressEvent.event?.currentTarget;
-      } else if (progressEvent.event?.srcElement) {
-        eventObj = progressEvent.event?.srcElement;
-      } else if (progressEvent.event?.target) {
-        eventObj = progressEvent.event?.target;
-      } 
-      // console.log("eventObj="+JSON.stringify(eventObj));
-      // with load data {"loaded":3198,"bytes":8,"rate":33,"event":{"isTrusted":true},"lengthComputable":false,"download":true}
-      // without load data is a backend error '{"loaded":0,"bytes":0,"event":{"isTrusted":true},"lengthComputable":false,"download":true}') {
-      if (progressEvent.loaded ==0) {
-        loadHistory();
-        handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
-        return;
-      }
-      if (!eventObj) return;
-      var dataChunk = eventObj.response;
-      dataChunk = checkUnclosedCodeBlockMd(dataChunk)
-      messages.value.pop();
-      setAnswer(dataChunk);
-    }
+  apiClient.post(url, body, {
+    onDownloadProgress: (progressEvent) =>
+      processDownloadProgress(progressEvent,
+        () => errorCallbackFnc(),
+        (dataChunk) => {
+          dataChunk = checkUnclosedCodeBlockMd(dataChunk)
+          messages.value.pop();
+          setAnswer(dataChunk);
+        })
   }).then(() => {
     question.value = ''
   }).catch(e => {
-    console.log("catch e="+e)
+    console.log("catch e=" + e)
     messages.value.pop()
     handleError(e);
   }).finally(() => {
-    // console.log("finally: "+JSON.stringify(messages.value))
-    if (messages.value[messages.value.length-1]['a']=='<p>Waiting for response...</p>') {
-       //TODO: chrome don't pass through progressEvent.loaded == 0 above
-      loadHistory();
-      handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
-    }
+    if (messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
+      errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
     resetApiCall();
   });
   // https://stackoverflow.com/questions/72781074/piping-the-response-into-a-variable-using-streams-axios-node-js
@@ -134,6 +110,7 @@ const invoke = async (q) => {
 
 const messagesReset = () => {
   messages.value = [];
+  console.log("messagesReset");
   nextTick(() => loadHistory());
 };
 onMounted(() => { // Lifecycle hook
@@ -141,6 +118,7 @@ onMounted(() => { // Lifecycle hook
 });
 defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, invoke });
 </script>
+
 
 <template>
   <div class="chat-container">
@@ -156,21 +134,9 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 
+
 <style>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css");
-
-.buttons {
-  background-color: rgba(0, 0, 0, 0.4);
-  border-radius: 1.5em;
-  box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
-  padding: 1em;
-  position: relative;
-  clear: both;
-  min-width: 5em;
-  margin-top: 2em;
-  margin-left: 2em;
-  margin-right: 2em;
-}
 
 .chat-container {
   background-color: rgba(0, 0, 0, 0.4);
@@ -192,22 +158,11 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   list-style-type: none;
   padding: 0;
   margin: 0;
-  /* margin-bottom: 2em; */
 }
 
 .scrollDiv {
   padding: 0;
   margin: 0;
-}
-
-.icon {
-  border-radius: 50%;
-  box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
-  object-fit: cover;
-  position: relative;
-  float: right;
-  width: 3em;
-  height: 3em;
 }
 
 .optionIcon {

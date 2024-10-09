@@ -19,7 +19,7 @@ export default {
 </script>
 
 <template>
-  <ChatHeader msg="Ask local Ollama" />
+  <ChatHeader msg="OpenAi local Ollama chat" />
   <ChatContainer :initial-messages="messages" />
 </template>
 

@@ -1,9 +1,54 @@
+<script setup>
+import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
+import { apiClient } from './ApiClient.js';
+const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'invoke']);
+// Props
+const props = defineProps({
+    user: String
+});
+// Reactive data
+const loading = ref(false);
+const hideSettings = ref(true);
+const history = ref("My history");
+const models = ref([]);
+const model = ref("");
+const ability = ref("Eres un asistente especializado en ingenieria de software.");
+const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
+// Methods
+const invoke = () => {
+    emit('invoke', question.value);
+}
+const deleteChat = () => {
+    emit('errorReset');
+    // TODO: remove setAnswer emit -> emit('setAnswer', 'Waiting for response...');
+    apiClient.get(`/api/v1/chat/delete/${props.user}`).then(() => {
+        emit('messagesReset');
+    }).catch(e => emit('handleError', e));
+}
+const getModels = () => {
+    emit('errorReset');
+    apiClient.get('/api/v1/models').then(res => {
+        models.value = res.data.response
+    }).catch(e => {
+        emit('handleError', e)
+    });
+}
+const toggleSettings = () => {
+    hideSettings.value = !hideSettings.value;
+    emit('scrollDownChat');
+}
+defineExpose({ model, ability, history, question, loading });
+onMounted(() => {
+    getModels();
+})
+</script>
+
 <template>
     <div class="chat-container" style="margin-top: 1em;">
         <div>
             <div>
                 <div style="float: right">
-                    <img class="icon" style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI"
+                    <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI"
                         title="Ask AI" @click="invoke" :disabled="loading">
                 </div>
                 <div style="float: left; margin-right: 1em">
@@ -37,51 +82,6 @@
     </div>
 </template>
 
-<script setup>
-import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
-import ApiClient from './ApiClient.js';
-const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'invoke']);
-// Props
-const props = defineProps({
-    user: String
-});
-// Reactive data
-const loading = ref(false);
-const hideSettings = ref(true);
-const history = ref("My history");
-const models = ref([]);
-const model = ref("");
-const ability = ref("Eres un asistente especializado en ingenieria de software.");
-const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
-// Methods
-const invoke = () => {
-    emit('invoke', question.value);
-}
-const deleteChat = () => {
-    emit('errorReset');
-    // TODO: remove setAnswer emit -> emit('setAnswer', 'Waiting for response...');
-    ApiClient.get(`/api/v1/chat/delete/${props.user}`).then(() => {
-        emit('messagesReset');
-    }).catch(e => emit('handleError', e));
-}
-const getModels = () => {
-    emit('errorReset');
-    ApiClient.get('/api/v1/models').then(res => {
-        models.value = res.data.response
-    }).catch(e => {
-        emit('handleError', e)
-    });
-}
-const toggleSettings = () => {
-    hideSettings.value = !hideSettings.value;
-    emit('scrollDownChat');
-}
-defineExpose({ model, ability, history, question, loading });
-onMounted(() => {
-    getModels();
-})
-</script>
-
 <style scoped>
 .chat-container {
     background-color: rgba(0, 0, 0, 0.4);
@@ -109,8 +109,6 @@ onMounted(() => {
 
 textarea {
     /* resize: vertical; */
-    /* max-width: 80em; */
-    /* width: 100%; */
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
