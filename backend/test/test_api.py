@@ -23,7 +23,7 @@ def assertData(res, content, jsonNode=None):
         if jsonNode:
             data = json.loads(res.data)
             assert {jsonNode: content} == data
-        else:
+        else:  # stream
             assert content == res.data
 
 
@@ -32,7 +32,7 @@ def assertResponseOK(res, content, asJson=True):
     assert res.status_code == 200
     if asJson:
         assertData(res, content, 'response')
-    else:
+    else:  # stream
         assertData(res, content)
 
 
@@ -41,7 +41,7 @@ def assertResponseError(res, content, asJson=True):
     assert res.status_code == 500
     if asJson:
         assertData(res, content, 'error')
-    else:
+    else:  # stream
         assertData(res, content)
 
 
