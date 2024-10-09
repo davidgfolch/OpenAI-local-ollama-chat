@@ -1,7 +1,7 @@
 # OpenAI langchain Local Ollama chat
 
-[![Backend unit tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-build-lint-and-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-build-lint-and-tests.yml)
-[![Backend unit tests coverage](README.md_images/coverage.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-tests.yml)
+[![backend-build-lint-and-tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-build-lint-and-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-build-lint-and-tests.yml)
+[![Backend coverage](README.md_images/coverage.svg)](backend/README.md#generate-coverage-badge-for-readmemd)
 
 This project implements a local AI chat, with:
 

@@ -19,7 +19,6 @@ defineExpose({ show, reset })
 <style scoped>
 .api-error {
     margin: 1em auto;
-    margin-bottom: 4em;
     padding: 0.5em 1em 0.5em 1em;
     border: 0px;
     border-radius: 1.5em;

@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.messages import AIMessageChunk
 from common import createMsgChunk, mock_chatReq
 from service.langchainUtil import currentModel, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError
 

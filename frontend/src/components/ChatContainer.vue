@@ -20,7 +20,7 @@ const mdConverter = new showdown.Converter();
 // Reactive data
 const user = ref('me');
 const loading = ref(false);
-const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
+const question = ref('');
 const messages = ref([]);
 // Refs
 const scrollDiv = ref(null);
@@ -57,6 +57,7 @@ const setAnswer = (answer, resetQuestion) => {
   highLightCode();
 };
 const handleError = (error) => {
+  console.log("handleError error=" + error)
   chatError.value.show(error);
 };
 const resetApiCall = () => {
@@ -67,7 +68,6 @@ const resetApiCall = () => {
 const checkUnclosedCodeBlockMd = (data) => {
   const codePos = data.lastIndexOf("```");
   if (codePos != -1) {
-    console.log("found last markdown in pos=" + codePos);
     const tail = data.substr(codePos - 3)
     if (tail.match(/```[a-zA-Z]+/gm)) {
       return data + '\n```'
@@ -76,7 +76,8 @@ const checkUnclosedCodeBlockMd = (data) => {
   return data
 }
 const useStream = true
-const invoke = async () => {
+const invoke = async (q) => {
+  question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
   errorReset();
@@ -88,6 +89,7 @@ const invoke = async () => {
   const url = useStream ? '/api/v1/chat-stream' : '/api/v1/chat'
   ApiClient.post(url, body, {
     onDownloadProgress: (progressEvent) => {
+      // console.log("progressEvent=" + JSON.stringify(progressEvent));
       let eventObj = undefined;
       if (progressEvent.event?.currentTarget) {
         eventObj = progressEvent.event?.currentTarget;
@@ -95,6 +97,14 @@ const invoke = async () => {
         eventObj = progressEvent.event?.srcElement;
       } else if (progressEvent.event?.target) {
         eventObj = progressEvent.event?.target;
+      } 
+      // console.log("eventObj="+JSON.stringify(eventObj));
+      // with load data {"loaded":3198,"bytes":8,"rate":33,"event":{"isTrusted":true},"lengthComputable":false,"download":true}
+      // without load data is a backend error '{"loaded":0,"bytes":0,"event":{"isTrusted":true},"lengthComputable":false,"download":true}') {
+      if (progressEvent.loaded ==0) {
+        loadHistory();
+        handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
+        return;
       }
       if (!eventObj) return;
       var dataChunk = eventObj.response;
@@ -105,9 +115,18 @@ const invoke = async () => {
   }).then(() => {
     question.value = ''
   }).catch(e => {
+    console.log("catch e="+e)
     messages.value.pop()
     handleError(e);
-  }).finally(resetApiCall);
+  }).finally(() => {
+    // console.log("finally: "+JSON.stringify(messages.value))
+    if (messages.value[messages.value.length-1]['a']=='<p>Waiting for response...</p>') {
+       //TODO: chrome don't pass through progressEvent.loaded == 0 above
+      loadHistory();
+      handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
+    }
+    resetApiCall();
+  });
   // https://stackoverflow.com/questions/72781074/piping-the-response-into-a-variable-using-streams-axios-node-js
   // axios.get responseType: 'stream' https://stackoverflow.com/questions/71534322/http-stream-using-axios-node-js
 };
@@ -120,7 +139,7 @@ const messagesReset = () => {
 onMounted(() => { // Lifecycle hook
   loadHistory();
 });
-defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat });
+defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, invoke });
 </script>
 
 <template>
@@ -130,17 +149,10 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
         :loading="loading" />
       <ChatError ref="chatError" />
     </ul>
-    <textarea rows="3" v-model="question"
-              class="text_input" placeholder="Message..."
-              :disabled="loading" autofocus>
-    </textarea>
-
-    <!-- <input type="text" class="text_input" placeholder="Message..." v-model="question" @keyup.enter="invoke"
-      :disabled="loading" autofocus /> -->
-    <img class="icon" src="../assets/veloai/send.png" alt="Ask AI" title="Ask AI" @click="invoke" :disabled="loading">
   </div>
-  <ChatOptions :view-settings="false" :user="user" @error-reset="errorReset()" @set-answer="a => setAnswer(a)"
-    @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat" ref="chatOptions" />
+  <ChatOptions :question="question" :view-settings="false" :user="user" :loading="loading" @error-reset="errorReset()"
+    @handle-error="e => handleError(e)" @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()"
+    @scroll-down-chat="scrollDownChat" @invoke="q => invoke(q)" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 
@@ -180,20 +192,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   list-style-type: none;
   padding: 0;
   margin: 0;
-  margin-bottom: 2em;
-}
-
-.text_input {
-  background-color: black;
-  color: white;
-  font-size: 16px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1em 0em 1em 1em;
-  margin: 3em 2em 0em 0em;
-  width: 100%;
+  /* margin-bottom: 2em; */
 }
 
 .scrollDiv {
