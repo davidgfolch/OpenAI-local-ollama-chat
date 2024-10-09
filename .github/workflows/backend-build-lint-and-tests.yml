@@ -3,7 +3,7 @@ name: Backend unit tests
 on: [push]
 
 jobs:
-  build-lint-and-tests:
+  backend-build-lint-and-tests:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
@@ -43,7 +43,7 @@ jobs:
       run: |
         coverage-badge -o coverage.svg -f
 
-    # TODO: cant create badge automatically
+    # TODO: cant create badge automatically (see github history for older workflows backend-coverage-badge.yml & backend-coverage.yml)
     # - name: Verify Changed files
     #   uses: tj-actions/verify-changed-files@v16
     #   id: verify-changed-files
