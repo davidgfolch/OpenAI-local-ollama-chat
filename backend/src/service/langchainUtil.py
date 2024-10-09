@@ -38,14 +38,17 @@ def chatInstance():
                                       history_messages_key="history")
 
 
+def mapParams(r: ChatRequest):
+    return {'input': {"history": r.history, "ability": r.ability, "input": r.question},
+            'config': {"configurable": {"session_id": r.user, "model": r.model}}}
+
+
 def invoke(r: ChatRequest):
-    return with_model(r.model).invoke(input={"history": r.history, "ability": r.ability, "input": r.question},
-                                      config={"configurable": {"session_id": r.user, "model": r.model}})
+    return with_model(r.model).invoke(**mapParams(r))
 
 
 def stream(r: ChatRequest):
-    return with_model(r.model).stream(input={"history": r.history, "ability": r.ability, "input": r.question},
-                                      config={"configurable": {"session_id": r.user, "model": r.model}})
+    return with_model(r.model).stream(**mapParams(r))
 
 
 def with_model(model: str):
@@ -63,7 +66,7 @@ def with_model(model: str):
 def checkChunkError(chunk: AIMessageChunk):
     reason = chunk.response_metadata.get('finish_reason', '')
     if (reason != '' and reason != 'stop'):
-        raise Exception("Error in stream chunk finish_reason is not stop ")
+        raise Exception("Error in stream chunk finish_reason is not stop")
 
 
 chat = chatInstance()

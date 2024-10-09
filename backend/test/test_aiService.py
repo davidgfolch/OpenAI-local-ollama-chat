@@ -52,7 +52,7 @@ def test_sendMessageStream():
         chunks = list(generator)
         print(f"chunks={chunks}")
         for x in range(1, 4):
-            assert chunks[x-1] == createMsgChunk(x)
+            assert chunks[x-1] == createMsgChunk(content=f"chunk{x}")
 
 
 def test_sendMessageStream_exception():
