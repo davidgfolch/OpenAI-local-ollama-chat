@@ -12,7 +12,6 @@ from util.logUtil import initLog
 
 log = initLog(__file__)
 store = {}
-# "llama3.1-claude" "mistral"  "llama3.1:8b"
 currentModel = "deepseek-coder-v2:16b"
 
 
@@ -24,9 +23,20 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
     return store[session_id]
 
 
+def with_model(model: str):
+    global currentModel, chat
+    m = model.strip()
+    if model == '' or currentModel == m:
+        log.info(f"Using same model: '{currentModel}'")
+        return chat
+    log.info(f"New chat instance with model: {m}")
+    currentModel = m
+    chat = chatInstance()
+    return chat
+
+
 def chatInstance():
     llm = ChatOpenAI(model=currentModel, **hostArgs)
-    # llm = ChatOllama(model=currentModel, verbose=True) #https://python.langchain.com/docs/integrations/chat/ollama/
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{ability}"),
         MessagesPlaceholder(variable_name="history"),
@@ -51,19 +61,8 @@ def stream(r: ChatRequest):
     return with_model(r.model).stream(**mapParams(r))
 
 
-def with_model(model: str):
-    global currentModel, chat
-    m = model.strip()
-    if model == '' or currentModel == m:
-        log.info(f"Using same model: '{currentModel}'")
-        return chat
-    log.info(f"New chat instance with model: {m}")
-    currentModel = m
-    chat = chatInstance()
-    return chat
-
-
 def checkChunkError(chunk: AIMessageChunk):
+    """ Check finish_reason is ok"""
     reason = chunk.response_metadata.get('finish_reason', '')
     if (reason != '' and reason != 'stop'):
         raise Exception("Error in stream chunk finish_reason is not stop")

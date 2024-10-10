@@ -32,7 +32,6 @@ const errorReset = () => chatError.value.reset();
 var scrollDownEnabled = true;
 const scrollDownChat = () => { if (scrollDownEnabled) scrollDown(scrollDiv.value); }
 const loadHistory = () => {
-  console.log("loadHistory");
   let q = null, a = null;
   loading.value = true;
   apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
@@ -59,7 +58,6 @@ const setAnswer = (answer, resetQuestion) => {
   highLightCode();
 };
 const handleError = (error) => {
-  console.log("handleError error=" + error)
   chatError.value.show(error);
 };
 const resetApiCall = () => {
@@ -68,7 +66,8 @@ const resetApiCall = () => {
   scrollDownChat()
 };
 const errorCallbackFnc = () => {
-  loadHistory();
+  // loadHistory();
+  messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
 const useStream = true
@@ -77,7 +76,6 @@ const invoke = async (q) => {
   if (question.value.trim() == '') return
   loading.value = true;
   errorReset();
-  scrollDownEnabled = true;
   setAnswer('<p>Waiting for response...</p>');
   scrollDownEnabled = false;
   const options = chatOptions.value;
@@ -95,7 +93,6 @@ const invoke = async (q) => {
   }).then(() => {
     question.value = ''
   }).catch(e => {
-    console.log("catch e=" + e)
     messages.value.pop()
     handleError(e);
   }).finally(() => {
@@ -110,7 +107,6 @@ const invoke = async (q) => {
 
 const messagesReset = () => {
   messages.value = [];
-  console.log("messagesReset");
   nextTick(() => loadHistory());
 };
 onMounted(() => { // Lifecycle hook

@@ -1,5 +1,5 @@
 from langchain_core.chat_history import BaseMessage
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, AIMessageChunk
 
 from service.host import baseUrl
 from service.langchainUtil import checkChunkError, get_session_history, invoke, stream
@@ -36,8 +36,7 @@ def sendMessage(r: ChatRequest):
 def sendMessageStream(r: ChatRequest):
     log.info(f"sendMessageStream to {r.model}: {r.question}")
     try:
-        call = stream(r)
-        for chunk in call:
+        for chunk in stream(r):
             yield chunk
             checkChunkError(chunk)
     except Exception as e:
