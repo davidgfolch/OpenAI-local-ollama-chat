@@ -16,7 +16,7 @@ Watch the [Youtube demo](https://youtu.be/EkgyaqOtIxg)
 
 ### deepseek-coder-v2:16b example
 
-![deepseek-coder-v2:16b](README.md_images/deepseek-coder-v2_16b.png)
+![alt text](README.md_images/image.png)
 
 ### codegemma:7b example
 
