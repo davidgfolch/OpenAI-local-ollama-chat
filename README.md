@@ -32,7 +32,7 @@ See [README_OLLAMA.md](README_OLLAMA.md)
 
 ```bash
 sudo service ollama start
-ollama run llama3.1:8b # this will take a while the first time
+ollama pull deepseek-coder-v2:16b # this will take a while the first time
 ```
 
 ### Run backend & frontend

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head></head>
+
+<body>
+    <p>
+        Esto es una pequeña demo de como usar el proyecto. Aquí no voy a explicar como instalar los requisitos
+        necesarios (ollama y modelos, python/conda, node/yarn etc.) para ello ver el "README.md".
+    </p>
+    <p>
+        Empezaremos con el backend:
+        - activamos el entorno de conda.
+        - ejecutamos main.py
+    </p>
+    <p>
+        Seguiremos con el frontend:
+        - ejecutamos "yarn serve"
+    </p>
+    <p>
+        Una vez se haya levantado el frontend, vamos al navegador y accedemos a "localhost:8080". Al cargar la
+        página podremos ver que da un error porque Ollama no se está ejecutando.
+        Este error lo podemos ver en el frontend y tambien en los logs de backend.
+    </p>
+    <p>
+        Levantamos el servicio ollama, y mostramos los logs. Además comprobaremos en los logs que Ollama está usando la
+        GPU.
+    </p>
+    <p>
+        Una vez Ollama está ejecutándose podemos hacer nuestra pregunta al LLM (por defecto se usa el modelo Deepseek
+        V2).
+    </p>
+    <p>
+        En cuanto ollama empieze a contestar podremos ver como se va escribiendo la respuesta dinamicamente
+        (content-type=text/event-stream), así como en los logs de backend.
+    </p>
+    <p>
+        Eso es todo en esta demo, gracias!
+    </p>
+</body>
+
+</html>

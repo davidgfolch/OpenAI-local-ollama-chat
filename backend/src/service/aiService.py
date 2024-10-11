@@ -1,5 +1,5 @@
 from langchain_core.chat_history import BaseMessage
-from langchain_core.messages import AIMessage, HumanMessage, AIMessageChunk
+from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
 from service.langchainUtil import checkChunkError, get_session_history, invoke, stream

@@ -89,7 +89,7 @@ onMounted(() => {
     box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
     padding: 1em;
     position: relative;
-    min-width: 10em;
+    width: 100%;
     margin-left: 2em;
     margin-right: 2em;
 }

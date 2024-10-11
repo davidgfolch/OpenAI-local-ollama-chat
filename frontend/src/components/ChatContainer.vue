@@ -66,7 +66,6 @@ const resetApiCall = () => {
   scrollDownChat()
 };
 const errorCallbackFnc = () => {
-  // loadHistory();
   messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
