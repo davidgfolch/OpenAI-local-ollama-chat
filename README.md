@@ -12,7 +12,7 @@ This project implements a local AI chat, with:
 
 ## Examples using the chat
 
-Watch the [Youtube demo](https://youtu.be/lzJOmwnY1m4){:target="_blank"}
+Watch the <a href="https://youtu.be/lzJOmwnY1m4" target="_blank">Youtube demo</a>
 
 ### deepseek-coder-v2:16b example
 
