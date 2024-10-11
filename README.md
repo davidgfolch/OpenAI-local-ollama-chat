@@ -10,15 +10,13 @@ This project implements a local AI chat, with:
 - LLM response live streaming: chunked streaming
 - Tech-stack: Vue3 -> Python (langchain/openai) -> Ollama
 
-## Examples using the chat
+## Watch the Youtube demo
 
-Watch the <a href="https://youtu.be/lzJOmwnY1m4" target="_blank">Youtube demo</a>
+<a href="https://youtu.be/lzJOmwnY1m4" target="_blank">
+    <img src="README.md_images/youtubeScreenshot.png"/>
+</a>
 
-### deepseek-coder-v2:16b example
-
-![alt text](README.md_images/deepseek-coder-v2_16b.png)
-
-## Ollama (local setup)
+## Ollama installation & setup (required)
 
 See [README_OLLAMA.md](README_OLLAMA.md)
 
@@ -28,7 +26,6 @@ See [README_OLLAMA.md](README_OLLAMA.md)
 
 ```bash
 sudo service ollama start
-ollama pull deepseek-coder-v2:16b # this will take a while the first time
 ```
 
 ### Run backend & frontend
