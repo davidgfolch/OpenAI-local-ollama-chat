@@ -18,10 +18,6 @@ Watch the <a href="https://youtu.be/lzJOmwnY1m4" target="_blank">Youtube demo</a
 
 ![alt text](README.md_images/deepseek-coder-v2_16b.png)
 
-### codegemma:7b example
-
-![codegemma:7b](README.md_images/codegemma_7b.png)
-
 ## Ollama (local setup)
 
 See [README_OLLAMA.md](README_OLLAMA.md)
@@ -76,10 +72,9 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 
 ## TODO
 
-1. Multiline input message.
-2. Stop button when receiving backend stream response (stoping ollama server execution).
-3. Upload file or folder to give context to llm (RAG??).
-4. Agents?
+1. Stop button when receiving backend stream response (stoping ollama server execution).
+2. Upload file or folder to give context to llm (RAG??).
+3. Agents?
 
 ## Known issues (todo)
 
