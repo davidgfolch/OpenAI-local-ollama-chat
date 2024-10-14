@@ -48,12 +48,12 @@ onMounted(() => {
         <div>
             <div>
                 <div style="float: right">
-                    <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI"
-                        title="Ask AI" @click="stream" :disabled="loading">
+                    <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI (ctrl+enter)"
+                        title="Ask AI (ctrl+enter)" @click="stream" :disabled="loading">
                 </div>
                 <div style="float: left; margin-right: 1em">
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
-                        :disabled="props.loading" autofocus></textarea>
+                        :disabled="props.loading" autofocus v-on:keypress.ctrl.enter="stream"></textarea>
                 </div>
             </div>
             <div style="clear:both">
