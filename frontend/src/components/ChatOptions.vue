@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
 import { apiClient } from './ApiClient.js';
-const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'invoke']);
+const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream']);
 // Props
 const props = defineProps({
     user: String
@@ -15,8 +15,8 @@ const model = ref("");
 const ability = ref("Eres un asistente especializado en ingenieria de software.");
 const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
 // Methods
-const invoke = () => {
-    emit('invoke', question.value);
+const stream = () => {
+    emit('stream', question.value);
 }
 const deleteChat = () => {
     emit('errorReset');
@@ -49,7 +49,7 @@ onMounted(() => {
             <div>
                 <div style="float: right">
                     <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI"
-                        title="Ask AI" @click="invoke" :disabled="loading">
+                        title="Ask AI" @click="stream" :disabled="loading">
                 </div>
                 <div style="float: left; margin-right: 1em">
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
@@ -89,7 +89,6 @@ onMounted(() => {
     box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
     padding: 1em;
     position: relative;
-    width: 100%;
     margin-left: 2em;
     margin-right: 2em;
 }

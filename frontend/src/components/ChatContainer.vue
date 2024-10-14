@@ -69,8 +69,7 @@ const errorCallbackFnc = () => {
   messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
-const useStream = true
-const invoke = async (q) => {
+const stream = async (q) => {
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
@@ -79,8 +78,7 @@ const invoke = async (q) => {
   scrollDownEnabled = false;
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
-  const url = useStream ? '/api/v1/chat-stream' : '/api/v1/chat'
-  apiClient.post(url, body, {
+  apiClient.post('/api/v1/chat-stream', body, {
     onDownloadProgress: (progressEvent) =>
       processDownloadProgress(progressEvent,
         () => errorCallbackFnc(),
@@ -99,8 +97,6 @@ const invoke = async (q) => {
       errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
     resetApiCall();
   });
-  // https://stackoverflow.com/questions/72781074/piping-the-response-into-a-variable-using-streams-axios-node-js
-  // axios.get responseType: 'stream' https://stackoverflow.com/questions/71534322/http-stream-using-axios-node-js
 };
 
 
@@ -111,7 +107,7 @@ const messagesReset = () => {
 onMounted(() => { // Lifecycle hook
   loadHistory();
 });
-defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, invoke });
+defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream });
 </script>
 
 
@@ -125,7 +121,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   </div>
   <ChatOptions :question="question" :view-settings="false" :user="user" :loading="loading" @error-reset="errorReset()"
     @handle-error="e => handleError(e)" @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()"
-    @scroll-down-chat="scrollDownChat" @invoke="q => invoke(q)" ref="chatOptions" />
+    @scroll-down-chat="scrollDownChat" @stream="q => stream(q)" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 

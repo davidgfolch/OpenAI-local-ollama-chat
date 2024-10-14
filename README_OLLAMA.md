@@ -57,14 +57,15 @@ mv /usr/share/ollama/.ollama/models/ /mnt/sda5/ollama
 
 #### Set the OLLAMA_MODELS env variable
 
-> - Didn't work sudo systemctl edit ollama so edited ollama.service directly
-> - Didn't work export OLLAMA_MODELS in ~/.zshrc did not work when restarting ollama
-Change ollama.service
+Edit ollama.service configuration:
 
 ```bash
-sudo nano /etc/systemd/system/ollama.service
-# add this line at the end of [Service] block
+sudo systemctl edit ollama
+# add this lines
+[Service]
 Environment="OLLAMA_MODELS=/mnt/sda5/ollama/models"
+#Optionally add this line to get debug info:
+Environment="OLLAMA_DEBUG=true"
 #save and exit
 sudo systemctl daemon-reload
 sudo systemctl restart ollama

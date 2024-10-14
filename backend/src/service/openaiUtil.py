@@ -11,6 +11,8 @@ openAICli = OpenAI(**hostArgs)
 
 def getModels() -> list:
     res: SyncPage[Model] = openAICli.models.list()
+    if res.data is None:
+        raise Exception("No available models found in Ollama, you need to: ollama pull <model>")
     res = list(map(lambda m: m.id, res.data))
     res.sort()
     return res
