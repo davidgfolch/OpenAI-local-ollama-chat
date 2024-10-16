@@ -13,12 +13,13 @@ from util.logUtil import initLog
 
 
 log = initLog(__file__)
+store_folder = "./langchain.store/"
 store = {}
 currentModel = "deepseek-coder-v2:16b"
 
 
 def getFilePath(session_id: str):
-    return f"./langchain.store/{session_id}.json"
+    return f"{store_folder}{session_id}.json"
 
 
 def get_session_history(user: str) -> FileChatMessageHistory:

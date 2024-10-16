@@ -7,7 +7,9 @@ This project implements a local AI chat, with:
 
 - Response pretty printing: markdown to html & code highlight
 - Backend chat history with persistence (file store)
+  - Delete question/answer in file history.
 - LLM response live streaming: chunked streaming
+  - Stop current streaming response.
 - Tech-stack: Vue3 -> Python (langchain/openai) -> Ollama
 
 ## Watch the Youtube demo
@@ -57,32 +59,25 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 - <https://ollama.com/library>
 - <https://www.reddit.com/r/LocalLLaMA/>
 
-### Other libraries
-
-- <https://python-markdown.github.io/>
-- <https://python-markdown.github.io/reference/>
-- <https://github.com/Python-Markdown/markdown/wiki/Third-Party-Extensions>
-
-### Articles & examples
-
-- <https://docs.nvidia.com/ace/latest/modules/ace_agent/tutorials/build-langchain-bot.html>
-
 ## TODO
 
-1. Stop button when receiving backend stream response (stoping ollama server execution).
+1. Langchain PR for FileChatMessageHistory delete_message.
 2. Upload file or folder to give context to llm (RAG??).
 3. Agents?
+4. Multiple question scheduler.
 
 ## Known issues (todo)
 
 ### DeepSeekCoder V2 fails randomly
 
+When context gets bigger and can't fit into VRAM (after several q/a f.ex.), Ollama throws the following error because Deepseek2 does not support K-shift
+
 ```log
-oct 08 13:05:40 slks-GL752VW ollama[17132]: /go/src/github.com/ollama/ollama/llm/llama.cpp/src/llama.cpp:15110: Deepseek2 does not support K-shift
-oct 08 13:05:40 slks-GL752VW ollama[17132]: Could not attach to process.  If your uid matches the uid of the target
-oct 08 13:05:40 slks-GL752VW ollama[17132]: process, check the setting of /proc/sys/kernel/yama/ptrace_scope, or try
-oct 08 13:05:40 slks-GL752VW ollama[17132]: again as the root user.  For more details, see /etc/sysctl.d/10-ptrace.conf
-oct 08 13:05:40 slks-GL752VW ollama[17132]: ptrace: Inappropriate ioctl for device.
-oct 08 13:05:40 slks-GL752VW ollama[17132]: No stack.
-oct 08 13:05:40 slks-GL752VW ollama[17132]: The program is not being run.
+ollama[17132]: /go/src/github.com/ollama/ollama/llm/llama.cpp/src/llama.cpp:15110: Deepseek2 does not support K-shift
+ollama[17132]: Could not attach to process.  If your uid matches the uid of the target
+ollama[17132]: process, check the setting of /proc/sys/kernel/yama/ptrace_scope, or try
+ollama[17132]: again as the root user.  For more details, see /etc/sysctl.d/10-ptrace.conf
+ollama[17132]: ptrace: Inappropriate ioctl for device.
+ollama[17132]: No stack.
+ollama[17132]: The program is not being run.
 ```

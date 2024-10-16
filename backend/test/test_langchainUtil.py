@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
 from common import USER, createMsgChunk, CHAT_REQUEST
-from service.langchainUtil import currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError
+from service.langchainUtil import currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
 
 
 class TestLangchainUtil(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestLangchainUtil(unittest.TestCase):
         mock_FileChatMessageHistory.return_value = self.mock_history
         history = get_session_history("testUserX")
         mock_FileChatMessageHistory.assert_called_once_with(
-            file_path="./langchain.store/testUserX.json", encoding="utf-8")
+            file_path=f"{store_folder}testUserX.json", encoding="utf-8")
         self.assertEqual(history, self.mock_history)
 
     @patch('service.langchainUtil.store', new_callable=dict)
@@ -66,7 +66,7 @@ class TestLangchainUtil(unittest.TestCase):
         delete_messages(USER, [0])
         assert self.mock_history.messages == []
         mock_FileChatMessageHistory.assert_called_once_with(
-            file_path="./langchain.store/testUser.json", encoding="utf-8")
+            file_path=f"{store_folder}testUser.json", encoding="utf-8")
         delete_messages(USER, [0])
         delete_messages(USER)
 

@@ -1,6 +1,6 @@
 test/__pycache__
 .coverage
 aiMessage.md
-langchain.store
+langchain.store/*
 __pycache__/*
 **/__pycache__/*
