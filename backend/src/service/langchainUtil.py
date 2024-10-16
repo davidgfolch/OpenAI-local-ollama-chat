@@ -39,10 +39,8 @@ def delete_messages(user: str, index: List[int] = None):
             except IndexError:
                 log.warning("Trying to delete nonexisten index")
         msgs = messages_to_dict(msgs)
-        Path(getFilePath(user)).write_text(
-            # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
-            json.dumps(msgs, ensure_ascii=True), encoding="utf-8"
-        )
+        Path(getFilePath(user)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
+            json.dumps(msgs, ensure_ascii=True), encoding="utf-8")
         return
     get_session_history(user).clear()
 
