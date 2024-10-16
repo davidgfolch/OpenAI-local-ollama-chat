@@ -9,10 +9,11 @@ export default {
   },
   data() {
     return {
-      messages: [{
-        'q': '<p>Hola AI!</p>',
-        'a': '<p>Hola! en que puedo ayudarte?</p>'
-      }]
+      messages: []
+      //   {   NOTE INITIAL MESSAGES DONT WORK WITH "DELETE MESSAGE" due to index
+      //   'q': '<p>Hola AI!</p>',
+      //   'a': '<p>Hola! en que puedo ayudarte?</p>'
+      // }]
     }
   }
 }

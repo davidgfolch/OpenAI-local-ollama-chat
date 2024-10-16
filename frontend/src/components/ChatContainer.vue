@@ -3,20 +3,21 @@ import { ref, onMounted, defineProps, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
-import {apiClient, processDownloadProgress} from './ApiClient.js';
+import { apiClient, processDownloadProgress } from './ApiClient.js';
 import hljs from 'highlight.js';
 import { checkUnclosedCodeBlockMd, scrollDown } from './utils.js';
 import { showdown } from "vue-showdown";
 
 // Props
 const props = defineProps({
-  initialMessages: {
+  initialMessages: {  // TODO: INITIAL MESSAGES
     type: Array,
     default: () => []
   }
 });
+// Vars
 const mdConverter = new showdown.Converter();
-
+let cancelledStream = false;
 // Reactive data
 const user = ref('localUser');
 const loading = ref(false);
@@ -35,7 +36,7 @@ const loadHistory = () => {
   let q = null, a = null;
   loading.value = true;
   apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
-    if (res.data.response.length === 0) {
+    if (res.data.response.length === 0) {  // TODO: INITIAL MESSAGES
       messages.value = props.initialMessages;
       return;
     }
@@ -66,6 +67,10 @@ const resetApiCall = () => {
   scrollDownChat()
 };
 const errorCallbackFnc = () => {
+  if (cancelledStream) {
+    cancelledStream=false;
+    return;
+  }
   messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
@@ -73,6 +78,7 @@ const stream = async (q) => {
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
+  cancelledStream=false;
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
   scrollDownEnabled = false;
@@ -93,21 +99,39 @@ const stream = async (q) => {
     messages.value.pop()
     handleError(e);
   }).finally(() => {
-    if (messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
+    if (messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
       errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
     resetApiCall();
   });
 };
-
-
 const messagesReset = () => {
   messages.value = [];
   nextTick(() => loadHistory());
 };
+const deleteMessage = (index) => {
+  errorReset();
+  apiClient.get(`/api/v1/chat/delete/${user.value}/${index}`).then(() => {
+    messages.value = messages.value.splice(index, 1);
+    nextTick(() => loadHistory());
+  }).catch(e => {
+    handleError(e);
+    scrollDownChat();
+  });
+}
+const cancelStreamSignal = () => {
+  errorReset();
+  apiClient.get(`/api/v1/chat/cancel/${user.value}`).then(() => {
+    cancelledStream=true;
+  }).catch(e => {
+    handleError(e);
+    scrollDownChat();
+  });
+}
+
 onMounted(() => { // Lifecycle hook
   loadHistory();
 });
-defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream });
+defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStreamSignal, deleteMessage });
 </script>
 
 
@@ -115,7 +139,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   <div class="chat-container">
     <ul class="chat">
       <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index"
-        :loading="loading" />
+        :loading="loading" @cancel-stream-signal="cancelStreamSignal()" @delete-message="deleteMessage(index)" />
       <ChatError ref="chatError" />
     </ul>
   </div>

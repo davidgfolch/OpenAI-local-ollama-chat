@@ -9,7 +9,11 @@ from model.model import ChatRequest
 app = Flask("api", root_path="/")
 # from flask_cors import CORS
 # CORS(app)
-log = initLog(__file__, logging.DEBUG)
+log = initLog(__file__, logging.INFO)
+
+RES_DELETED_USER_X_HISTORY = "deleted user {0} history"
+RES_DELETED_USER_X_HISTORY_INDEX_X = "deleted user {0} history index {1}"
+RES_STREAM_CANCELLED_FOR_USER_X = "stream cancelled for user {0}"
 
 
 @app.errorhandler(Exception)
@@ -21,6 +25,7 @@ def handle_error(e: Exception):
 @app.route('/api/v1/chat-stream', methods=['OPTIONS'])
 @app.route('/api/v1/models', methods=['OPTIONS'])
 @app.route('/api/v1/chat/delete', methods=['OPTIONS'])
+@app.route('/api/v1/chat/cancel', methods=['OPTIONS'])
 def cors():
     # Add CORS allow for this method
     res = corsHeaders()
@@ -60,7 +65,6 @@ def postMessageStream():
 
 @app.get('/api/v1/chat/<string:user>')
 def getMessages(user):
-    msgs = aiService.getMessages(user)
     msgs = [mapper.listMapper(msg) for msg in aiService.getMessages(user)]
     log.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)
@@ -69,8 +73,21 @@ def getMessages(user):
 # TODO: app.delete('/api/v1/chat/<string:user>') dont work CORS
 @app.get('/api/v1/chat/delete/<string:user>')
 def deleteMessages(user):
-    res = aiService.deleteMessages(user)
-    return setResponseOK(res)
+    aiService.deleteMessages(user)
+    return setResponseOK(RES_DELETED_USER_X_HISTORY.format(user))
+
+
+@app.get('/api/v1/chat/delete/<string:user>/<int:index>')
+def deleteMessage(user, index):
+    log.info(f"api deleteMessage user={user}, index={index}")
+    aiService.deleteMessages(user, index)
+    return setResponseOK(RES_DELETED_USER_X_HISTORY_INDEX_X.format(user, index))
+
+
+@app.get('/api/v1/chat/cancel/<string:user>')
+def cancelStreamSignal(user):
+    aiService.cancelStreamSignal(user)
+    return setResponseOK(RES_STREAM_CANCELLED_FOR_USER_X.format(user))
 
 
 def run():

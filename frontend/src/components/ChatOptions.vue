@@ -16,11 +16,11 @@ const ability = ref("Eres un asistente especializado en ingenieria de software."
 const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
 // Methods
 const stream = () => {
-    emit('stream', question.value);
+    if (!loading.value)
+        emit('stream', question.value);
 }
 const deleteChat = () => {
     emit('errorReset');
-    // TODO: remove setAnswer emit -> emit('setAnswer', 'Waiting for response...');
     apiClient.get(`/api/v1/chat/delete/${props.user}`).then(() => {
         emit('messagesReset');
     }).catch(e => emit('handleError', e));
@@ -49,11 +49,11 @@ onMounted(() => {
             <div>
                 <div style="float: right">
                     <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI (ctrl+enter)"
-                        title="Ask AI (ctrl+enter)" @click="stream" :disabled="loading">
+                        title="Ask AI (ctrl+enter)" @click="stream" :disabled="loading.value">
                 </div>
                 <div style="float: left; margin-right: 1em">
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
-                        :disabled="props.loading" autofocus v-on:keypress.ctrl.enter="stream"></textarea>
+                        :disabled="loading.value" autofocus v-on:keypress.ctrl.enter="stream"></textarea>
                 </div>
             </div>
             <div style="clear:both">

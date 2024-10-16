@@ -1,9 +1,11 @@
-from langchain_core.chat_history import BaseChatMessageHistory
+import json
+from pathlib import Path
+from typing import List
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
-from langchain_core.messages import AIMessageChunk
+from langchain_core.messages import AIMessageChunk, messages_to_dict
 
 from model.model import ChatRequest
 from service.host import hostArgs
@@ -15,12 +17,33 @@ store = {}
 currentModel = "deepseek-coder-v2:16b"
 
 
-def get_session_history(session_id: str) -> BaseChatMessageHistory:
-    if session_id not in store:
-        store[session_id] = FileChatMessageHistory(
-            # ChatMessageHistory()
-            file_path="./langchain.store", encoding="utf-8")
-    return store[session_id]
+def getFilePath(session_id: str):
+    return f"./langchain.store/{session_id}.json"
+
+
+def get_session_history(user: str) -> FileChatMessageHistory:
+    if user not in store:
+        store[user] = FileChatMessageHistory(  # ChatMessageHistory()
+            file_path=getFilePath(user), encoding="utf-8")
+    return store[user]
+
+
+def delete_messages(user: str, index: List[int] = None):
+    if index:
+        log.info(f"delete_messages pop index={index}")
+        msgs = get_session_history(user).messages
+        for i in index:
+            try:
+                msgs.pop(i)
+            except IndexError:
+                log.warning("Trying to delete nonexisten index")
+        msgs = messages_to_dict(msgs)
+        Path(getFilePath(user)).write_text(
+            # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
+            json.dumps(msgs, ensure_ascii=True), encoding="utf-8"
+        )
+        return
+    get_session_history(user).clear()
 
 
 def with_model(model: str):
@@ -31,8 +54,7 @@ def with_model(model: str):
         return chat
     log.info(f"New chat instance with model: {m}")
     currentModel = m
-    chat = chatInstance()
-    return chat
+    return chatInstance()
 
 
 def chatInstance():

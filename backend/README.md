@@ -17,7 +17,7 @@ eval "$(/home/slks/miniconda3/bin/conda shell.zsh hook)"
 ### Install dependencies
 
 ```bash
-conda env update --file cd backend/env.yml --name base --prune
+conda env update --file backend/env.yml --name langchain --prune
 ```
 
 NOTE: if dependencies added should be exported to `env.yml`:

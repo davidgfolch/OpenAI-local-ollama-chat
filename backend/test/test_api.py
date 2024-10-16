@@ -2,12 +2,14 @@ import pytest
 import json
 import jsons
 from unittest.mock import patch
-from api.api import app
-from common import generateMsgChunks, mock_chatReq
+from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app
+from api.flaskUtil import REQUIRED_FIELDS_NOT_INFORMED
+from common import generateMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
 
-chatReq = jsons.dump(mock_chatReq)
+chatReq = jsons.dump(CHAT_REQUEST)
+user = "testUser"
 
 
 @pytest.fixture
@@ -78,7 +80,7 @@ def test_postMessage(mocker, client):
 
 def test_postMessage_errRes(mocker, client):
     assertResponseError(client.post('/api/v1/chat', json={}),
-                        'Required fields not informed: model, user, question, history, ability')
+                        REQUIRED_FIELDS_NOT_INFORMED+'model, user, question, history, ability')
 
 
 def test_postMessageStream(mocker, client):
@@ -90,13 +92,13 @@ def test_postMessageStream(mocker, client):
 
 def test_postMessageStream_errRes(mocker, client):
     assertResponseError(client.post('/api/v1/chat-stream', json={}),
-                        'Required fields not informed: model, user, question, history, ability')
+                        REQUIRED_FIELDS_NOT_INFORMED+'model, user, question, history, ability')
 
 
 def test_getMessages(mocker, client):
     mocker.patch("service.aiService.getMessages", return_value=[
                  {'q': 'testQuestion'}, {'a': '# test markdown response'}])
-    assertResponseOK(client.get('/api/v1/chat/testUser'),
+    assertResponseOK(client.get('/api/v1/chat/'+user),
                      [{'q': 'testQuestion'}, {'a': '# test markdown response'}])
 
 
@@ -108,4 +110,17 @@ def test_getMessages_validationError(client):
 
 def test_deleteMessages(mocker, client):
     mocker.patch("service.aiService.deleteMessages", return_value=None)
-    assertResponseOK(client.get('/api/v1/chat/delete/testUser'), None)
+    assertResponseOK(client.get('/api/v1/chat/delete/'+user),
+                     RES_DELETED_USER_X_HISTORY.format(user))
+
+
+def test_deleteMessage(mocker, client):
+    mocker.patch("service.aiService.deleteMessages", return_value=None)
+    assertResponseOK(client.get(f'/api/v1/chat/delete/{user}/1'),
+                     RES_DELETED_USER_X_HISTORY_INDEX_X.format(user, 1))
+
+
+def test_cancelStreamSignal(mocker, client):
+    mocker.patch("service.aiService.cancelStreamSignal", return_value=None)
+    assertResponseOK(client.get(f'/api/v1/chat/cancel/{user}'),
+                     RES_STREAM_CANCELLED_FOR_USER_X.format(user))

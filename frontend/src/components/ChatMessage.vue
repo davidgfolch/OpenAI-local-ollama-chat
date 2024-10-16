@@ -1,25 +1,36 @@
 <script setup>
-import { defineProps } from 'vue'
-// import iconSets from './iconSets.ts' 
+import { defineProps, defineEmits } from 'vue'
+
+const emit = defineEmits(['cancelStreamSignal','deleteMessage']);
 // Props
 const props = defineProps({
     msg: { type: Object },
     total: { type: Number },
     index: { type: Number },
-    loading: { type: Boolean }
+    loading: { type: Boolean },
 })
+
+const cancelStreamSignal = () => {
+    emit('cancelStreamSignal');
+}
+const deleteMessage = () => {
+    emit('deleteMessage');
+}
 </script>
 
 <template>
     <li class="message right">
         <img class="logo" src="../assets/veloai/user.png" alt="User question" title="User question">
-        <!-- <img class="logo" :src="iconSets['user']" alt="User question" title="User question"> -->
         <span v-html="props.msg.q"></span>
     </li>
     <li class="message left">
         <img class="logo" src="../assets/veloai/ai.png" alt="AI response" title="AI response">
-        <img class="logo loading" src="../assets/loading.gif" v-if="total == index + 1 & loading"
-            alt="Waiting for AI response" title="Waiting for AI response" />
+        <img class="logo loading" src="../assets/loading.gif" v-if="props.total == props.index + 1 & loading" alt="Waiting for AI response"
+            title="Waiting for AI response" />
+        <img class="logo delete" src="../assets/veloai/trash.png" v-if="props.total == props.index + 1 & loading" alt="Cancel question"
+            title="Cancel question" @click="cancelStreamSignal">
+        <img class="logo delete" src="../assets/veloai/trash.png" v-if="!(props.total == props.index + 1 & loading)" alt="Delete message"
+            title="Delete message" @click="deleteMessage">
         <span v-html="props.msg.a"></span>
     </li>
 </template>
@@ -67,6 +78,12 @@ li span {
     scale: 75%;
     left: 0.5em;
     top: -0.5em;
+}
+
+.delete {
+    top: 2.5em;
+    width: 1.5em;
+    height: 1.5em;
 }
 
 .message.right .logo {

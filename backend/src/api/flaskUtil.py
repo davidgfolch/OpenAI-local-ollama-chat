@@ -19,6 +19,7 @@ EVENT_STREAM_CHUNKED_HEADERS = {
     # 'Connection': "keep-alive",
 }
 EVENT_STREAM_CHUNKED_HEADERS.update(CORS_HEADERS)
+REQUIRED_FIELDS_NOT_INFORMED = 'Required fields not informed: '
 
 
 def corsHeaders(res: Response = Response()):
@@ -38,7 +39,7 @@ def getReqParams(request: Request, params: list, paramsOptional: list = []):
         log.debug("invalidParam="+p)
     if len(invalidParams) > 0:
         invalidParams = setResponseKO(
-            'Required fields not informed: '+", ".join(invalidParams))
+            REQUIRED_FIELDS_NOT_INFORMED+", ".join(invalidParams))
         results = list(map(lambda p: p[0], paramValues))
     else:
         results = list(map(lambda p: p[1], paramValues))
@@ -47,7 +48,7 @@ def getReqParams(request: Request, params: list, paramsOptional: list = []):
     return results
 
 
-def setResponseOK(res):
+def setResponseOK(res: str):
     return corsHeaders(make_response({'response': res}, 200))
 
 

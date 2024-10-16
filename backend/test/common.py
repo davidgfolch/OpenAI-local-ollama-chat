@@ -1,8 +1,8 @@
 from langchain_core.messages import AIMessageChunk
 from model.model import ChatRequest
 
-
-mock_chatReq = ChatRequest(None, 'model', 'user',
+USER = "testUser"
+CHAT_REQUEST = ChatRequest(None, 'model', USER,
                            'question', 'history', 'ability')
 
 

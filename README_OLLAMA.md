@@ -12,22 +12,22 @@ You will need a compatible GPU hardware to make it run reasonably fast.
 
 ## Pull models, depending on your hardware (GPU, CPU, HDD)
 
-In my case I've tested local Ollama with the following hardware:
+In my case I've tested local Ollama with the following (old) hardware in an Ubuntu 22.04.5 LTS:
 
 - Intel® Core™ i7-6700HQ CPU @ 2.60GHz × 8
 - NVIDIA GeForce GTX 960M (2MB)
-- Ubuntu 22.04.5 LTS
 
 Before installing check you have enough space in your HDD.  [Ollama3.1:8b](https://ollama.com/library/llama3.1) weights 4.7GB.
 
 **If you don't have enough space or want to store models in another disk partition see below: [Change Ollama models store folder](#change-ollama-models-store-folder)**
 
 ```bash
-  #recomended for code generation you'll need "32GB" minimum memory
-  ollama pull deepseek-coder-v2:16b
-  ollama pull codestral
-  #recommended
-  ollama pull llama3.1:8b
+#recommended
+# THIS MODEL DON'T ALLOW CONTEXT SHIFT, SO IT FAILS WHEN CONTEXT IS GETTING BIGGER AND DON'T FIT INTO YOUR VRAM (f.ex making several questions)
+ollama pull deepseek-coder-v2:16b
+ollama pull codestral
+ollama pull codellama
+ollama pull llama3.1:8b
 ```
 
 NOTE: we don't need to `ollama run <model>`, ollama will run the model (if present) when requested by the api.
@@ -52,7 +52,7 @@ data_folder=/mnt/sda5/ollama \
 If you already have downloaded models, move de folder to the new location
 
 ```bash
-mv /usr/share/ollama/.ollama/models/ /mnt/sda5/ollama
+mv /usr/share/ollama/.ollama/models/ /mnt/sda5/ollama # FOR EXAMPLE, CHANGE PATH HERE!!!
 ```
 
 #### Set the OLLAMA_MODELS env variable
@@ -61,17 +61,20 @@ Edit ollama.service configuration:
 
 ```bash
 sudo systemctl edit ollama
-# add this lines
+# add this lines  (SET YOUR PATH)
 [Service]
-Environment="OLLAMA_MODELS=/mnt/sda5/ollama/models"
+Environment="OLLAMA_MODELS=/mnt/sda5/ollama/models" # FOR EXAMPLE, CHANGE PATH HERE!!!
 #Optionally add this line to get debug info:
 Environment="OLLAMA_DEBUG=true"
+# Environment="OLLAMA_CONTEXT_LEN=2048"
+# Environment="OLLAMA_NUM_PREDICT=64"
+
 #save and exit
 sudo systemctl daemon-reload
 sudo systemctl restart ollama
 ```
 
-### Ollama don't run with CPU after Linux systems sleep->wake up
+### Ollama don't run with CPU in Linux systems after sleep->wake up
 
 ```bash
 sudo systemctl stop ollama

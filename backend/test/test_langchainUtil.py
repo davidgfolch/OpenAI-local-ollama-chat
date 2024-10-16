@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
-from common import createMsgChunk, mock_chatReq
-from service.langchainUtil import currentModel, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError
+from langchain_core.messages import HumanMessage
+from common import USER, createMsgChunk, CHAT_REQUEST
+from service.langchainUtil import currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError
 
 
 class TestLangchainUtil(unittest.TestCase):
@@ -12,9 +13,9 @@ class TestLangchainUtil(unittest.TestCase):
     @patch('service.langchainUtil.FileChatMessageHistory')
     def test_get_session_history_new(self, mock_FileChatMessageHistory):
         mock_FileChatMessageHistory.return_value = self.mock_history
-        history = get_session_history("test_session")
+        history = get_session_history("testUserX")
         mock_FileChatMessageHistory.assert_called_once_with(
-            file_path="./langchain.store", encoding="utf-8")
+            file_path="./langchain.store/testUserX.json", encoding="utf-8")
         self.assertEqual(history, self.mock_history)
 
     @patch('service.langchainUtil.store', new_callable=dict)
@@ -44,19 +45,30 @@ class TestLangchainUtil(unittest.TestCase):
     def test_invoke(self, mock_model):
         mock_chat = MagicMock()
         mock_model.return_value = mock_chat
-        result = invoke(mock_chatReq)
-        mock_model.assert_called_once_with(mock_chatReq.model)
-        mock_chat.invoke.assert_called_once_with(**mapParams(mock_chatReq))
+        result = invoke(CHAT_REQUEST)
+        mock_model.assert_called_once_with(CHAT_REQUEST.model)
+        mock_chat.invoke.assert_called_once_with(**mapParams(CHAT_REQUEST))
         self.assertEqual(result, mock_chat.invoke.return_value)
 
     @patch('service.langchainUtil.with_model')
     def test_stream(self, mock_model):
         mock_chat = MagicMock()
         mock_model.return_value = mock_chat
-        result = stream(mock_chatReq)
-        mock_model.assert_called_once_with(mock_chatReq.model)
-        mock_chat.stream.assert_called_once_with(**mapParams(mock_chatReq))
+        result = stream(CHAT_REQUEST)
+        mock_model.assert_called_once_with(CHAT_REQUEST.model)
+        mock_chat.stream.assert_called_once_with(**mapParams(CHAT_REQUEST))
         self.assertEqual(result, mock_chat.stream.return_value)
+
+    @patch('service.langchainUtil.FileChatMessageHistory')
+    def test_delete_messages(self, mock_FileChatMessageHistory):
+        self.mock_history.messages = [HumanMessage(content="Hi test!")]
+        mock_FileChatMessageHistory.return_value = self.mock_history
+        delete_messages(USER, [0])
+        assert self.mock_history.messages == []
+        mock_FileChatMessageHistory.assert_called_once_with(
+            file_path="./langchain.store/testUser.json", encoding="utf-8")
+        delete_messages(USER, [0])
+        delete_messages(USER)
 
     @patch('service.langchainUtil.chatInstance')
     def test_with_model_same(self, mock_chatInstance):
