@@ -12,7 +12,7 @@ log = initLog(__file__, logging.DEBUG)
 
 class CallbackHandler(BaseCallbackHandler):
     def on_chat_model_start(self, serialized: dict[str, Any], messages: list[list[BaseMessage]], **kwargs) -> None:
-        log.debug(f"on_chat_model_start  serialized={serialized}, messages={messages}")
+        log.debug(f"on_chat_model_start  serialized={truncateStrings(serialized)}, messages={truncateStrings(messages)}")
 
     def on_llm_end(self, response: LLMResult, **kwargs) -> None:
         log.debug(f"on_llm_end: response={truncateStrings(response)}")

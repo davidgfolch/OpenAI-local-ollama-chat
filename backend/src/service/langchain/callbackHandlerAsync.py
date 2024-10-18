@@ -9,6 +9,7 @@ from util.logUtil import initLog
 
 log = initLog(__file__, logging.DEBUG)
 
+
 class CallbackHandlerAsync(AsyncCallbackHandler):
 
     async def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any) -> None:
