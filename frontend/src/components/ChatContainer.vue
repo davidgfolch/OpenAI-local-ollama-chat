@@ -42,9 +42,9 @@ const loadHistory = () => {
     }
     res.data.response.forEach((msg) => {
       if (msg.q) q = msg.q;
-      if (msg.a) a = mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg.a));
+      if (msg.a) a = msg.a;
       if (a != null && q != null) {
-        messages.value.push({ q, a });
+        messagePush(q, a);
         scrollDownChat()
         highLightCode();
         q = null, a = null;
@@ -52,15 +52,15 @@ const loadHistory = () => {
     });
   }).catch(handleError).finally(resetApiCall);
 };
+const mdToHtml = (msg) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
+const messagePush = (q, a) => messages.value.push({ q: mdToHtml(q), a: mdToHtml(a) });
 const setAnswer = (answer, resetQuestion) => {
-  messages.value.push({ q: '<p>' + question.value + '</p>', a: mdConverter.makeHtml(answer) });
+  messagePush(question.value, answer);
   if (resetQuestion) question.value = '';
   scrollDownChat()
   highLightCode();
 };
-const handleError = (error) => {
-  chatError.value.show(error);
-};
+const handleError = (error) => chatError.value.show(error);
 const resetApiCall = () => {
   scrollDownEnabled = true;
   loading.value = false;
@@ -68,7 +68,7 @@ const resetApiCall = () => {
 };
 const errorCallbackFnc = () => {
   if (cancelledStream) {
-    cancelledStream=false;
+    cancelledStream = false;
     return;
   }
   messages.value.pop();
@@ -78,7 +78,7 @@ const stream = async (q) => {
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
-  cancelledStream=false;
+  cancelledStream = false;
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
   scrollDownEnabled = false;
@@ -93,16 +93,15 @@ const stream = async (q) => {
           messages.value.pop();
           setAnswer(dataChunk);
         })
-  }).then(() => {
-    question.value = ''
-  }).catch(e => {
-    messages.value.pop()
-    handleError(e);
-  }).finally(() => {
-    if (messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
-      errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
-    resetApiCall();
-  });
+  }).then(() => question.value = '')
+    .catch(e => {
+      messages.value.pop()
+      handleError(e);
+    }).finally(() => {
+      if (messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
+        errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
+      resetApiCall();
+    });
 };
 const messagesReset = () => {
   messages.value = [];
@@ -110,27 +109,24 @@ const messagesReset = () => {
 };
 const deleteMessage = (index) => {
   errorReset();
-  apiClient.get(`/api/v1/chat/delete/${user.value}/${index}`).then(() => {
-    messages.value = messages.value.splice(index, 1);
-    nextTick(() => loadHistory());
-  }).catch(e => {
-    handleError(e);
-    scrollDownChat();
-  });
+  apiClient.get(`/api/v1/chat/delete/${user.value}/${index}`)
+    .then(() => messages.value.splice(index, 1))
+    .catch(e => {
+      handleError(e);
+      scrollDownChat();
+    });
 }
 const cancelStreamSignal = () => {
   errorReset();
-  apiClient.get(`/api/v1/chat/cancel/${user.value}`).then(() => {
-    cancelledStream=true;
-  }).catch(e => {
-    handleError(e);
-    scrollDownChat();
-  });
+  apiClient.get(`/api/v1/chat/cancel/${user.value}`)
+    .then(() => cancelledStream = true)
+    .catch(e => {
+      handleError(e);
+      scrollDownChat();
+    });
 }
 
-onMounted(() => { // Lifecycle hook
-  loadHistory();
-});
+onMounted(() => loadHistory());
 defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStreamSignal, deleteMessage });
 </script>
 
@@ -143,7 +139,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
       <ChatError ref="chatError" />
     </ul>
   </div>
-  <ChatOptions :question="question" :view-settings="false" :user="user" :loading="loading" @error-reset="errorReset()"
+  <ChatOptions :question="question" :loading="loading" :user="user" :view-settings="false" @error-reset="errorReset()"
     @handle-error="e => handleError(e)" @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()"
     @scroll-down-chat="scrollDownChat" @stream="q => stream(q)" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>

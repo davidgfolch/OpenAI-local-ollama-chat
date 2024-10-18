@@ -4,10 +4,10 @@ import { apiClient } from './ApiClient.js';
 const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream']);
 // Props
 const props = defineProps({
-    user: String
+    user: String,
+    loading: Boolean
 });
 // Reactive data
-const loading = ref(false);
 const hideSettings = ref(true);
 const history = ref("My history");
 const models = ref([]);
@@ -16,31 +16,27 @@ const ability = ref("Eres un asistente especializado en ingenieria de software."
 const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
 // Methods
 const stream = () => {
-    if (!loading.value)
-        emit('stream', question.value);
+    if (props.loading) return;
+    emit('stream', question.value);
 }
 const deleteChat = () => {
     emit('errorReset');
-    apiClient.get(`/api/v1/chat/delete/${props.user}`).then(() => {
-        emit('messagesReset');
-    }).catch(e => emit('handleError', e));
+    apiClient.get(`/api/v1/chat/delete/${props.user}`)
+        .then(() => emit('messagesReset'))
+        .catch(e => emit('handleError', e));
 }
 const getModels = () => {
     emit('errorReset');
-    apiClient.get('/api/v1/models').then(res => {
-        models.value = res.data.response
-    }).catch(e => {
-        emit('handleError', e)
-    });
+    apiClient.get('/api/v1/models')
+        .then(res => models.value = res.data.response)
+        .catch(e => emit('handleError', e));
 }
 const toggleSettings = () => {
     hideSettings.value = !hideSettings.value;
     emit('scrollDownChat');
 }
-defineExpose({ model, ability, history, question, loading });
-onMounted(() => {
-    getModels();
-})
+defineExpose({ model, ability, history, question });
+onMounted(() => getModels())
 </script>
 
 <template>
@@ -48,12 +44,14 @@ onMounted(() => {
         <div>
             <div>
                 <div style="float: right">
-                    <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI (ctrl+enter)"
-                        title="Ask AI (ctrl+enter)" @click="stream" :disabled="loading.value">
+                    <button @click="stream" v-bind:disabled="loading" style="background: #0000; border: 0px">
+                        <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI (ctrl+enter)"
+                            title="Ask AI (ctrl+enter)">
+                    </button>
                 </div>
                 <div style="float: left; margin-right: 1em">
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
-                        :disabled="loading.value" autofocus v-on:keypress.ctrl.enter="stream"></textarea>
+                        autofocus v-on:keypress.ctrl.enter="stream"></textarea>
                 </div>
             </div>
             <div style="clear:both">
@@ -112,4 +110,11 @@ textarea {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+button:disabled {
+    cursor: not-allowed;
+}
+button:disabled img {
+    filter: brightness(50%)
+}
+
 </style>

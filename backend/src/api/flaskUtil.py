@@ -63,6 +63,6 @@ def setResponseKO_internal__(ex):
         error = list(dict.fromkeys(exceptions))
         log.exception(ex)
     else:
-        error = ex
+        error = [ex]
         log.error(ex)
     return error

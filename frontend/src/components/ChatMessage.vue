@@ -9,13 +9,9 @@ const props = defineProps({
     index: { type: Number },
     loading: { type: Boolean },
 })
-
-const cancelStreamSignal = () => {
-    emit('cancelStreamSignal');
-}
-const deleteMessage = () => {
-    emit('deleteMessage');
-}
+// Methods
+const cancelStreamSignal = () => emit('cancelStreamSignal');
+const deleteMessage = () => emit('deleteMessage');
 </script>
 
 <template>
