@@ -45,7 +45,6 @@ def isCancelStreamSignal(r: ChatRequest):
     global cancelSignal
     if cancelSignal.get(r.user, None):
         cancelSignal.update({r.user: False})
-        log.info("isCancelStreamSignal!")
         return True
     return False
 

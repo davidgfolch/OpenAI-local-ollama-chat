@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
 from common import USER, createMsgChunk, CHAT_REQUEST
-from service.langchainUtil import currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
+from service.langchainUtil import CALLBACKS, currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
 
 
 class TestLangchainUtil(unittest.TestCase):
@@ -37,8 +37,9 @@ class TestLangchainUtil(unittest.TestCase):
         mock_ChatPromptTemplate.from_messages.return_value = mock_prompt
         chat_instance = chatInstance()
         mock_ChatOpenAI.assert_called_once_with(model=currentModel, **{})
-        mock_history.assert_called_once_with(
-            mock_prompt | mock_llm, get_session_history, input_messages_key="input", history_messages_key="history")
+        chain = mock_prompt | mock_llm
+        chain = chain.with_config(callbacks=CALLBACKS)
+        mock_history.assert_called_once_with(chain, get_session_history, input_messages_key="input", history_messages_key="history")
         self.assertEqual(chat_instance, mock_history.return_value)
 
     @patch('service.langchainUtil.with_model')

@@ -9,7 +9,7 @@ from model.model import ChatRequest
 app = Flask("api", root_path="/")
 # from flask_cors import CORS
 # CORS(app)
-log = initLog(__file__, logging.INFO)
+log = initLog(__file__, logging.DEBUG)
 
 RES_DELETED_USER_X_HISTORY = "deleted user {0} history"
 RES_DELETED_USER_X_HISTORY_INDEX_X = "deleted user {0} history index {1}"
@@ -58,7 +58,7 @@ def postMessageStream():
 
     def generate():
         for chunk in aiService.sendMessageStream(req):
-            log.info(f"Received chunk={chunk}")
+            log.debug(f"Received chunk={chunk}")
             yield chunk.content
     return generate(), EVENT_STREAM_CHUNKED_HEADERS
 
@@ -86,6 +86,7 @@ def deleteMessage(user, index):
 
 @app.get('/api/v1/chat/cancel/<string:user>')
 def cancelStreamSignal(user):
+    log.info(f"cancelStreamSignal for user {user}")
     aiService.cancelStreamSignal(user)
     return setResponseOK(RES_STREAM_CANCELLED_FOR_USER_X.format(user))
 

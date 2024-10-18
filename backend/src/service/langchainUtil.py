@@ -9,10 +9,14 @@ from langchain_core.messages import AIMessageChunk, messages_to_dict
 
 from model.model import ChatRequest
 from service.host import hostArgs
+from service.langchain.callbackHandler import CallbackHandler
+from service.langchain.callbackHandlerAsync import CallbackHandlerAsync
 from util.logUtil import initLog
 
 
 log = initLog(__file__)
+
+CALLBACKS = [CallbackHandler(), CallbackHandlerAsync()]
 store_folder = "./langchain.store/"
 store = {}
 currentModel = "deepseek-coder-v2:16b"
@@ -63,8 +67,9 @@ def chatInstance():
         MessagesPlaceholder(variable_name="history"),
         ("human", "{input}")
     ])
-    runnable = prompt | llm
-    return RunnableWithMessageHistory(runnable, get_session_history,
+    chain = prompt | llm
+    chain = chain.with_config(callbacks=CALLBACKS)
+    return RunnableWithMessageHistory(chain, get_session_history,
                                       input_messages_key="input",
                                       history_messages_key="history")
 
