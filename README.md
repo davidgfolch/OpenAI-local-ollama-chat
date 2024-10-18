@@ -64,7 +64,9 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 1. Langchain PR for FileChatMessageHistory delete_message.
 2. Upload file or folder to give context to llm (RAG??).
 3. Agents?
-4. Multiple question scheduler.
+4. Send button is not disabled
+5. Multiple question scheduler or in parallel.
+6. Continue doesn't generates K-shift error, checkout how.
 
 ## Known issues (todo)
 

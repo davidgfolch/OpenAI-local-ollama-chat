@@ -7,6 +7,7 @@ from api.flaskUtil import REQUIRED_FIELDS_NOT_INFORMED
 from common import generateMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
+VALIDATION_ERR_MSG = [REQUIRED_FIELDS_NOT_INFORMED + 'model, user, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
 user = "testUser"
@@ -79,8 +80,7 @@ def test_postMessage(mocker, client):
 
 
 def test_postMessage_errRes(mocker, client):
-    assertResponseError(client.post('/api/v1/chat', json={}),
-                        REQUIRED_FIELDS_NOT_INFORMED+'model, user, question, history, ability')
+    assertResponseError(client.post('/api/v1/chat', json={}), VALIDATION_ERR_MSG)
 
 
 def test_postMessageStream(mocker, client):
@@ -91,8 +91,7 @@ def test_postMessageStream(mocker, client):
 
 
 def test_postMessageStream_errRes(mocker, client):
-    assertResponseError(client.post('/api/v1/chat-stream', json={}),
-                        REQUIRED_FIELDS_NOT_INFORMED+'model, user, question, history, ability')
+    assertResponseError(client.post('/api/v1/chat-stream', json={}), VALIDATION_ERR_MSG)
 
 
 def test_getMessages(mocker, client):
