@@ -3,7 +3,7 @@ import { ref, onMounted, defineProps, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
-import { apiClient, processDownloadProgress } from './ApiClient.js';
+import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
 import hljs from 'highlight.js';
 import { checkUnclosedCodeBlockMd, scrollDown } from './utils.js';
 import { showdown } from "vue-showdown";
@@ -17,7 +17,7 @@ const props = defineProps({
 });
 // Vars
 const mdConverter = new showdown.Converter();
-let cancelledStream = false;
+let apiCliController = null;
 // Reactive data
 const user = ref('localUser');
 const loading = ref(false);
@@ -67,10 +67,6 @@ const resetApiCall = () => {
   scrollDownChat()
 };
 const errorCallbackFnc = () => {
-  if (cancelledStream) {
-    cancelledStream = false;
-    return;
-  }
   messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
@@ -78,13 +74,14 @@ const stream = async (q) => {
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
-  cancelledStream = false;
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
   scrollDownEnabled = false;
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
+  apiCliController = new AbortController();
   apiClient.post('/api/v1/chat-stream', body, {
+    signal: apiCliController.signal,
     onDownloadProgress: (progressEvent) =>
       processDownloadProgress(progressEvent,
         () => errorCallbackFnc(),
@@ -96,7 +93,8 @@ const stream = async (q) => {
   }).then(() => question.value = '')
     .catch(e => {
       messages.value.pop()
-      handleError(e);
+      let err = e == AXIOS_CONTROLLER_ABORT_MSG ? 'Stream request cancelled by user' : e;
+      handleError(err);
     }).finally(() => {
       if (messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
         errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
@@ -119,7 +117,7 @@ const deleteMessage = (index) => {
 const cancelStreamSignal = () => {
   errorReset();
   apiClient.get(`/api/v1/chat/cancel/${user.value}`)
-    .then(() => cancelledStream = true)
+    .then(() => apiCliController.abort())
     .catch(e => {
       handleError(e);
       scrollDownChat();

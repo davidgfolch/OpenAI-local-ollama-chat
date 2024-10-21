@@ -5,6 +5,7 @@ const server = 'http://127.0.0.1:5000';
 const apiClient = axios.create({
   baseURL: server,
 })
+const AXIOS_CONTROLLER_ABORT_MSG = 'CanceledError: canceled'
 
 apiClient.interceptors.response.use((response) => response, (error) => {
   if (error == 'AxiosError: Network Error') {
@@ -35,4 +36,4 @@ const processDownloadProgress = (progressEvent, errorCallbackFnc, successCallbac
   successCallback(dataChunk)
 }
 
-export { apiClient, processDownloadProgress };
+export { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG };
