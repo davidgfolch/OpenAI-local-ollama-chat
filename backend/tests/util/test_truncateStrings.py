@@ -1,10 +1,12 @@
 import unittest
-from util.truncateStrings import truncateStrings
-from langchain_core.messages import HumanMessage
+from util.truncateStrings import TruncateStrings
+from langchain_core.messages import BaseMessage, HumanMessage
 
 LONG_TEXT = "This is a very long string that needs truncating."
 TRUNCATED_TEXT = "This is a very long [...]"
 SHORT_TEXT = "short text"
+
+sut = TruncateStrings({BaseMessage: ["content"]}, 20)
 
 
 class TestTruncateStrings(unittest.TestCase):
@@ -16,28 +18,28 @@ class TestTruncateStrings(unittest.TestCase):
             type.__setattr__(cls, name, value)
 
     def test_truncate_string(self):
-        result = truncateStrings(None, max=20)
-        self.assertEqual(result, None)
+        res = sut.process(None)
+        self.assertEqual(res, None)
         # string
-        result = truncateStrings(LONG_TEXT, max=20)
-        self.assertEqual(result, TRUNCATED_TEXT)
-        result = truncateStrings(SHORT_TEXT, max=20)
-        self.assertEqual(result, SHORT_TEXT)
+        res = sut.process(LONG_TEXT)
+        self.assertEqual(res, TRUNCATED_TEXT)
+        res = sut.process(SHORT_TEXT)
+        self.assertEqual(res, SHORT_TEXT)
         # dict
-        result = truncateStrings({"key": LONG_TEXT}, max=20)
-        self.assertEqual(result["key"], TRUNCATED_TEXT)
+        res = sut.process({"key": LONG_TEXT})
+        self.assertEqual(res["key"], TRUNCATED_TEXT)
         # list
-        result = truncateStrings([LONG_TEXT], max=20)
-        self.assertEqual(result[0], TRUNCATED_TEXT)
+        res = sut.process([LONG_TEXT])
+        self.assertEqual(res[0], TRUNCATED_TEXT)
         # tuple
-        result = truncateStrings(("x", LONG_TEXT), max=20)
-        self.assertEqual(result[1], TRUNCATED_TEXT)
+        res = sut.process(("x", LONG_TEXT))
+        self.assertEqual(res[1], TRUNCATED_TEXT)
         # BaseMessage
-        result = truncateStrings(HumanMessage(LONG_TEXT), max=20)
-        self.assertEqual(result.content, TRUNCATED_TEXT)
+        res = sut.process(HumanMessage(LONG_TEXT))
+        self.assertEqual(res.content, TRUNCATED_TEXT)
         # other
-        result = truncateStrings(HumanMessage(LONG_TEXT), max=20)
-        self.assertEqual(result.content, TRUNCATED_TEXT)
+        res = sut.process(HumanMessage(LONG_TEXT))
+        self.assertEqual(res.content, TRUNCATED_TEXT)
 
 
 if __name__ == '__main__':

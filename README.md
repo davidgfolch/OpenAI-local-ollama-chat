@@ -10,6 +10,7 @@ This project implements a local AI chat, with:
   - Delete question/answer in file history.
 - LLM response live streaming: chunked streaming
   - Stop current streaming response.
+- Langchain callbacks logging (with truncated text)
 - Tech-stack: Vue3 -> Python (langchain/openai) -> Ollama
 
 ## Watch the Youtube demo
