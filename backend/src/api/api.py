@@ -6,7 +6,7 @@ from api.flaskUtil import EVENT_STREAM_CHUNKED_HEADERS, setResponseKO, setRespon
 from util.logUtil import initLog
 from model.model import ChatRequest
 
-app = Flask("api", root_path="/")
+app = Flask("api.api", root_path="/")
 # from flask_cors import CORS
 # CORS(app)
 log = initLog(__file__, logging.DEBUG)

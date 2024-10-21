@@ -9,9 +9,9 @@ from langchain_core.messages import AIMessageChunk, messages_to_dict
 
 from model.model import ChatRequest
 from service.host import hostArgs
-from service.langchain.callbackHandler import CallbackHandler
-from service.langchain.callbackHandlerAsync import CallbackHandlerAsync
 from util.logUtil import initLog
+from .callbackHandler import CallbackHandler
+from .callbackHandlerAsync import CallbackHandlerAsync
 
 
 log = initLog(__file__)
@@ -41,7 +41,7 @@ def delete_messages(user: str, index: List[int] = None):
             try:
                 msgs.pop(i)
             except IndexError:
-                log.warning("Trying to delete nonexisten index")
+                log.warning("Trying to delete non existent index")
         msgs = messages_to_dict(msgs)
         Path(getFilePath(user)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
             json.dumps(msgs, ensure_ascii=True), encoding="utf-8")

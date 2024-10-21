@@ -33,7 +33,7 @@ jobs:
     #     flake8 . --count --exit-zero --statistics --config=${{github.workspace}}/backend/.flake8
     - name: Test
       run: |
-        pytest
+        python -m pytest
     - name: Coverage
       run: |
         # coverage report --fail-under=90 -m

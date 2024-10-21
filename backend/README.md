@@ -49,7 +49,7 @@ cd backend && python api.py
 ```bash
 cd backend
 # run tests
-pytest 
+python -m pytest 
 # run coverage
 coverage run --source=src -m pytest 
 coverage report -m

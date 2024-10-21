@@ -3,7 +3,7 @@ from langchain_core.chat_history import BaseMessage
 from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
-from service.langchainUtil import checkChunkError, delete_messages, get_session_history, invoke, stream
+from service.langchain.langchainUtil import checkChunkError, delete_messages, get_session_history, invoke, stream
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog

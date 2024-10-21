@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
-from common import CHAT_REQUEST, USER, createMsgChunk, generateMsgChunks
+from tests.common import CHAT_REQUEST, USER, createMsgChunk, generateMsgChunks
 from service import aiService
 
 
