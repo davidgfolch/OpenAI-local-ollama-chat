@@ -4,7 +4,7 @@ import jsons
 from unittest.mock import patch
 from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app
 from api.flaskUtil import REQUIRED_FIELDS_NOT_INFORMED
-from common import generateMsgChunks, CHAT_REQUEST
+from tests.common import generateMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
 VALIDATION_ERR_MSG = [REQUIRED_FIELDS_NOT_INFORMED + 'model, user, question, history, ability']

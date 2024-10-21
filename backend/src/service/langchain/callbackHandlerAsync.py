@@ -4,7 +4,7 @@ from langchain_core.callbacks import AsyncCallbackHandler
 from langchain_core.outputs import LLMResult
 from langchain_core.messages import BaseMessage
 from service.langchain.callbackHandler import setTruncateLangchainClasses
-from service.langchain.truncateStrings import truncateStrings as truncStr
+from util.truncateStrings import truncateStrings as truncStr
 from util.logUtil import initLog
 
 log = initLog(__file__, logging.DEBUG)

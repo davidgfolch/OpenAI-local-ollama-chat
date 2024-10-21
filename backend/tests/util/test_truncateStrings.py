@@ -1,5 +1,5 @@
 import unittest
-from service.langchain.truncateStrings import truncateStrings
+from util.truncateStrings import truncateStrings
 from langchain_core.messages import HumanMessage
 
 LONG_TEXT = "This is a very long string that needs truncating."

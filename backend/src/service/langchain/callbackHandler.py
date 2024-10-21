@@ -6,7 +6,7 @@ from langchain_core.messages import BaseMessage
 from langchain_core.prompt_values import ChatPromptValue
 from langchain_core.outputs.chat_generation import ChatGenerationChunk
 
-from service.langchain.truncateStrings import truncateStrings as truncStr, setTruncateAttrMap
+from util.truncateStrings import truncateStrings as truncStr, setTruncateAttrMap
 from util.logUtil import initLog
 
 log = initLog(__file__, logging.DEBUG)

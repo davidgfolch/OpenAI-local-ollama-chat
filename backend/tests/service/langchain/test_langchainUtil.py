@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
-from common import USER, createMsgChunk, CHAT_REQUEST
+from tests.common import USER, createMsgChunk, CHAT_REQUEST
 from service.langchain.langchainUtil import CALLBACKS, currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
 
 
