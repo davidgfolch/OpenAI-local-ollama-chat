@@ -5,7 +5,8 @@ const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDow
 // Props
 const props = defineProps({
     user: String,
-    loading: Boolean
+    loading: Boolean,
+    enableDelete: Boolean
 });
 // Reactive data
 const hideSettings = ref(true);
@@ -21,6 +22,7 @@ const stream = () => {
     emit('stream', question.value);
 }
 const deleteChat = () => {
+    if (!props.enableDelete) return;
     emit('errorReset');
     apiClient.get(`/api/v1/chat/delete/${props.user}`)
         .then(() => emit('messagesReset'))
@@ -36,7 +38,7 @@ const toggleSettings = () => {
     hideSettings.value = !hideSettings.value;
     emit('scrollDownChat');
 }
-const toggleHelp = () => showHelp.value=!showHelp.value;
+const toggleHelp = () => showHelp.value = !showHelp.value;
 
 defineExpose({ model, ability, history, question, showHelp });
 onMounted(() => getModels())
@@ -48,10 +50,9 @@ onMounted(() => getModels())
             <div>
                 <div style="float: left; margin-right: 1em; width: 100%">
                     <div style="float: right">
-                        <button @click="stream" v-bind:disabled="loading" style="background: #0000; border: 0px">
-                            <img style="width: 4em; height: 4em;" src="../assets/chatgpt/send.webp"
-                                alt="Ask AI (ctrl+enter)" title="Ask AI (ctrl+enter)">
-                        </button>
+                        <img style="width: 4em; height: 4em;" src="../assets/chatgpt/send.webp" @click="stream"
+                            :style="loading ? 'filter: brightness(50%)' : ''" alt="Ask AI (ctrl+enter)"
+                            title="Ask AI (ctrl+enter)">
                     </div>
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
                         autofocus v-on:keypress.ctrl.enter="stream"></textarea>
@@ -63,9 +64,9 @@ onMounted(() => getModels())
                 <img class="optionIcon" src="../assets/chatgpt/settings.webp" alt="Settings" title="Settings"
                     @click="toggleSettings">
                 <img class="optionIcon" src="../assets/chatgpt/trash.webp" alt="Delete chat" title="Delete chat"
-                    @click="deleteChat">
+                    @click="deleteChat" :style="enableDelete ? '': 'filter: brightness(50%)'">
                 <img class="optionIcon" src="../assets/chatgpt/help.webp" alt="Show help" title="Show help"
-                    @click="toggleHelp">
+                    @click="toggleHelp" :style="enableDelete ? '': 'filter: brightness(50%)'">
             </div>
         </div>
         <div :hidden="hideSettings" style="clear: both; margin-top: 4em">
@@ -127,13 +128,13 @@ button:disabled img {
 }
 
 .optionIcon {
-  border-radius: 50%;
-  box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
-  object-fit: cover;
-  position: relative;
-  float: right;
-  width: 3em;
-  height: 3em;
-  margin-left: 0.3em;
+    border-radius: 50%;
+    box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
+    object-fit: cover;
+    position: relative;
+    float: right;
+    width: 3em;
+    height: 3em;
+    margin-left: 0.3em;
 }
 </style>

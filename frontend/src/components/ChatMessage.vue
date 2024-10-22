@@ -14,23 +14,9 @@ const collapsed = ref(false);
 const cancelStream = () => emit('cancelStream');
 const deleteMessage = () => emit('deleteMessage');
 const lastAndLoading = () => props.total == props.index + 1 & props.loading;
-const collapseMessage = () => {
-    collapsed.value = !collapsed.value;
-    console.log("collapseMessage collapsed = " + collapsed.value)
-}
-const msgClass = () => {
-    if (collapsed.value) {
-        return 'collapsed';
-    }
-    return '';
-}
-const rotateIfCollapsed = () => {
-    console.log("rotateIfCollapsed");
-    if (!collapsed.value) {
-        return 'flipVertical';
-    }
-    return '';
-}
+const collapseMessage = () => collapsed.value = !collapsed.value;
+const msgClass = () => collapsed.value?'collapsed':'';
+const rotateIfCollapsed = () => collapsed.value?'':'flipVertical';
 </script>
 
 <template>

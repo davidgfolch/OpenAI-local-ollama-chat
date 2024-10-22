@@ -80,9 +80,11 @@ const stream = async (q) => {
       processDownloadProgress(progressEvent,
         () => errorCallbackFnc(),
         (dataChunk) => {
-          dataChunk = checkUnclosedCodeBlockMd(dataChunk)
-          messages.value.pop();
-          setAnswer(dataChunk);
+          if (dataChunk != '') {
+            dataChunk = checkUnclosedCodeBlockMd(dataChunk)
+            messages.value.pop();
+            setAnswer(dataChunk);
+          }
         })
   }).then(() => question.value = '')
     .catch(e => {
@@ -136,9 +138,10 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
       <ChatError ref="chatError" />
     </ul>
   </div>
-  <ChatOptions :question="question" :loading="loading" :user="user" :view-settings="false" @error-reset="errorReset()"
-    @handle-error="e => handleError(e)" @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()"
-    @scroll-down-chat="scrollDownChat" @stream="q => stream(q)" ref="chatOptions" />
+  <ChatOptions :question="question" :loading="loading" :user="user" :view-settings="false"
+    :enable-delete="messages.length > 0" @error-reset="errorReset()" @handle-error="e => handleError(e)"
+    @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat"
+    @stream="q => stream(q)" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 
@@ -149,13 +152,16 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
 .verticalExpand-enter-active {
   animation: verticalExpand-in 0.5s;
 }
+
 .verticalExpand-leave-active {
   animation: verticalExpand-in 0s reverse;
 }
+
 @keyframes verticalExpand-in {
   0% {
     transform: scaleY(0);
   }
+
   /* 50% {
     transform: scaleY(1.25);
   } */
