@@ -3,14 +3,10 @@ import { onMounted } from 'vue';
 import ChatHeader from './components/ChatHeader.vue';
 import ChatContainer from './components/ChatContainer.vue';
 
-const bgIndex = ref(0);
-const bgImages = ["1", "1_2", "2", "2_3", "3", "3_4", "4", "4_1"]
+
 const setBackgroundImage = () => {
-	document.body.style = "background: url('/background" + bgImages[bgIndex.value] + ".png'); background-repeat: no-repeat; background-size: cover; background-attachment: fixed;";
-	bgIndex.value = bgIndex.value + 1;
-	if (bgIndex.value >= bgImages.length)
-		bgIndex.value = 0;
-	setTimeout(setBackgroundImage, 3000);
+	document.body.style = "background: url('/background" + (Math.floor(Math.random() * 4) + 1) + ".png'); 	background-repeat: no-repeat; background-size: cover; background-attachment: fixed;";
+	setTimeout(setBackgroundImage, 60000);
 }
 
 onMounted(setBackgroundImage);
