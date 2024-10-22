@@ -9,14 +9,14 @@ const props = defineProps({
     index: { type: Number },
     loading: { type: Boolean },
 })
-const collapsed= ref(false);
+const collapsed = ref(false);
 // Methods
 const cancelStream = () => emit('cancelStream');
 const deleteMessage = () => emit('deleteMessage');
 const lastAndLoading = () => props.total == props.index + 1 & props.loading;
 const collapseMessage = () => {
     collapsed.value = !collapsed.value;
-    console.log("collapseMessage collapsed = "+collapsed.value)
+    console.log("collapseMessage collapsed = " + collapsed.value)
 }
 const msgClass = () => {
     if (collapsed.value) {
@@ -39,20 +39,17 @@ const rotateIfCollapsed = () => {
         <span v-html="props.msg.q"></span>
     </li>
     <li class="message left">
-        <img class="logo" src="../assets/chatgpt/ai.webp" :style="lastAndLoading()?'filter: brightness(50%)':''"
+        <img class="logo" src="../assets/chatgpt/ai.webp" :style="lastAndLoading() ? 'filter: brightness(50%)' : ''"
             alt="AI response" title="AI response">
-        <img class="logo loading" src="../assets/loading.gif" v-if="lastAndLoading()"
-            alt="Waiting for AI response" title="Waiting for AI response" />
+        <img class="logo loading" src="../assets/loading.gif" v-if="lastAndLoading()" alt="Waiting for AI response"
+            title="Waiting for AI response" />
         <div style="position: absolute; left: -0.5em; top: 0.5em">
-            <img class="logo small-icon" src="../assets/chatgpt/trash.webp"
-                v-if="lastAndLoading()" @click="cancelStream"
-                alt="Cancel question" title="Cancel question">
-            <img class="logo small-icon" src="../assets/chatgpt/trash.webp"
-                v-if="!lastAndLoading()" @click="deleteMessage"
-                alt="Delete message" title="Delete message">
-            <img class="logo small-icon" src="../assets/chatgpt/collapse.webp"
-                @click="collapseMessage()" :class="rotateIfCollapsed()"
-                alt="Collapse message" title="Collapse message">
+            <img class="logo small-icon" src="../assets/chatgpt/trash.webp" v-if="lastAndLoading()"
+                @click="cancelStream" alt="Cancel question" title="Cancel question">
+            <img class="logo small-icon" src="../assets/chatgpt/trash.webp" v-if="!lastAndLoading()"
+                @click="deleteMessage" alt="Delete message" title="Delete message">
+            <img class="logo small-icon" src="../assets/chatgpt/collapse.webp" @click="collapseMessage()"
+                :class="rotateIfCollapsed()" alt="Collapse message" title="Collapse message">
         </div>
         <span v-html="props.msg.a" :class="msgClass()"></span>
     </li>
@@ -68,8 +65,8 @@ const rotateIfCollapsed = () => {
 }
 
 .collapsed {
-    overflow-y: hidden;
-    height: 4em;
+    overflow-y: scroll;
+    max-height: 4em;
     display: inline-block;
 }
 

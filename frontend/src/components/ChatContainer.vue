@@ -73,7 +73,7 @@ const stream = async (q) => {
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
   apiCliController = new AbortController();
-  let cancelled=false;
+  let cancelled = false;
   apiClient.post('/api/v1/chat-stream', body, {
     signal: apiCliController.signal,
     onDownloadProgress: (progressEvent) =>
@@ -130,7 +130,9 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
     <ul class="chat">
       <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index"
         :loading="loading" @cancel-stream="cancelStream()" @delete-message="deleteMessage(index)" />
-      <ChatHelp v-if="messages.length==0 || chatOptions.showHelp"/>
+      <Transition name="verticalExpand">
+        <ChatHelp v-if="messages.length == 0 || chatOptions.showHelp" />
+      </Transition>
       <ChatError ref="chatError" />
     </ul>
   </div>
@@ -143,6 +145,24 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
 
 <style>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css");
+
+.verticalExpand-enter-active {
+  animation: verticalExpand-in 0.5s;
+}
+.verticalExpand-leave-active {
+  animation: verticalExpand-in 0s reverse;
+}
+@keyframes verticalExpand-in {
+  0% {
+    transform: scaleY(0);
+  }
+  /* 50% {
+    transform: scaleY(1.25);
+  } */
+  100% {
+    transform: scaleY(1);
+  }
+}
 
 .chat-container {
   background-color: rgba(0, 0, 0, 0.4);
