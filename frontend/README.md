@@ -34,4 +34,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - [Axios](https://axios-http.com/docs/intro) http client
   - https://github.com/axios/axios
 - [Showdown](https://github.com/showdownjs/showdown/wiki) markdown parser
-- Highlight (to prettify code blocks in responses)
+- Highlightjs (to prettify code blocks in responses)
