@@ -14,6 +14,7 @@ const models = ref([]);
 const model = ref("");
 const ability = ref("Eres un asistente especializado en ingenieria de software.");
 const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
+const showHelp = ref(false)
 // Methods
 const stream = () => {
     if (props.loading) return;
@@ -35,7 +36,9 @@ const toggleSettings = () => {
     hideSettings.value = !hideSettings.value;
     emit('scrollDownChat');
 }
-defineExpose({ model, ability, history, question });
+const toggleHelp = () => showHelp.value=!showHelp.value;
+
+defineExpose({ model, ability, history, question, showHelp });
 onMounted(() => getModels())
 </script>
 
@@ -43,28 +46,32 @@ onMounted(() => getModels())
     <div class="chat-container" style="margin-top: 1em;">
         <div>
             <div>
-                <div style="float: right">
-                    <button @click="stream" v-bind:disabled="loading" style="background: #0000; border: 0px">
-                        <img style="width: 4em; height: 4em;" src="../assets/veloai/send.png" alt="Ask AI (ctrl+enter)"
-                            title="Ask AI (ctrl+enter)">
-                    </button>
-                </div>
-                <div style="float: left; margin-right: 1em">
+                <div style="float: left; margin-right: 1em; width: 100%">
+                    <div style="float: right">
+                        <button @click="stream" v-bind:disabled="loading" style="background: #0000; border: 0px">
+                            <img style="width: 4em; height: 4em;" src="../assets/chatgpt/send.webp"
+                                alt="Ask AI (ctrl+enter)" title="Ask AI (ctrl+enter)">
+                        </button>
+                    </div>
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
                         autofocus v-on:keypress.ctrl.enter="stream"></textarea>
+                    <!-- <img class="optionIcon" src="../assets/chatgpt/plus.webp" alt="Add another text" title="Add another text">
+                    <img class="optionIcon" src="../assets/chatgpt/collapse.webp" alt="Add another text" title="Add another text"> -->
                 </div>
             </div>
             <div style="clear:both">
-                <img class="optionIcon" src="../assets/veloai/settings.png" alt="Settings" title="Settings"
+                <img class="optionIcon" src="../assets/chatgpt/settings.webp" alt="Settings" title="Settings"
                     @click="toggleSettings">
-                <img class="optionIcon" src="../assets/veloai/trash.png" alt="Delete chat" title="Delete chat"
+                <img class="optionIcon" src="../assets/chatgpt/trash.webp" alt="Delete chat" title="Delete chat"
                     @click="deleteChat">
+                <img class="optionIcon" src="../assets/chatgpt/help.webp" alt="Show help" title="Show help"
+                    @click="toggleHelp">
             </div>
         </div>
         <div :hidden="hideSettings" style="clear: both; margin-top: 4em">
             <input type="text" class="text_input" v-model="ability"
-                placeholder="Artificial intelligence system ability (describe any hability in natural language)"
-                title="Artificial intelligence system ability (describe any hability in natural language)" />
+                placeholder="Artificial intelligence system ability (describe any ability in natural language)"
+                title="Artificial intelligence system ability (describe any ability in natural language)" />
         </div>
         <div :hidden="hideSettings">
             <input type="text" class="text_input" v-model="history" placeholder="Current chat history"
@@ -101,7 +108,7 @@ onMounted(() => getModels())
     right: 0;
     padding: 1em 0em 1em 1em;
     margin-bottom: 1em;
-    width: 100%;
+    width: 92%;
 }
 
 textarea {
@@ -110,11 +117,23 @@ textarea {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+
 button:disabled {
     cursor: not-allowed;
 }
+
 button:disabled img {
     filter: brightness(50%)
 }
 
+.optionIcon {
+  border-radius: 50%;
+  box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
+  object-fit: cover;
+  position: relative;
+  float: right;
+  width: 3em;
+  height: 3em;
+  margin-left: 0.3em;
+}
 </style>

@@ -1,7 +1,7 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 
-const emit = defineEmits(['cancelStreamSignal','deleteMessage']);
+const emit = defineEmits(['cancelStream', 'deleteMessage']);
 // Props
 const props = defineProps({
     msg: { type: Object },
@@ -9,25 +9,52 @@ const props = defineProps({
     index: { type: Number },
     loading: { type: Boolean },
 })
+const collapsed= ref(false);
 // Methods
-const cancelStreamSignal = () => emit('cancelStreamSignal');
+const cancelStream = () => emit('cancelStream');
 const deleteMessage = () => emit('deleteMessage');
+const lastAndLoading = () => props.total == props.index + 1 & props.loading;
+const collapseMessage = () => {
+    collapsed.value = !collapsed.value;
+    console.log("collapseMessage collapsed = "+collapsed.value)
+}
+const msgClass = () => {
+    if (collapsed.value) {
+        return 'collapsed';
+    }
+    return '';
+}
+const rotateIfCollapsed = () => {
+    console.log("rotateIfCollapsed");
+    if (!collapsed.value) {
+        return 'flipVertical';
+    }
+    return '';
+}
 </script>
 
 <template>
     <li class="message right">
-        <img class="logo" src="../assets/veloai/user.png" alt="User question" title="User question">
+        <img class="logo" src="../assets/chatgpt/user.webp" alt="User question" title="User question">
         <span v-html="props.msg.q"></span>
     </li>
     <li class="message left">
-        <img class="logo" src="../assets/veloai/ai.png" alt="AI response" title="AI response">
-        <img class="logo loading" src="../assets/loading.gif" v-if="props.total == props.index + 1 & loading" alt="Waiting for AI response"
-            title="Waiting for AI response" />
-        <img class="logo delete" src="../assets/veloai/trash.png" v-if="props.total == props.index + 1 & loading" alt="Cancel question"
-            title="Cancel question" @click="cancelStreamSignal">
-        <img class="logo delete" src="../assets/veloai/trash.png" v-if="!(props.total == props.index + 1 & loading)" alt="Delete message"
-            title="Delete message" @click="deleteMessage">
-        <span v-html="props.msg.a"></span>
+        <img class="logo" src="../assets/chatgpt/ai.webp" :style="lastAndLoading()?'filter: brightness(50%)':''"
+            alt="AI response" title="AI response">
+        <img class="logo loading" src="../assets/loading.gif" v-if="lastAndLoading()"
+            alt="Waiting for AI response" title="Waiting for AI response" />
+        <div style="position: absolute; left: -0.5em; top: 0.5em">
+            <img class="logo small-icon" src="../assets/chatgpt/trash.webp"
+                v-if="lastAndLoading()" @click="cancelStream"
+                alt="Cancel question" title="Cancel question">
+            <img class="logo small-icon" src="../assets/chatgpt/trash.webp"
+                v-if="!lastAndLoading()" @click="deleteMessage"
+                alt="Delete message" title="Delete message">
+            <img class="logo small-icon" src="../assets/chatgpt/collapse.webp"
+                @click="collapseMessage()" :class="rotateIfCollapsed()"
+                alt="Collapse message" title="Collapse message">
+        </div>
+        <span v-html="props.msg.a" :class="msgClass()"></span>
     </li>
 </template>
 
@@ -38,6 +65,16 @@ const deleteMessage = () => emit('deleteMessage');
     box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.5);
     position: relative;
     margin-bottom: 30px;
+}
+
+.collapsed {
+    overflow-y: hidden;
+    height: 4em;
+    display: inline-block;
+}
+
+.flipVertical {
+    transform: rotate(180deg);
 }
 
 .message span p {
@@ -76,10 +113,13 @@ li span {
     top: -0.5em;
 }
 
-.delete {
+.small-icon {
     top: 2.5em;
-    width: 1.5em;
-    height: 1.5em;
+    width: 1.8em;
+    height: 1.8em;
+    position: relative;
+    float: left;
+    margin-left: 0.1em;
 }
 
 .message.right .logo {

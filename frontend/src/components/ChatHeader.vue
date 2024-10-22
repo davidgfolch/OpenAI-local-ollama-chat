@@ -19,7 +19,7 @@ h2 {
 	background-color: rgba(0, 0, 0, 0.4);
 	border-radius: 1.5em;
 	box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
-	padding: 1em;
-	margin: 1em;
+	padding: 0.5em;
+	margin-top: 0.1em;
 }
 </style>

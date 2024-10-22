@@ -6,22 +6,13 @@ export default {
   components: {
     ChatHeader,
     ChatContainer
-  },
-  data() {
-    return {
-      messages: []
-      //   {   NOTE INITIAL MESSAGES DONT WORK WITH "DELETE MESSAGE" due to index
-      //   'q': '<p>Hola AI!</p>',
-      //   'a': '<p>Hola! en que puedo ayudarte?</p>'
-      // }]
-    }
   }
 }
 </script>
 
 <template>
   <ChatHeader msg="OpenAi local Ollama chat" />
-  <ChatContainer :initial-messages="messages" />
+  <ChatContainer/>
 </template>
 
 <style>
@@ -41,6 +32,5 @@ body {
 	flex-direction: column;
 	min-height: 100vh;
 	font-family: 'Lato', sans-serif;
-	margin: 0 0 50px;
 }
 </style>

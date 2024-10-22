@@ -65,11 +65,13 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 1. Langchain PR for FileChatMessageHistory delete_message.
 2. Upload file or folder to give context to llm (embeddings, agents, RAG??).
 3. Multiple question scheduler or in parallel.
-4. Continue doesn't generates K-shift error, checkout how.
+4. K-shift error (see [Known-issues](Known-issues)):
+   1. Continue doesn't generates K-shift error, checkout how.
+   2. Option (front/back) to disable passing all history to LLM.
 
 ## Known issues (todo)
 
-### DeepSeekCoder V2 fails randomly
+### Ollama throws "Deepseek2 does not support K-shift"
 
 When context gets bigger and can't fit into VRAM (after several q/a f.ex.), Ollama throws the following error because Deepseek2 does not support K-shift
 

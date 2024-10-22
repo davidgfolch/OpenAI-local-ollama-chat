@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, defineProps, defineExpose, nextTick } from 'vue';
+import { ref, onMounted, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
+import ChatHelp from './ChatHelp.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
 import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
@@ -8,22 +9,14 @@ import hljs from 'highlight.js';
 import { checkUnclosedCodeBlockMd, scrollDown } from './utils.js';
 import { showdown } from "vue-showdown";
 
-// Props
-const props = defineProps({
-  initialMessages: {  // TODO: INITIAL MESSAGES
-    type: Array,
-    default: () => []
-  }
-});
 // Vars
 const mdConverter = new showdown.Converter();
-let apiCliController = null;
+let apiCliController = null; //https://axios-http.com/docs/cancellation
 // Reactive data
 const user = ref('localUser');
 const loading = ref(false);
 const question = ref('');
 const messages = ref([]);
-// Refs
 const scrollDiv = ref(null);
 const chatError = ref('');
 const chatOptions = ref();
@@ -36,8 +29,8 @@ const loadHistory = () => {
   let q = null, a = null;
   loading.value = true;
   apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
-    if (res.data.response.length === 0) {  // TODO: INITIAL MESSAGES
-      messages.value = props.initialMessages;
+    if (res.data.response.length === 0) {
+      messages.value = [];
       return;
     }
     res.data.response.forEach((msg) => {
@@ -80,6 +73,7 @@ const stream = async (q) => {
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
   apiCliController = new AbortController();
+  let cancelled=false;
   apiClient.post('/api/v1/chat-stream', body, {
     signal: apiCliController.signal,
     onDownloadProgress: (progressEvent) =>
@@ -92,11 +86,13 @@ const stream = async (q) => {
         })
   }).then(() => question.value = '')
     .catch(e => {
-      messages.value.pop()
-      let err = e == AXIOS_CONTROLLER_ABORT_MSG ? 'Stream request cancelled by user' : e;
+      cancelled = e == AXIOS_CONTROLLER_ABORT_MSG;
+      if (!cancelled)
+        messages.value.pop()
+      let err = cancelled ? 'Stream request cancelled by user' : e;
       handleError(err);
     }).finally(() => {
-      if (messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
+      if (!cancelled && messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
         errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
       resetApiCall();
     });
@@ -114,7 +110,7 @@ const deleteMessage = (index) => {
       scrollDownChat();
     });
 }
-const cancelStreamSignal = () => {
+const cancelStream = () => {
   errorReset();
   apiClient.get(`/api/v1/chat/cancel/${user.value}`)
     .then(() => apiCliController.abort())
@@ -125,7 +121,7 @@ const cancelStreamSignal = () => {
 }
 
 onMounted(() => loadHistory());
-defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStreamSignal, deleteMessage });
+defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStream, deleteMessage });
 </script>
 
 
@@ -133,7 +129,8 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   <div class="chat-container">
     <ul class="chat">
       <ChatMessage v-for="(msg, index) in messages" :key="index" :msg="msg" :total="messages.length" :index="index"
-        :loading="loading" @cancel-stream-signal="cancelStreamSignal()" @delete-message="deleteMessage(index)" />
+        :loading="loading" @cancel-stream="cancelStream()" @delete-message="deleteMessage(index)" />
+      <ChatHelp v-if="messages.length==0 || chatOptions.showHelp"/>
       <ChatError ref="chatError" />
     </ul>
   </div>
@@ -172,15 +169,5 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
 .scrollDiv {
   padding: 0;
   margin: 0;
-}
-
-.optionIcon {
-  border-radius: 50%;
-  box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
-  object-fit: cover;
-  position: relative;
-  float: right;
-  width: 3em;
-  height: 3em;
 }
 </style>
