@@ -14,9 +14,6 @@ CORS_HEADERS = {
 EVENT_STREAM_CHUNKED_HEADERS = {
     'Accept': 'text/event-stream',
     'Content-Type': "text/event-stream",
-    'Transfer-Encoding': "chunked",  # tried, no help
-    # 'Cache-Control': "no-cache",
-    # 'Connection': "keep-alive",
 }
 EVENT_STREAM_CHUNKED_HEADERS.update(CORS_HEADERS)
 REQUIRED_FIELDS_NOT_INFORMED = 'Required fields not informed: '

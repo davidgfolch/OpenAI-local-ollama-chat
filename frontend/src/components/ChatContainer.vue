@@ -12,6 +12,9 @@ import { showdown } from "vue-showdown";
 // Vars
 const mdConverter = new showdown.Converter();
 let apiCliController = null; //https://axios-http.com/docs/cancellation
+let currentChunkId = '';
+let now = 0;
+let streamTimeStart = Date.now();
 // Reactive data
 const user = ref('localUser');
 const loading = ref(false);
@@ -26,7 +29,7 @@ const errorReset = () => chatError.value.reset();
 var scrollDownEnabled = true;
 const scrollDownChat = () => { if (scrollDownEnabled) scrollDown(scrollDiv.value); }
 const loadHistory = () => {
-  let q = null, a = null;
+  let q = null, a = null, id = null, metadata = null;
   loading.value = true;
   apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
     if (res.data.response.length === 0) {
@@ -35,9 +38,13 @@ const loadHistory = () => {
     }
     res.data.response.forEach((msg) => {
       if (msg.q) q = msg.q;
-      if (msg.a) a = msg.a;
+      if (msg.a) {
+        a = msg.a;
+        metadata = msg.metadata;
+        id = msg.id;
+      }
       if (a != null && q != null) {
-        messagePush(q, a);
+        messagePush(q, a, id, JSON.parse(metadata));
         scrollDownChat()
         highLightCode();
         q = null, a = null;
@@ -46,9 +53,25 @@ const loadHistory = () => {
   }).catch(handleError).finally(resetApiCall);
 };
 const mdToHtml = (msg) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
-const messagePush = (q, a) => messages.value.push({ q: mdToHtml(q), a: mdToHtml(a) });
+const messagePush = (q, a, id, metadata) => messages.value.push({q: mdToHtml(q), a: mdToHtml(a), id: id, metadata: metadata});
 const setAnswer = (answer, resetQuestion) => {
-  messagePush(question.value, answer);
+  const arr = answer.split("#|S|E|P#");
+  if (arr.length > 1) {
+    currentChunkId = arr[0]
+    const modelName = arr[1]
+    const langchainChat = arr[2]
+    const text = arr[3]
+    const metadataStr = arr[4]
+    now = Date.now();
+    let metadata = arr.length > 4 ? metadataStr : '{"total_duration": '+(now-streamTimeStart)+'}'
+    metadata = JSON.parse(metadata)
+    metadata.total_duration = now-streamTimeStart;
+    metadata.model = modelName;
+    metadata.langchainChat = langchainChat;
+    messagePush(question.value, text, currentChunkId, metadata);
+  } else {
+    messagePush(question.value, answer, '', '');
+  }
   if (resetQuestion) question.value = '';
   scrollDownChat()
   highLightCode();
@@ -67,6 +90,9 @@ const stream = async (q) => {
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
+  currentChunkId = '';
+  streamTimeStart = Date.now();
+  now = Date.now();
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
   scrollDownEnabled = false;
@@ -81,7 +107,6 @@ const stream = async (q) => {
         () => errorCallbackFnc(),
         (dataChunk) => {
           if (dataChunk != '') {
-            dataChunk = checkUnclosedCodeBlockMd(dataChunk)
             messages.value.pop();
             setAnswer(dataChunk);
           }

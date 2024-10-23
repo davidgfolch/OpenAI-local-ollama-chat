@@ -4,11 +4,12 @@ from typing import List
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
+from langchain_ollama import ChatOllama
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.messages import AIMessageChunk, messages_to_dict
 
 from model.model import ChatRequest
-from service.host import hostArgs
+from service.host import hostArgs, selectedChatType
 from util.logUtil import initLog
 from .callbackHandler import CallbackHandler
 from .callbackHandlerAsync import CallbackHandlerAsync
@@ -61,7 +62,12 @@ def with_model(model: str):
 
 
 def chatInstance():
-    llm = ChatOpenAI(model=currentModel, **hostArgs)
+    if selectedChatType == ChatOllama:
+        log.info(f"chatInstance ChatOllama with hostArgs={hostArgs}")
+        llm = ChatOllama(model=currentModel, **hostArgs)
+    else:
+        log.info(f"chatInstance ChatOpenAI with hostArgs={hostArgs}")
+        llm = ChatOpenAI(model=currentModel, **hostArgs)
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{ability}"),
         MessagesPlaceholder(variable_name="history"),
@@ -87,11 +93,13 @@ def stream(r: ChatRequest):
     return with_model(r.model).stream(**mapParams(r))
 
 
+ERROR_STREAM_CHUNK = 'Error in stream chunk finish_reason is not stop, reason: '
+
 def checkChunkError(chunk: AIMessageChunk):
     """ Check finish_reason is ok"""
     reason = chunk.response_metadata.get('finish_reason', '')
     if (reason != '' and reason != 'stop'):
-        raise Exception("Error in stream chunk finish_reason is not stop")
+        raise Exception(f"{ERROR_STREAM_CHUNK}{reason}")
 
 
 chat = chatInstance()

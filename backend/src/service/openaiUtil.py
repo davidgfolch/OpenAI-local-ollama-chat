@@ -2,12 +2,12 @@ from openai import OpenAI
 from openai.pagination import SyncPage
 from openai.types import Model
 
-from service.host import hostArgs
+from service.host import hostArgsV1
 from util.logUtil import initLog
 
 log = initLog(__file__)
 
-openAICli = OpenAI(**hostArgs)
+openAICli = OpenAI(**hostArgsV1)
 
 def getModels() -> list:
     res: SyncPage[Model] = openAICli.models.list()

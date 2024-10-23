@@ -2,8 +2,10 @@ import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
-from tests.common import USER, createMsgChunk, CHAT_REQUEST
-from service.langchain.langchainUtil import CALLBACKS, currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
+# import pytest
+from tests.common import USER, mockMsgChunk, CHAT_REQUEST
+from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
+# from service.host import supportedChatTypes, selectedChatType
 
 
 class TestLangchainUtil(unittest.TestCase):
@@ -31,7 +33,11 @@ class TestLangchainUtil(unittest.TestCase):
     @patch(langchainUtil+'hostArgs', new={})
     @patch(langchainUtil+'ChatPromptTemplate')
     @patch(langchainUtil+'RunnableWithMessageHistory')
+    # @pytest.mark.parametrize("param_selectedChatType", supportedChatTypes.values)
     def test_chatInstance(self, mock_history, mock_ChatPromptTemplate, mock_ChatOpenAI):
+        #, param_selectedChatType):
+        # mock_host_mock_selectedChatType = MagicMock(selectedChatType)
+        # mock_host_mock_selectedChatType.return_value = param_selectedChatType
         mock_llm = MagicMock()
         mock_ChatOpenAI.return_value = mock_llm
         mock_prompt = MagicMock()
@@ -88,15 +94,17 @@ class TestLangchainUtil(unittest.TestCase):
 
     def test_checkChunkError(self):
         try:
-            checkChunkError(createMsgChunk(finish_reason='stop'))
+            checkChunkError(mockMsgChunk(finishReason='stop'))
         except Exception:
             self.fail("checkChunkError() raised Exception unexpectedly!")
 
     def test_checkChunkError_exception(self):
+        finishReason = 'error'
         with self.assertRaises(Exception) as context:
-            checkChunkError(createMsgChunk(finish_reason='error'))
+            mock = mockMsgChunk(metadata=True, finishReason=finishReason)
+            checkChunkError(mock)
         self.assertEqual(str(context.exception),
-                         "Error in stream chunk finish_reason is not stop")
+                         ERROR_STREAM_CHUNK+finishReason)
 
 
 if __name__ == '__main__':

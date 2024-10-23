@@ -74,6 +74,7 @@
         "jsons",
         "langchain",
         "mdformat",
+        "Ollama",
         "openai"
     ],
     "flake8.args": [

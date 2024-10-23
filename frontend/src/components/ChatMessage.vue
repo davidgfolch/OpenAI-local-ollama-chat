@@ -1,5 +1,6 @@
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue'
+import { msToTime } from './utils.js';
 
 const emit = defineEmits(['cancelStream', 'deleteMessage']);
 // Props
@@ -15,8 +16,15 @@ const cancelStream = () => emit('cancelStream');
 const deleteMessage = () => emit('deleteMessage');
 const lastAndLoading = () => props.total == props.index + 1 & props.loading;
 const collapseMessage = () => collapsed.value = !collapsed.value;
-const msgClass = () => collapsed.value?'collapsed':'';
-const rotateIfCollapsed = () => collapsed.value?'':'flipVertical';
+const msgClass = () => collapsed.value ? 'collapsed' : '';
+const rotateIfCollapsed = () => collapsed.value ? '' : 'flipVertical';
+const getMetadata = () => {
+    const md = props.msg.metadata
+    let res = ''
+    if (md.total_duration)
+        res = " <bold>&#9202;" + msToTime(md.total_duration) + "&#9202;</bold>";
+    return res + " Model: " + (md.model ? md.model : md.model_name);
+}
 </script>
 
 <template>
@@ -38,6 +46,11 @@ const rotateIfCollapsed = () => collapsed.value?'':'flipVertical';
                 :class="rotateIfCollapsed()" alt="Collapse message" title="Collapse message">
         </div>
         <span v-html="props.msg.a" :class="msgClass()"></span>
+        <span v-if="props.msg.metadata" v-html="getMetadata()" style="font-size: small;"></span>
+        <span v-if="props.msg.metadata & props.msg.metadata.langchainChat" style="font-size: x-small;">
+            &nbsp;ChatType: {{ props.msg.metadata.langchainChat }}
+        </span>
+        <span v-if="props.msg.id" style="font-size: x-small;">&nbsp;StreamId: {{ props.msg.id }}</span>
     </li>
 </template>
 

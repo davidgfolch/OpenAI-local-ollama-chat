@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 from util.logUtil import initLog
 
-log = initLog(__file__, logging.DEBUG)
+log = initLog(__file__, logging.INFO)
 
 
 class TruncateStrings:

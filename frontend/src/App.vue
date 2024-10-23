@@ -7,7 +7,6 @@ import ChatContainer from './components/ChatContainer.vue';
 <template>
 	<ChatHeader msg="OpenAi local Ollama chat" />
 	<ChatContainer />
-	<img v-for="(img, idx) in bgImages" :src="'/background' + img + '.png'" style="display: block" :key="idx" />
 </template>
 
 <style>

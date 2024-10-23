@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
-from tests.common import CHAT_REQUEST, USER, createMsgChunk, generateMsgChunks
+from tests.common import CHAT_REQUEST, USER, mockMsgFirstChunk, mockMsgChunk, mockMsgChunks
 from service import aiService
 
 
@@ -47,17 +47,20 @@ def test_sendMessage_exception():
 
 def test_sendMessageStream():
     with patch('service.aiService.stream') as mock_stream:
-        mock_stream.return_value = generateMsgChunks()
+        items = 4
+        mock = mockMsgChunks(items, metadataChunk=True)
+        mock_stream.return_value = mock
         generator = aiService.sendMessageStream(CHAT_REQUEST)
         chunks = list(generator)
-        for x in range(1, 4):
-            assert chunks[x-1] == createMsgChunk(content=f"chunk{x}")
+        assert chunks[0] == mockMsgFirstChunk()
+        for n in range(0, items):
+            assert chunks[n+1] == mockMsgChunk(content=f"chunk{n+1}", metadata=n == items-1)
 
 
 def test_sendMessageStream_cancel():
     aiService.cancelStreamSignal(CHAT_REQUEST.user)
     with patch('service.aiService.stream') as mock_stream:
-        mock_stream.return_value = generateMsgChunks()
+        mock_stream.return_value = mockMsgChunks(4)
         generator = aiService.sendMessageStream(CHAT_REQUEST)
         chunks = list(generator)
         assert chunks == []
@@ -73,10 +76,12 @@ def test_sendMessageStream_exception():
 
 def test_getMessages():
     with patch('service.aiService.get_session_history') as mock_history:
-        msgs = [HumanMessage("question"), AIMessage("answer")]
+        msgs = [HumanMessage("question"),
+                AIMessage("answer", response_metadata={'model_name': 'testModelName'}, id="testId")]
         mock_history.return_value.messages = msgs
         messages = aiService.getMessages(USER)
-        assert messages == [{'q': 'question'}, {'a': 'answer'}]
+        assert messages == [{'q': 'question'},
+                            {'a': 'answer', 'metadata': '{"model": "testModelName"}', 'id': 'testId'}]
         mock_history.assert_called_once_with(USER)
 
 

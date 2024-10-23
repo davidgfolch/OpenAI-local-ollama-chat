@@ -4,10 +4,11 @@ import jsons
 from unittest.mock import patch
 from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app
 from api.flaskUtil import REQUIRED_FIELDS_NOT_INFORMED
-from tests.common import generateMsgChunks, CHAT_REQUEST
+from tests.common import mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
-VALIDATION_ERR_MSG = [REQUIRED_FIELDS_NOT_INFORMED + 'model, user, question, history, ability']
+VALIDATION_ERR_MSG = [REQUIRED_FIELDS_NOT_INFORMED +
+                      'model, user, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
 user = "testUser"
@@ -80,25 +81,27 @@ def test_postMessage(mocker, client):
 
 
 def test_postMessage_errRes(mocker, client):
-    assertResponseError(client.post('/api/v1/chat', json={}), VALIDATION_ERR_MSG)
+    assertResponseError(client.post(
+        '/api/v1/chat', json={}), VALIDATION_ERR_MSG)
 
 
 def test_postMessageStream(mocker, client):
     mocker.patch("service.aiService.sendMessageStream",
-                 return_value=generateMsgChunks())
+                 return_value=mockMsgChunks(3))
     assertResponseOK(client.post('/api/v1/chat-stream', json=chatReq),
                      b'chunk1chunk2chunk3', asJson=False)
 
 
 def test_postMessageStream_errRes(mocker, client):
-    assertResponseError(client.post('/api/v1/chat-stream', json={}), VALIDATION_ERR_MSG)
+    assertResponseError(client.post(
+        '/api/v1/chat-stream', json={}), VALIDATION_ERR_MSG)
 
 
 def test_getMessages(mocker, client):
     mocker.patch("service.aiService.getMessages", return_value=[
                  {'q': 'testQuestion'}, {'a': '# test markdown response'}])
     assertResponseOK(client.get('/api/v1/chat/'+user),
-                     [{'q': 'testQuestion'}, {'a': '# test markdown response'}])
+                     [{'q': 'testQuestion'}, {'a': '# test markdown response', 'id': '', 'metadata': ''}])
 
 
 def test_getMessages_validationError(client):
