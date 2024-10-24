@@ -1,6 +1,5 @@
 class ChatRequest:
-    def __init__(self, errRes, model, user, question, history, ability):
-        self.errRes = errRes
+    def __init__(self, model, user, question, history, ability):
         self.model = model
         self.user = user
         self.question = question

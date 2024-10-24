@@ -1,4 +1,4 @@
-from flask import Flask, Response, request
+from flask import Flask, request
 import logging
 from api import mapper
 import service.aiService as aiService
@@ -7,8 +7,6 @@ from util.logUtil import initLog
 from model.model import ChatRequest
 
 app = Flask("api.api", root_path="/")
-# from flask_cors import CORS
-# CORS(app)
 log = initLog(__file__, logging.DEBUG)
 
 RES_DELETED_USER_X_HISTORY = "deleted user {0} history"
@@ -27,7 +25,6 @@ def handle_error(e: Exception):
 @app.route('/api/v1/chat/delete', methods=['OPTIONS'])
 @app.route('/api/v1/chat/cancel', methods=['OPTIONS'])
 def cors():
-    # Add CORS allow for this method
     res = corsHeaders()
     res.status_code = 200
     return res
@@ -42,22 +39,16 @@ def getModels():
 
 @app.post('/api/v1/chat')
 def postMessage():
-    params = getReqParams(request, ChatRequest.params)
-    req = ChatRequest(*params)
-    if isinstance(req.errRes, Response):
-        return req.errRes
-    return setResponseOK(aiService.sendMessage(req))
+    r = ChatRequest(*getReqParams(request, ChatRequest.params))
+    return setResponseOK(aiService.sendMessage(r))
 
 
 @app.post('/api/v1/chat-stream')
 def postMessageStream():
-    params = getReqParams(request, ChatRequest.params)
-    req = ChatRequest(*params)
-    if isinstance(req.errRes, Response):
-        return req.errRes
+    r = ChatRequest(*getReqParams(request, ChatRequest.params))
 
     def generate():
-        for chunk in aiService.sendMessageStream(req):
+        for chunk in aiService.sendMessageStream(r):
             log.debug(f"Received chunk={chunk}")
             yield chunk.content
     return generate(), EVENT_STREAM_CHUNKED_HEADERS
@@ -65,7 +56,7 @@ def postMessageStream():
 
 @app.get('/api/v1/chat/<string:user>')
 def getMessages(user):
-    msgs = [mapper.listMapper(msg) for msg in aiService.getMessages(user)]
+    msgs = [mapper.listMapper(m) for m in aiService.getMessages(user)]
     log.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)
 

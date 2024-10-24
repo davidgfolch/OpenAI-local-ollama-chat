@@ -1,9 +1,10 @@
 from flask import Response, make_response, Request
+from api.apiException import ValidationException
 from util.exceptionUtil import getExceptionStackMessages
 from util.logUtil import initLog
 import logging
 
-log = initLog(__file__, logging.DEBUG)
+log = initLog(__file__, logging.INFO)
 
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -16,7 +17,7 @@ EVENT_STREAM_CHUNKED_HEADERS = {
     'Content-Type': "text/event-stream",
 }
 EVENT_STREAM_CHUNKED_HEADERS.update(CORS_HEADERS)
-REQUIRED_FIELDS_NOT_INFORMED = 'Required fields not informed: '
+REQUIRED_FIELDS = 'Required fields not informed: '
 
 
 def corsHeaders(res: Response = Response()):
@@ -24,25 +25,19 @@ def corsHeaders(res: Response = Response()):
     return res
 
 
-# see https://pypi.org/project/Flask-Parameter-Validation/
-def getReqParams(request: Request, params: list, paramsOptional: list = []):
-    paramValues: list = list(map(lambda p: (p, request.json.get(p)), params))
+# TODO: ? https://pypi.org/project/Flask-Parameter-Validation/
+def getReqParams(req: Request, params: list, paramsOp: list = []):
+    paramValues: list = list(map(lambda p: (p, req.json.get(p)), params))
     values = (", ".join([str(a)+'='+str(b) for a, b in paramValues]))
     log.debug("params-values: " + values)
-    invalidParams: list = list(
-        filter(lambda p: p[1] is None and p[0] not in paramsOptional, paramValues))
-    invalidParams = list(map(lambda p: p[0], invalidParams))
-    for p in invalidParams:
-        log.debug("invalidParam="+p)
-    if len(invalidParams) > 0:
-        invalidParams = setResponseKO(
-            REQUIRED_FIELDS_NOT_INFORMED+", ".join(invalidParams))
-        results = list(map(lambda p: p[0], paramValues))
-    else:
-        results = list(map(lambda p: p[1], paramValues))
-        invalidParams = ''
-    results.insert(0, invalidParams)
-    return results
+    invalid: list = list(
+        filter(lambda p: p[1] is None and p[0] not in paramsOp, paramValues))
+    invalid = list(map(lambda p: p[0], invalid))
+    if len(invalid) > 0:
+        for p in invalid:
+            log.debug("invalidParam="+p)
+        raise ValidationException(REQUIRED_FIELDS+", ".join(invalid))
+    return list(map(lambda p: p[1], paramValues))
 
 
 def setResponseOK(res: str):
@@ -51,10 +46,11 @@ def setResponseOK(res: str):
 
 def setResponseKO(ex):
     error = setResponseKO_internal__(ex)
-    return corsHeaders(make_response({'error': error}, 500))
+    statusCode = 400 if isinstance(ex, ValidationException) else 500
+    return corsHeaders(make_response({'error': error}, statusCode))
 
 
-def setResponseKO_internal__(ex):
+def setResponseKO_internal__(ex):  # TODO: make it private? affects unitesttests?
     if (isinstance(ex, Exception)):
         exceptions = getExceptionStackMessages(ex)
         error = list(dict.fromkeys(exceptions))
