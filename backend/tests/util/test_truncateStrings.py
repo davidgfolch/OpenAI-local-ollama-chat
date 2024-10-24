@@ -1,21 +1,17 @@
 import unittest
+
+import pytest
 from util.truncateStrings import TruncateStrings
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 
 LONG_TEXT = "This is a very long string that needs truncating."
 TRUNCATED_TEXT = "This is a very long [...]"
 SHORT_TEXT = "short text"
 
-sut = TruncateStrings({BaseMessage: ["content"]}, 20)
+sut = TruncateStrings({HumanMessage: ["content"]}, 20)
 
 
 class TestTruncateStrings(unittest.TestCase):
-
-    class NoAttributesClassMeta(type):
-        def __setattr__(cls, name, value):
-            if name not in cls.__dict__:
-                raise AttributeError("Cannot set attributes")
-            type.__setattr__(cls, name, value)
 
     def test_truncate_string(self):
         res = sut.process(None)
@@ -37,9 +33,12 @@ class TestTruncateStrings(unittest.TestCase):
         # BaseMessage
         res = sut.process(HumanMessage(LONG_TEXT))
         self.assertEqual(res.content, TRUNCATED_TEXT)
-        # other
-        res = sut.process(HumanMessage(LONG_TEXT))
-        self.assertEqual(res.content, TRUNCATED_TEXT)
+        # error
+        with pytest.raises(Exception):
+            res = sut.process(AIMessage(LONG_TEXT))
+        # error
+        res = sut.process(type(HumanMessage))
+        assert res == type(HumanMessage)
 
 
 if __name__ == '__main__':

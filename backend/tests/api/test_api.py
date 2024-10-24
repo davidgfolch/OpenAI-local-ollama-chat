@@ -2,12 +2,13 @@ import pytest
 import json
 import jsons
 from unittest.mock import patch
-from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app
+from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app, run
 from api.flaskUtil import REQUIRED_FIELDS
 from tests.common import mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
-VALIDATION_ERR_MSG = ["ServiceException: ('Mocked exception', Exception('cause'))", f'ValidationException: {REQUIRED_FIELDS}model, user, question, history, ability']
+VALIDATION_ERR_MSG = ["ServiceException: ('Mocked exception', Exception('cause'))", f'ValidationException: {
+    REQUIRED_FIELDS}model, user, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
 user = "testUser"
@@ -126,3 +127,9 @@ def test_cancelStreamSignal(mocker, client):
     mocker.patch("service.aiService.cancelStreamSignal", return_value=None)
     assertResponseOK(client.get(f'/api/v1/chat/cancel/{user}'),
                      RES_STREAM_CANCELLED_FOR_USER_X.format(user))
+
+
+def test_run():
+    with patch("api.api.app", return_value=None) as app:
+        run()
+        app.run.assert_called_once()

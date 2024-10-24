@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
+from langchain_ollama import ChatOllama
 from tests.common import USER, USER_DATA, USER_DATA_NEW_MODEL, mockMsgChunk, CHAT_REQUEST
 from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, withModel, checkChunkError, store_folder
 
@@ -32,11 +33,7 @@ class TestLangchainUtil(unittest.TestCase):
     @patch(langchainUtil+'hostArgs', new={})
     @patch(langchainUtil+'ChatPromptTemplate')
     @patch(langchainUtil+'RunnableWithMessageHistory')
-    # @pytest.mark.parametrize("param_selectedChatType", supportedChatTypes.values)
     def test_chatInstance(self, mock_history, mock_ChatPromptTemplate, mock_ChatOpenAI):
-        # param_selectedChatType):
-        # mock_host_mock_selectedChatType = MagicMock(selectedChatType)
-        # mock_host_mock_selectedChatType.return_value = param_selectedChatType
         mock_llm = MagicMock()
         mock_ChatOpenAI.return_value = mock_llm
         mock_prompt = MagicMock()
@@ -47,6 +44,10 @@ class TestLangchainUtil(unittest.TestCase):
         chain = chain.with_config(callbacks=CALLBACKS)
         mock_history.assert_called_once_with(
             chain, get_session_history, input_messages_key="input", history_messages_key="history")
+        self.assertEqual(chat_instance, mock_history.return_value)
+        # test chatType = ChatOllama
+        USER_DATA.chatType = ChatOllama
+        chat_instance = chatInstance(USER_DATA)
         self.assertEqual(chat_instance, mock_history.return_value)
 
     @patch(langchainUtil+'withModel')
@@ -79,20 +80,14 @@ class TestLangchainUtil(unittest.TestCase):
         delete_messages(USER)
 
     @patch(langchainUtil+'chatInstance')
-    def test_withModel_same(self, mock_chatInstance):
+    def test_withModel(self, mock_chatInstance):
         userData = copy.deepcopy(USER_DATA)
+        userData.model = ''
         withModel(userData)
         mock_chatInstance.assert_called_once()
+        assert userData.model == defaultModel
         withModel(userData)
         mock_chatInstance.assert_called_once()
-
-    @patch(langchainUtil+'chatInstance')
-    def test_withModel_new(self, mock_chatInstance):
-        mock_chat = MagicMock()
-        mock_chatInstance.return_value = mock_chat
-        result = withModel(USER_DATA_NEW_MODEL)
-        mock_chatInstance.assert_called_once()
-        self.assertEqual(result, mock_chat)
 
     def test_checkChunkError(self):
         try:

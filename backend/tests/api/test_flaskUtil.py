@@ -1,9 +1,10 @@
 from api.api import app
 import pytest
-from api.flaskUtil import setResponseKO_internal__
+from api.flaskUtil import __setResponseKO
 
 
-EXCEPTED_EXCEPTION_STR = ["ServiceException: ('Mocked exception', Exception('cause'))", 'ValidationException: Required fields not informed: model, user, question, history, ability', 'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.', 'Exception: parent', 'Exception: cause']
+EXCEPTED_EXCEPTION_STR = ["ServiceException: ('Mocked exception', Exception('cause'))", 'ValidationException: Required fields not informed: model, user, question, history, ability',
+                          'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.', 'Exception: parent', 'Exception: cause']
 
 
 @pytest.fixture
@@ -14,9 +15,10 @@ def client():
         yield client
 
 
-# Test cases
 def test_setResponseKO():
-    try:
+    try:  # Exception error
         raise Exception("parent") from Exception("cause")
     except Exception as ex:
-        assert EXCEPTED_EXCEPTION_STR == setResponseKO_internal__(ex)
+        assert EXCEPTED_EXCEPTION_STR == __setResponseKO(ex)
+    # String Error
+    assert __setResponseKO("error") == ['error']

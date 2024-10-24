@@ -45,12 +45,12 @@ def setResponseOK(res: str):
 
 
 def setResponseKO(ex):
-    error = setResponseKO_internal__(ex)
+    error = __setResponseKO(ex)
     statusCode = 400 if isinstance(ex, ValidationException) else 500
     return corsHeaders(make_response({'error': error}, statusCode))
 
 
-def setResponseKO_internal__(ex):  # TODO: make it private? affects unitesttests?
+def __setResponseKO(ex):
     if (isinstance(ex, Exception)):
         exceptions = getExceptionStackMessages(ex)
         error = list(dict.fromkeys(exceptions))
