@@ -84,7 +84,7 @@ def getMessages(user: str):  # TODO: parameterize session_id, history
             res.append({"q": msg.content})
         elif isinstance(msg, AIMessage):
             res.append({"a": msg.content,
-                        "metadata": '{"model": "' + msg.response_metadata['model_name'] + '"}',
+                        "metadata": '{"model": "' + msg.response_metadata.get('model_name','') + '"}',
                         "id": msg.id})
     log.debug(f"IA returns messages (mapped) {res}")
     return res
