@@ -1,11 +1,10 @@
+import copy
 import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
-# import pytest
-from tests.common import USER, mockMsgChunk, CHAT_REQUEST
-from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, currentModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, with_model, checkChunkError, store_folder
-# from service.host import supportedChatTypes, selectedChatType
+from tests.common import USER, USER_DATA, USER_DATA_NEW_MODEL, mockMsgChunk, CHAT_REQUEST
+from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, withModel, checkChunkError, store_folder
 
 
 class TestLangchainUtil(unittest.TestCase):
@@ -35,36 +34,36 @@ class TestLangchainUtil(unittest.TestCase):
     @patch(langchainUtil+'RunnableWithMessageHistory')
     # @pytest.mark.parametrize("param_selectedChatType", supportedChatTypes.values)
     def test_chatInstance(self, mock_history, mock_ChatPromptTemplate, mock_ChatOpenAI):
-        #, param_selectedChatType):
+        # param_selectedChatType):
         # mock_host_mock_selectedChatType = MagicMock(selectedChatType)
         # mock_host_mock_selectedChatType.return_value = param_selectedChatType
         mock_llm = MagicMock()
         mock_ChatOpenAI.return_value = mock_llm
         mock_prompt = MagicMock()
         mock_ChatPromptTemplate.from_messages.return_value = mock_prompt
-        chat_instance = chatInstance()
-        mock_ChatOpenAI.assert_called_once_with(model=currentModel, **{})
+        chat_instance = chatInstance(USER_DATA)
+        mock_ChatOpenAI.assert_called_once_with(model=defaultModel, **{})
         chain = mock_prompt | mock_llm
         chain = chain.with_config(callbacks=CALLBACKS)
         mock_history.assert_called_once_with(
             chain, get_session_history, input_messages_key="input", history_messages_key="history")
         self.assertEqual(chat_instance, mock_history.return_value)
 
-    @patch(langchainUtil+'with_model')
+    @patch(langchainUtil+'withModel')
     def test_invoke(self, mock_model):
         mock_chat = MagicMock()
         mock_model.return_value = mock_chat
         result = invoke(CHAT_REQUEST)
-        mock_model.assert_called_once_with(CHAT_REQUEST.model)
+        mock_model.assert_called_once_with(CHAT_REQUEST)
         mock_chat.invoke.assert_called_once_with(**mapParams(CHAT_REQUEST))
         self.assertEqual(result, mock_chat.invoke.return_value)
 
-    @patch(langchainUtil+'with_model')
+    @patch(langchainUtil+'withModel')
     def test_stream(self, mock_model):
         mock_chat = MagicMock()
         mock_model.return_value = mock_chat
         result = stream(CHAT_REQUEST)
-        mock_model.assert_called_once_with(CHAT_REQUEST.model)
+        mock_model.assert_called_once_with(CHAT_REQUEST)
         mock_chat.stream.assert_called_once_with(**mapParams(CHAT_REQUEST))
         self.assertEqual(result, mock_chat.stream.return_value)
 
@@ -80,15 +79,18 @@ class TestLangchainUtil(unittest.TestCase):
         delete_messages(USER)
 
     @patch(langchainUtil+'chatInstance')
-    def test_with_model_same(self, mock_chatInstance):
-        with_model('')
-        mock_chatInstance.assert_not_called()
+    def test_withModel_same(self, mock_chatInstance):
+        userData = copy.deepcopy(USER_DATA)
+        withModel(userData)
+        mock_chatInstance.assert_called_once()
+        withModel(userData)
+        mock_chatInstance.assert_called_once()
 
     @patch(langchainUtil+'chatInstance')
-    def test_with_model_new(self, mock_chatInstance):
+    def test_withModel_new(self, mock_chatInstance):
         mock_chat = MagicMock()
         mock_chatInstance.return_value = mock_chat
-        result = with_model("new_model")
+        result = withModel(USER_DATA_NEW_MODEL)
         mock_chatInstance.assert_called_once()
         self.assertEqual(result, mock_chat)
 

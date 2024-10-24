@@ -1,10 +1,9 @@
-import json
 import logging
 from langchain_core.chat_history import BaseMessage
-from langchain_core.messages import AIMessage, HumanMessage, AIMessageChunk
+from langchain_core.messages import AIMessage, HumanMessage
 
-from service.host import baseUrl, selectedChatType
-from service.langchain.langchainUtil import checkChunkError, delete_messages, get_session_history, invoke, stream, currentModel
+from service.host import baseUrl
+from service.langchain.langchainUtil import checkChunkError, delete_messages, generateFirstChunk, generateLastChunk, get_session_history, mapUserData, invoke, stream
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog
@@ -54,19 +53,17 @@ def sendMessageStream(r: ChatRequest):
     log.info(f"sendMessageStream to {r.model}: {r.question}")
     try:
         first = True
-        for chunk in stream(r):
+        userData = mapUserData(r)
+        for chunk in stream(userData):
             if isCancelStreamSignal(r):
                 break
             if first:
                 first = False
-                yield AIMessageChunk(
-                    f"{chunk.id}#|S|E|P#{currentModel}#|S|E|P#{selectedChatType.__name__}#|S|E|P#")
+                yield generateFirstChunk(chunk.id, userData)
             yield chunk
-            # https://python.langchain.com/docs/how_to/response_metadata/
-            # OLlama {"model": "deepseek-coder-v2:16b", "created_at": "2024-10-23T09:47:01.306667386Z", "message": {"role": "assistant", "content": ""}, "done_reason": "stop", "done": true, "total_duration": 15846635838, "load_duration": 23860120, "prompt_eval_count": 267, "prompt_eval_duration": 5083022000, "eval_count": 79, "eval_duration": 10299011000}
-            # OpenAI {'finish_reason': 'stop', 'model_name': 'deepseek-coder-v2:16b', 'system_fingerprint': 'fp_ollama'}
-            if chunk.response_metadata:  # Only the last chunk comes with metadata
-                yield AIMessageChunk("#|S|E|P#" + json.dumps(chunk.response_metadata))
+            last = generateLastChunk(chunk)
+            if last:
+                yield last
             log.debug(f"Received chunk={chunk}")
             checkChunkError(chunk)
     except Exception as e:
@@ -84,7 +81,7 @@ def getMessages(user: str):  # TODO: parameterize session_id, history
             res.append({"q": msg.content})
         elif isinstance(msg, AIMessage):
             res.append({"a": msg.content,
-                        "metadata": '{"model": "' + msg.response_metadata.get('model_name','') + '"}',
+                        "metadata": '{"model": "' + msg.response_metadata.get('model_name', '') + '"}',
                         "id": msg.id})
     log.debug(f"IA returns messages (mapped) {res}")
     return res

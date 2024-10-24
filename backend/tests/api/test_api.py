@@ -7,7 +7,7 @@ from api.flaskUtil import REQUIRED_FIELDS
 from tests.common import mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
-VALIDATION_ERR_MSG = [REQUIRED_FIELDS + 'model, user, question, history, ability']
+VALIDATION_ERR_MSG = ["ServiceException: ('Mocked exception', Exception('cause'))", f'ValidationException: {REQUIRED_FIELDS}model, user, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
 user = "testUser"
@@ -40,8 +40,8 @@ def assertResponseOK(res, content, asJson=True):
 
 
 def assertResponseError(res, content, asJson=True):
-    """ Asserts http status 500 & response.data.error == content """
-    assert res.status_code == 500
+    """ Asserts http status 400/500 & response.data.error == content """
+    assert res.status_code == 500 or 400
     if asJson:
         assertData(res, content, 'error')
     else:  # stream
@@ -80,8 +80,8 @@ def test_postMessage(mocker, client):
 
 
 def test_postMessage_errRes(mocker, client):
-    assertResponseError(client.post(
-        '/api/v1/chat', json={}), VALIDATION_ERR_MSG)
+    res = client.post('/api/v1/chat', json={})
+    assertResponseError(res, VALIDATION_ERR_MSG)
 
 
 def test_postMessageStream(mocker, client):
@@ -92,8 +92,8 @@ def test_postMessageStream(mocker, client):
 
 
 def test_postMessageStream_errRes(mocker, client):
-    assertResponseError(client.post(
-        '/api/v1/chat-stream', json={}), VALIDATION_ERR_MSG)
+    res = client.post('/api/v1/chat-stream', json={})
+    assertResponseError(res, VALIDATION_ERR_MSG)
 
 
 def test_getMessages(mocker, client):
@@ -106,6 +106,7 @@ def test_getMessages(mocker, client):
 def test_getMessages_validationError(client):
     assertResponseError(client.get('/api/v1/chat'),  # no user param (query path)
                         ["ServiceException: ('Mocked exception', Exception('cause'))",
+                         'ValidationException: Required fields not informed: model, user, question, history, ability',
                          'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
 
 

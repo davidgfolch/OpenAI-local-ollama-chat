@@ -1,14 +1,16 @@
 from langchain_core.messages import AIMessageChunk
 from model.model import ChatRequest
-from service.langchain.langchainUtil import currentModel
+from service.langchain.langchainUtil import defaultModel, mapUserData
 
 USER = "testUser"
-CHAT_REQUEST = ChatRequest(None, 'model', USER,
-                           'question', 'history', 'ability')
+CHAT_REQUEST = ChatRequest(defaultModel, USER, 'question', 'history', 'ability')
+CHAT_REQUEST_NEW_MODEL = ChatRequest('testNewModel', USER, 'question', 'history', 'ability')
+USER_DATA = mapUserData(CHAT_REQUEST)
+USER_DATA_NEW_MODEL = mapUserData(CHAT_REQUEST_NEW_MODEL)
 
 
 def mockMsgFirstChunk() -> AIMessageChunk:
-    return AIMessageChunk(content=f'testId#|S|E|P#{currentModel}#|S|E|P#ChatOpenAI#|S|E|P#', response_metadata={})
+    return AIMessageChunk(content=f'testId#|S|E|P#{defaultModel}#|S|E|P#ChatOpenAI#|S|E|P#', response_metadata={})
 
 
 def mockMsgChunk(content='testContent', metadata=False, finishReason='') -> AIMessageChunk:
