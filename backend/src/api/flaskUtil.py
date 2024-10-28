@@ -44,7 +44,7 @@ def setResponseOK(res: str):
     return corsHeaders(make_response({'response': res}, 200))
 
 
-def setResponseKO(ex):
+def setResponseKO(ex: str | Exception):
     error = __setResponseKO(ex)
     statusCode = 400 if isinstance(ex, ValidationException) else 500
     return corsHeaders(make_response({'error': error}, statusCode))

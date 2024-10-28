@@ -1,9 +1,10 @@
 import logging
+from typing import Dict
 from langchain_core.chat_history import BaseMessage
 from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
-from service.langchain.langchainUtil import checkChunkError, delete_messages, generateFirstChunk, generateLastChunk, get_session_history, mapUserData, invoke, stream
+from service.langchain.langchainUtil import checkChunkError, delete_messages, generateFirstChunk, generateLastChunk, get_session_history, mapParams, mapUserData, invoke, stream
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog
@@ -49,13 +50,18 @@ def isCancelStreamSignal(r: ChatRequest):
     return False
 
 
-def sendMessageStream(r: ChatRequest):
-    log.info(f"sendMessageStream to {r.model}: {r.question}")
+def preParseParams(r: ChatRequest):
+    userData = mapUserData(r)
+    return mapParams(userData)
+
+
+def sendMessageStream(req: ChatRequest, preParsedParams: Dict):
+    log.info(f"sendMessageStream to {req.model}: {req.question}")
     try:
         first = True
-        userData = mapUserData(r)
-        for chunk in stream(userData):
-            if isCancelStreamSignal(r):
+        userData = mapUserData(req)
+        for chunk in stream(userData, preParsedParams):
+            if isCancelStreamSignal(req):
                 break
             if first:
                 first = False

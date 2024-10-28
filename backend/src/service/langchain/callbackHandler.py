@@ -6,6 +6,7 @@ from langchain_core.outputs import LLMResult
 from langchain_core.messages import BaseMessage
 from langchain_core.prompt_values import ChatPromptValue
 from langchain_core.outputs.chat_generation import ChatGenerationChunk
+from langchain_core.documents import Document
 
 from util.truncateStrings import TruncateStrings
 from util.logUtil import initLog
@@ -18,7 +19,8 @@ def truncate(o):
         BaseMessage: ["content"],
         ChatPromptValue: ["messages"],
         LLMResult: ["generations"],
-        ChatGenerationChunk: ["text", "message"]
+        ChatGenerationChunk: ["text", "message"],
+        Document: ["page_content"]
     }).process(copy.deepcopy(o))
 
 

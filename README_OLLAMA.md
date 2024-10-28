@@ -76,6 +76,8 @@ sudo systemctl restart ollama
 
 ### Ollama don't run with CPU in Linux systems after sleep->wake up
 
+A [bash script](scripts/nvidia-linux-restart.sh) is available for automatic start/stop ollama service, nvidia-settings & nvidia driver.
+
 ```bash
 sudo systemctl stop ollama
 sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm

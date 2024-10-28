@@ -1,5 +1,5 @@
 class UserData:
-    def __init__(self, user, model, ability, history, question, chatType):
+    def __init__(self, user: str, model: str, ability: str, history: str, question: str, chatType):
         self.user = user
         self.model = model
         self.ability = ability

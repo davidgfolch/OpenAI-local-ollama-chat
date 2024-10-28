@@ -5,4 +5,5 @@ class ChatRequest:
         self.question = question
         self.history = history
         self.ability = ability
-    params = ['model', 'user', 'question', 'history', 'ability']
+    params = ['model', 'user', 'question', 'history',
+              'ability']  # TODO: move to api model

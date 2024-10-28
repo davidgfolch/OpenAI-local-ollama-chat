@@ -4,3 +4,4 @@ aiMessage.md
 langchain.store/*.json
 __pycache__/*
 **/__pycache__/*
+uploads/*

@@ -1,12 +1,16 @@
 from flask import Flask, request
 import logging
 from api import mapper
+from api.werkzeugUtil import saveUploadFiles
 import service.aiService as aiService
 from api.flaskUtil import EVENT_STREAM_CHUNKED_HEADERS, setResponseKO, setResponseOK, corsHeaders, getReqParams
 from util.logUtil import initLog
 from model.model import ChatRequest
 
+# ALLOWED_EXTENSIONS = {'txt', 'pdf', 'js', 'py', 'java', 'gif'}
+
 app = Flask("api.api", root_path="/")
+# app.config.update({'MAX_CONTENT_LENGTH': MAX_CONTENT_LENGTH})
 log = initLog(__file__, logging.DEBUG)
 
 RES_DELETED_USER_X_HISTORY = "deleted user {0} history"
@@ -28,7 +32,7 @@ def cors(uri: str):
         res.status_code = 200
         return res
     log.debug(f"cors for uri={uri} KO")
-    return setResponseKO()
+    return setResponseKO("Cors not allowed for path")
 
 
 @app.get('/api/v1/models', **OPTIONS)
@@ -47,9 +51,10 @@ def postMessage():
 @app.post('/api/v1/chat-stream', **OPTIONS)
 def postMessageStream():
     r = ChatRequest(*getReqParams(request, ChatRequest.params))
+    preParsedParams = aiService.preParseParams(r)
 
     def generate():
-        for chunk in aiService.sendMessageStream(r):
+        for chunk in aiService.sendMessageStream(r, preParsedParams):
             log.debug(f"Received chunk={chunk}")
             yield chunk.content
     return generate(), EVENT_STREAM_CHUNKED_HEADERS
@@ -81,6 +86,16 @@ def cancelStreamSignal(user):
     log.info(f"cancelStreamSignal for user {user}")
     aiService.cancelStreamSignal(user)
     return setResponseOK(RES_STREAM_CANCELLED_FOR_USER_X.format(user))
+
+
+@app.post('/api/v1/upload-files', **OPTIONS)
+def uploadFiles():
+    log.debug(f"uploadFiles request.files = {request.files}")
+    if request.files:
+        fileNames = saveUploadFiles(request)
+        if len(fileNames) > 0:
+            return setResponseOK(f'File(s) uploaded {fileNames}')
+    return setResponseKO('No selected file(s)')
 
 
 def run():

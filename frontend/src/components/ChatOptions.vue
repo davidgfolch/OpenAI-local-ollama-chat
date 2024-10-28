@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
 import { apiClient } from './ApiClient.js';
+import FileUploader from './FileUploader.vue'
+
 const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream']);
 // Props
 const props = defineProps({
@@ -14,8 +16,9 @@ const history = ref("My history");
 const models = ref([]);
 const model = ref("");
 const ability = ref("Eres un asistente especializado en ingenieria de software.");
-const question = ref('Dame un ejemplo de código TensorFlow en python, así como la instalación con conda de las librerias necesarias.');
+const question = ref('Genera un ejemplo de código completo con TensorFlow en python.');
 const showHelp = ref(false)
+const fileUploader = ref('');
 // Methods
 const stream = () => {
     if (props.loading) return;
@@ -39,7 +42,27 @@ const toggleSettings = () => {
     emit('scrollDownChat');
 }
 const toggleHelp = () => showHelp.value = !showHelp.value;
-
+const uploadFiles = (formData) => {
+    emit('errorReset');
+    let total = 0;
+    apiClient.postForm('/api/v1/upload-files', formData, {
+        onUploadProgress: function (e) {
+            fileUploader.value.showProgress(e.loaded, e.total);
+            total = e.total;
+        }
+    })
+        .then(() => {
+            fileUploader.value.showProgress(total, total);
+        })
+        .catch(e => {
+            fileUploader.value.setShowUploadButton(true);
+            emit('handleError', e);
+            return false;
+        });
+}
+const openDialog = (input) => {
+    fileUploader.value.openDialog(input);
+}
 defineExpose({ model, ability, history, question, showHelp });
 onMounted(() => getModels())
 </script>
@@ -54,19 +77,28 @@ onMounted(() => getModels())
                             :style="loading ? 'filter: brightness(50%)' : ''" alt="Ask AI (ctrl+enter)"
                             title="Ask AI (ctrl+enter)">
                     </div>
+                    <!-- TODO: Add file selection assist when typing @ or click on file -->
                     <textarea rows="4" cols="50" v-model="question" class="text_input" placeholder="Message..."
                         autofocus v-on:keypress.ctrl.enter="stream"></textarea>
-                    <!-- <img class="optionIcon" src="../assets/chatgpt/plus.webp" alt="Add another text" title="Add another text">
-                    <img class="optionIcon" src="../assets/chatgpt/collapse.webp" alt="Add another text" title="Add another text"> -->
+
+                    <FileUploader @uploadFiles="form => uploadFiles(form)" ref="fileUploader" v-slot="fileUploaderSlot">
+                        <img class="optionIconSmall" src="../assets/chatgpt/close.webp" @click="fileUploaderSlot.removeFile(index)"
+                            alt="Attach folder" title="Attach folder">
+                    </FileUploader>
+                    <!--<img class="optionIcon" src="../assets/chatgpt/plus.webp" alt="Add another text" title="Add another text">-->
                 </div>
             </div>
             <div style="clear:both">
+                <img class="optionIcon" src="../assets/chatgpt/folder.webp" @click="openDialog('folder-picker')"
+                    alt="Attach folder" title="Attach folder">
+                <img class="optionIcon" src="../assets/chatgpt/file.webp" @click="openDialog('file-picker')"
+                    alt="Attach file(s)" title="Attach file(s)">
                 <img class="optionIcon" src="../assets/chatgpt/settings.webp" alt="Settings" title="Settings"
                     @click="toggleSettings">
                 <img class="optionIcon" src="../assets/chatgpt/trash.webp" alt="Delete chat" title="Delete chat"
-                    @click="deleteChat" :style="enableDelete ? '': 'filter: brightness(50%)'">
+                    @click="deleteChat" :style="enableDelete ? '' : 'filter: brightness(50%)'">
                 <img class="optionIcon" src="../assets/chatgpt/help.webp" alt="Show help" title="Show help"
-                    @click="toggleHelp" :style="enableDelete ? '': 'filter: brightness(50%)'">
+                    @click="toggleHelp" :style="enableDelete ? '' : 'filter: brightness(50%)'">
             </div>
         </div>
         <div :hidden="hideSettings" style="clear: both; margin-top: 4em">
@@ -103,17 +135,16 @@ onMounted(() => getModels())
     background-color: black;
     color: white;
     font-size: 16px;
-    /* position: absolute; */
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 1em 0em 1em 1em;
-    margin-bottom: 1em;
+    padding: 0.2em 0em 0.2em 0.2em;
+    margin-bottom: 0.3em;
     width: 92%;
 }
 
 textarea {
-    /* resize: vertical; */
+    margin-bottom: 0px;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -123,7 +154,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-button:disabled img {
+img.disabled {
     filter: brightness(50%)
 }
 
@@ -131,10 +162,25 @@ button:disabled img {
     border-radius: 50%;
     box-shadow: 0px 0px 10px 5px rgba(26, 21, 21, 0.7);
     object-fit: cover;
+    width: 2.5em;
+    height: 2.5em;
+    margin-left: 0.3em;
+}
+
+.optionIconSmall {
+    width: 1.2em;
+    height: 1.2em;
+    position: relative;
+    top: 0.2em;
+}
+
+.right {
     position: relative;
     float: right;
-    width: 3em;
-    height: 3em;
-    margin-left: 0.3em;
+}
+
+.left {
+    position: relative;
+    float: left;
 }
 </style>

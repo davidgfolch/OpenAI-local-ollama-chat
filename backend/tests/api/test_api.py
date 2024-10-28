@@ -1,8 +1,9 @@
+import io
 import pytest
 import json
 import jsons
 from unittest.mock import patch
-from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app, run
+from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app
 from api.flaskUtil import REQUIRED_FIELDS
 from tests.common import mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
@@ -11,7 +12,7 @@ VALIDATION_ERR_MSG = ["ServiceException: ('Mocked exception', Exception('cause')
     REQUIRED_FIELDS}model, user, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
-user = "testUser"
+USER = "testUser"
 
 
 @pytest.fixture
@@ -26,9 +27,9 @@ def assertData(res, content, jsonNode=None):
     if content:
         if jsonNode:
             data = json.loads(res.data)
-            assert {jsonNode: content} == data
+            assert data == {jsonNode: content}
         else:  # stream
-            assert content == res.data
+            assert res.data == content
 
 
 def assertResponseOK(res, content, asJson=True):
@@ -52,11 +53,11 @@ def assertResponseError(res, content, asJson=True):
 # Test cases
 def test_handle_error(client):
     with patch('service.aiService.getModels') as mock:
-        mock.side_effect = ServiceException(
-            "Mocked exception", Exception("cause"))
+        mock.side_effect = ServiceException("Mocked exception", Exception("cause"))
         res = client.get('/api/v1/models')
         assertResponseError(
             res, ["ServiceException: ('Mocked exception', Exception('cause'))"])
+        mock.side_effect = None
 
 
 def test_cors(client):
@@ -65,12 +66,14 @@ def test_cors(client):
     assert res.headers['Access-Control-Allow-Methods'] == 'DELETE,GET,POST,OPTIONS'
     assert res.headers['Access-Control-Allow-Headers'] == 'Content-Type'
     assertResponseOK(res, None)
+    res = client.options('/api/X-v1/chat')
+    assertResponseError(res, ['Cors not allowed for path'])
 
 
 def test_getModels(mocker, client):
     expected = ['m1', 'm2']
     mocker.patch("service.aiService.getModels", return_value=expected)
-    assertResponseOK(client.get('/api/v1/models'), ['m1', 'm2'])
+    assertResponseOK(client.get('/api/v1/models'), expected)
 
 
 def test_postMessage(mocker, client):
@@ -97,39 +100,47 @@ def test_postMessageStream_errRes(mocker, client):
     assertResponseError(res, VALIDATION_ERR_MSG)
 
 
-def test_getMessages(mocker, client):
-    mocker.patch("service.aiService.getMessages", return_value=[
-                 {'q': 'testQuestion'}, {'a': '# test markdown response'}])
-    assertResponseOK(client.get('/api/v1/chat/'+user),
-                     [{'q': 'testQuestion'}, {'a': '# test markdown response', 'id': '', 'metadata': ''}])
-
-
-def test_getMessages_validationError(client):
-    assertResponseError(client.get('/api/v1/chat'),  # no user param (query path)
-                        ["ServiceException: ('Mocked exception', Exception('cause'))",
-                         'ValidationException: Required fields not informed: model, user, question, history, ability',
-                         'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
+@pytest.mark.parametrize('user', [[''], [USER]])
+def test_getMessages(mocker, client, user):
+    if not user == '':
+        mocker.patch("service.aiService.getMessages", return_value=[
+            {'q': 'testQuestion'}, {'a': '# test markdown response'}])
+    res = client.get('/api/v1/chat/'+USER)
+    if user == '':
+        assertResponseError(res,  # no user param (query path)
+                            ["ServiceException: ('Mocked exception', Exception('cause'))",
+                             'ValidationException: Required fields not informed: model, user, question, history, ability',
+                             'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
+    else:
+        assertResponseOK(res, [{'q': 'testQuestion'}, {
+                         'a': '# test markdown response', 'id': '', 'metadata': ''}])
 
 
 def test_deleteMessages(mocker, client):
     mocker.patch("service.aiService.deleteMessages", return_value=None)
-    assertResponseOK(client.get('/api/v1/chat/delete/'+user),
-                     RES_DELETED_USER_X_HISTORY.format(user))
+    assertResponseOK(client.get('/api/v1/chat/delete/'+USER),
+                     RES_DELETED_USER_X_HISTORY.format(USER))
 
 
 def test_deleteMessage(mocker, client):
     mocker.patch("service.aiService.deleteMessages", return_value=None)
-    assertResponseOK(client.get(f'/api/v1/chat/delete/{user}/1'),
-                     RES_DELETED_USER_X_HISTORY_INDEX_X.format(user, 1))
+    assertResponseOK(client.get(f'/api/v1/chat/delete/{USER}/1'),
+                     RES_DELETED_USER_X_HISTORY_INDEX_X.format(USER, 1))
 
 
 def test_cancelStreamSignal(mocker, client):
     mocker.patch("service.aiService.cancelStreamSignal", return_value=None)
-    assertResponseOK(client.get(f'/api/v1/chat/cancel/{user}'),
-                     RES_STREAM_CANCELLED_FOR_USER_X.format(user))
+    assertResponseOK(client.get(f'/api/v1/chat/cancel/{USER}'),
+                     RES_STREAM_CANCELLED_FOR_USER_X.format(USER))
 
 
-def test_run():
-    with patch("api.api.app", return_value=None) as app:
-        run()
-        app.run.assert_called_once()
+@pytest.mark.parametrize('fileNames', [[], ['test.py']])
+def test_uploadFiles(mocker, client, fileNames):
+    mocker.patch("api.werkzeugUtil.saveUploadFiles", return_value=fileNames)
+    data = {'file': (io.BytesIO(b"abcdef"), file) for file in fileNames}
+    res = client.post('/api/v1/upload-files', data=data,
+                      content_type='multipart/form-data')
+    if len(fileNames) == 0:
+        assertResponseError(res, ['No selected file(s)'])
+    else:
+        assertResponseOK(res, f'File(s) uploaded {fileNames}')

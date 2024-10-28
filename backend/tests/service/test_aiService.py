@@ -18,6 +18,7 @@ def test_getModels_exception(mock_openaiUtil):
     with pytest.raises(Exception) as ex_res:
         aiService.getModels()
     assert str(ex_res.value) == aiService.ERROR_OPENAI_GET_AVAILABLE_MODELS
+    mock_openaiUtil.getModels.side_effect = None
 
 
 def test_getModels(mock_openaiUtil):
@@ -43,6 +44,7 @@ def test_sendMessage_exception():
         with pytest.raises(Exception) as ex_res:
             aiService.sendMessage(CHAT_REQUEST)
         assert str(ex_res.value) == aiService.ERROR_LANGCHAIN_SEND_CHAT_MESSAGE
+        mock_invoke.side_effect = None
 
 
 def test_sendMessageStream():
@@ -50,7 +52,8 @@ def test_sendMessageStream():
         items = 4
         mock = mockMsgChunks(items, metadataChunk=True)
         mock_stream.return_value = mock
-        generator = aiService.sendMessageStream(CHAT_REQUEST)
+        preParsedParams = aiService.preParseParams(CHAT_REQUEST)
+        generator = aiService.sendMessageStream(CHAT_REQUEST, preParsedParams)
         chunks = list(generator)
         assert chunks[0] == mockMsgFirstChunk()
         for n in range(0, items):
@@ -61,7 +64,8 @@ def test_sendMessageStream_cancel():
     aiService.cancelStreamSignal(CHAT_REQUEST.user)
     with patch('service.aiService.stream') as mock_stream:
         mock_stream.return_value = mockMsgChunks(4)
-        generator = aiService.sendMessageStream(CHAT_REQUEST)
+        preParsedParams = aiService.preParseParams(CHAT_REQUEST)
+        generator = aiService.sendMessageStream(CHAT_REQUEST, preParsedParams)
         chunks = list(generator)
         assert chunks == []
 
@@ -69,9 +73,11 @@ def test_sendMessageStream_cancel():
 def test_sendMessageStream_exception():
     with patch('service.aiService.stream') as mock_stream:
         mock_stream.side_effect = Exception("Mocked exception")
+        preParsedParams = aiService.preParseParams(CHAT_REQUEST)
         with pytest.raises(Exception) as ex_res:
-            next(aiService.sendMessageStream(CHAT_REQUEST))
+            next(aiService.sendMessageStream(CHAT_REQUEST, preParsedParams))
         assert str(ex_res.value) == aiService.ERROR_LANGCHAIN_SEND_CHAT_MESSAGE
+        mock_stream.side_effect = None
 
 
 def test_getMessages():

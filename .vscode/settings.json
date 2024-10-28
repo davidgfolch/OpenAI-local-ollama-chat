@@ -75,7 +75,9 @@
         "langchain",
         "mdformat",
         "Ollama",
-        "openai"
+        "openai",
+        "pycache",
+        "werkzeug"
     ],
     "flake8.args": [
         "--config=backend/.flake8"

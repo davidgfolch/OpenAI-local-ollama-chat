@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.runnables.base import RunnableBindingBase
@@ -11,6 +11,7 @@ from langchain_core.messages import AIMessageChunk, messages_to_dict
 
 from model.model import ChatRequest
 from service.host import hostArgs, defaultChatType
+from service.langchain.files import processFiles
 from service.langchain.model import UserData
 from util.logUtil import initLog
 from .callbackHandler import CallbackHandler
@@ -22,7 +23,7 @@ log = initLog(__file__)
 CALLBACKS = [CallbackHandler(), CallbackHandlerAsync()]
 ERROR_STREAM_CHUNK = 'Error in stream chunk finish_reason is not stop, reason: '
 
-defaultModel = "deepseek-coder-v2:16b"
+defaultModel = "llama3.2:latest"  # "deepseek-coder-v2:16b"
 store_folder = "./langchain.store/"
 store = {}
 
@@ -88,8 +89,8 @@ def chatInstance(u: UserData) -> RunnableBindingBase:
                                       history_messages_key="history")
 
 
-def mapParams(d: UserData):
-    return {'input': {"history": d.history, "ability": d.ability, "input": d.question},
+def mapParams(d: UserData) -> Dict:
+    return {'input': {"history": d.history, "ability": d.ability, "input": processFiles(d)},
             'config': {"configurable": {"session_id": d.user, "model": d.model}}}
 
 
@@ -97,8 +98,8 @@ def invoke(d: UserData):
     return withModel(d).invoke(**mapParams(d))
 
 
-def stream(d: UserData):
-    return withModel(d).stream(**mapParams(d))
+def stream(d: UserData, params: Dict):
+    return withModel(d).stream(**params)
 
 
 def generateFirstChunk(chunkId: str, u: UserData):

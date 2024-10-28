@@ -53,7 +53,7 @@ const loadHistory = () => {
   }).catch(handleError).finally(resetApiCall);
 };
 const mdToHtml = (msg) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
-const messagePush = (q, a, id, metadata) => messages.value.push({q: mdToHtml(q), a: mdToHtml(a), id: id, metadata: metadata});
+const messagePush = (q, a, id, metadata) => messages.value.push({ q: mdToHtml(q), a: mdToHtml(a), id: id, metadata: metadata });
 const setAnswer = (answer, resetQuestion) => {
   const arr = answer.split("#|S|E|P#");
   if (arr.length > 1) {
@@ -63,9 +63,9 @@ const setAnswer = (answer, resetQuestion) => {
     const text = arr[3]
     const metadataStr = arr[4]
     now = Date.now();
-    let metadata = arr.length > 4 ? metadataStr : '{"total_duration": '+(now-streamTimeStart)+'}'
+    let metadata = arr.length > 4 ? metadataStr : '{"total_duration": ' + (now - streamTimeStart) + '}'
     metadata = JSON.parse(metadata)
-    metadata.total_duration = now-streamTimeStart;
+    metadata.total_duration = now - streamTimeStart;
     metadata.model = modelName;
     metadata.langchainChat = langchainChat;
     messagePush(question.value, text, currentChunkId, metadata);
@@ -76,7 +76,7 @@ const setAnswer = (answer, resetQuestion) => {
   scrollDownChat()
   highLightCode();
 };
-const handleError = (error) => chatError.value.show(error);
+const handleError = (error) => chatError.value.showError(error);
 const resetApiCall = () => {
   scrollDownEnabled = true;
   loading.value = false;
@@ -146,7 +146,6 @@ const cancelStream = () => {
       scrollDownChat();
     });
 }
-
 onMounted(() => loadHistory());
 defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStream, deleteMessage });
 </script>
