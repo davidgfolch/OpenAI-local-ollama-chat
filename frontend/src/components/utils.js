@@ -26,8 +26,24 @@ const msToTime = (ms) => {
         return hours + ":" + minutes + ":" + seconds;
     else if (minutes > 0)
         return minutes + ":" + seconds;
-    return (seconds<10?'0':'') + seconds + " seg."
+    return (seconds < 10 ? '0' : '') + seconds + " seg."
 }
 
+const insertAtCursor = (el, text, offset = 0) => {
+    // console.log("insertAtCursor => element=" + el + " text=" + text + " offset=" + offset);
+    if (document.selection) { //IE support
+        el.focus();
+        const sel = document.selection.createRange();
+        sel.text = text;
+    } else if (el.selectionStart || el.selectionStart == '0') { //MOZILLA and others
+        const startPos = el.selectionStart + offset;
+        const endPos = el.selectionEnd;
+        text = el.value.substring(0, startPos) + text + el.value.substring(endPos, el.value.length)
+        el.value = text;
+    } else {
+        el.value += text;
+    }
+    return el.value;
+}
 
-export { scrollDown, checkUnclosedCodeBlockMd, msToTime };
+export { scrollDown, checkUnclosedCodeBlockMd, msToTime, insertAtCursor };

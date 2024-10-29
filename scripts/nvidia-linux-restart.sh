@@ -19,7 +19,7 @@ while [ True ]; do
     nvidia-settings 2>/dev/null 1>/dev/null &
 
     echo ""
-    echo "clear && sudo journalctl -u ollama -f | perl ~/scripts/colorTail.pl "gpu|cuda""
+    echo "clear && sudo journalctl -u ollama -f | perl ~/scripts/colorTail.pl \"gpu|cuda\""
     pause "Press [Enter] (to restart nvidia driver, ollama & nvidia-settings)"
     echo ""
     echo "(Root pasword needed to restart services)"

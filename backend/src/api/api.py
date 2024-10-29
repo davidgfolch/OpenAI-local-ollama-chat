@@ -10,7 +10,6 @@ from model.model import ChatRequest
 # ALLOWED_EXTENSIONS = {'txt', 'pdf', 'js', 'py', 'java', 'gif'}
 
 app = Flask("api.api", root_path="/")
-# app.config.update({'MAX_CONTENT_LENGTH': MAX_CONTENT_LENGTH})
 log = initLog(__file__, logging.DEBUG)
 
 RES_DELETED_USER_X_HISTORY = "deleted user {0} history"
