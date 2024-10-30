@@ -1,9 +1,13 @@
+from pathlib import PosixPath
+from typing import List
 from flask import Flask, request
 import logging
 from api import mapper
-from api.werkzeugUtil import saveUploadFiles
+from api.werkzeugUtil import saveFilesUpload
+from constants import UPLOAD_FOLDER
 import service.aiService as aiService
 from api.flaskUtil import EVENT_STREAM_CHUNKED_HEADERS, setResponseKO, setResponseOK, corsHeaders, getReqParams
+from util.files import findFilesRecursive
 from util.logUtil import initLog
 from model.model import ChatRequest
 
@@ -50,7 +54,10 @@ def postMessage():
 @app.post('/api/v1/chat-stream', **OPTIONS)
 def postMessageStream():
     r = ChatRequest(*getReqParams(request, ChatRequest.params))
-    preParsedParams = aiService.preParseParams(r)
+    try:
+        preParsedParams = aiService.preParseParams(r)
+    except Exception as e:
+        return setResponseKO(e)
 
     def generate():
         for chunk in aiService.sendMessageStream(r, preParsedParams):
@@ -87,14 +94,21 @@ def cancelStreamSignal(user):
     return setResponseOK(RES_STREAM_CANCELLED_FOR_USER_X.format(user))
 
 
-@app.post('/api/v1/upload-files', **OPTIONS)
-def uploadFiles():
-    log.debug(f"uploadFiles request.files = {request.files}")
+@app.post('/api/v1/files/upload', **OPTIONS)
+def filesUpload():
+    log.debug(f"filesUpload request.files = {request.files}")
     if request.files:
-        fileNames = saveUploadFiles(request)
+        fileNames = saveFilesUpload(request)
         if len(fileNames) > 0:
             return setResponseOK(f'File(s) uploaded {fileNames}')
     return setResponseKO('No selected file(s)')
+
+
+@app.get('/api/v1/files', **OPTIONS)
+def getFilesAvailable():
+    res: List[PosixPath] = list(map(lambda path: str(path), findFilesRecursive(UPLOAD_FOLDER, '*')))
+    log.info(f"files = {res}")
+    return setResponseOK(res)
 
 
 def run():

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, defineEmits, defineExpose } from 'vue';
-const emit = defineEmits(['uploadFiles']);
+const emit = defineEmits(['filesUpload']);
 const files = ref([])
 const showUploadButton = ref(true)
 let loaded = 0;
@@ -44,9 +44,9 @@ const addFilesToFormData = () => {
     // console.log("formData=" + formData);
     return formData;
 }
-const uploadFiles = () => {
+const filesUpload = () => {
     showUploadButton.value = false;
-    emit('uploadFiles', addFilesToFormData());
+    emit('filesUpload', addFilesToFormData());
 }
 const setShowUploadButton = (value) => showUploadButton.value = value;
 const showProgress = (pLoaded, pTotal) => {
@@ -69,7 +69,7 @@ defineExpose({ openDialog, setShowUploadButton, showProgress });
         </div>
         <ul v-if="files.length > 0">
             <li v-if="showUploadButton">
-                <button @click="uploadFiles" class="upload">Upload files</button>
+                <button @click="filesUpload" class="upload">Upload files</button>
             </li>
             <li v-else class="uploadedFiles">Uploaded files:&nbsp;</li>
             <li v-for="(file, index) in files" :key="index" :title="file.webkitRelativePath">

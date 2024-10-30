@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
 import { apiClient } from './ApiClient.js';
-import { insertAtCursor } from './utils.js';
 import FileUploader from './FileUploader.vue'
+import FileSelector from './FileSelector.vue'
 
 const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream']);
 // Props
@@ -21,15 +21,8 @@ const question = ref('Genera un ejemplo de código completo con TensorFlow en py
 const showHelp = ref(false)
 const fileUploader = ref('');
 const message = ref();
-const showFileAssist = ref(false);
+const fileSelector = ref('');
 
-let fileAssistText = ''  // TODO: REFACTOR MOVE fileAssist TO COMPONENT
-let fileSelectedIndex = 0
-const fileAssistLeft = ref(0)
-const fileAssistTop = ref(0)
-// TODO: GET FILES FROM SERVER
-const filesAvailable = ['App.vue', 'ApiClient.js', 'ChatContainer.vue', 'ChatError.vue', 'ChatHeader.vue', 'ChatHelp.vue', 'ChatMessage.vue', 'ChatOptions.vue', 'FileUploader.vue', 'iconSets.ts', 'utils.js', 'main.js']
-const filesAvailableFiltered = ref([])
 // Methods
 const stream = () => {
     if (props.loading) return;
@@ -53,10 +46,10 @@ const toggleSettings = () => {
     emit('scrollDownChat');
 }
 const toggleHelp = () => showHelp.value = !showHelp.value;
-const uploadFiles = (formData) => {
+const filesUpload = (formData) => {
     emit('errorReset');
     let total = 0;
-    apiClient.postForm('/api/v1/upload-files', formData, {
+    apiClient.postForm('/api/v1/files/upload', formData, {
         onUploadProgress: function (e) {
             fileUploader.value.showProgress(e.loaded, e.total);
             total = e.total;
@@ -69,70 +62,11 @@ const uploadFiles = (formData) => {
         return false;
     });
 }
-const openDialog = (input) => {
-    fileUploader.value.openDialog(input);
+const openDialog = (input) => fileUploader.value.openDialog(input);
+const shortCuts = (e) => {
+    if (e.ctrlKey && e.key == 'Enter') stream();
+    else fileSelector.value.shortCuts(e);
 }
-const shortCuts = (e) => { // TODO: REFACTOR MOVE fileAssist TO COMPONENT
-    var key = e.key;
-    // console.log("key=" + key + " e.ctrlKey=" + e.ctrlKey);
-    if (key == '@') {
-        filesAvailableFiltered.value = filesAvailable;
-        fileAssistTop.value = e.clientY;
-        fileAssistLeft.value = e.clientX;
-        showFileAssist.value = true;
-        fileSelectedIndex = 0;
-        fileAssistText = '@';
-    } else if (showFileAssist.value) {
-        if (key == 'Backspace') {
-            fileAssistText = fileAssistText.substring(0, fileAssistText.length - 1);
-            if (fileAssistText.length == 0) showFileAssist.value = false;
-            else filterFilesAvailable();
-        } else if (key == 'Escape') showFileAssist.value = false;
-        else if (e.ctrlKey && key == 'Enter') stream();
-        else if (key == 'Enter') {
-            selectFile(fileSelectedIndex);
-            e.preventDefault();
-        } else if (key == 'ArrowUp' || key == 'ArrowLeft') fileSelectedMove(-1);
-
-        else if (key == 'ArrowDown' || key == 'ArrowRight') fileSelectedMove(1);
-        else if (showFileAssist.value && key != 'Shift' && key != 'Control' && key != 'AltGraph' && key != 'Alt') {
-            fileAssistText += key;
-            filterFilesAvailable();
-        }
-    }
-}
-const fileSelectedMove = (move) => { // TODO: REFACTOR MOVE fileAssist TO COMPONENT
-    if (move == 1) {
-        if (fileSelectedIndex < filesAvailableFiltered.value.length - 1)
-            fileSelectedIndex++;
-    } else {
-        if (fileSelectedIndex > 0)
-            fileSelectedIndex--;
-    }
-    // console.log("fileSelectedIndex=" + fileSelectedIndex);
-    filesAvailableFilteredUpdateView(filesAvailableFiltered.value);
-}
-const filterFilesAvailable = () => { // TODO: REFACTOR MOVE fileAssist TO COMPONENT
-    const text = fileAssistText.toLowerCase().substring(1);
-    const regex = new RegExp('(' + text + ')', 'ig');
-    const filtered = filesAvailable
-        .filter(f => f.toLowerCase().indexOf(text) != -1)
-        .map(f => f.replace(regex, '<span style="color: yellow">$1</span>'));
-    if (fileSelectedIndex >= filtered.length) fileSelectedIndex = filtered.length
-    filesAvailableFilteredUpdateView(filtered);
-}
-const filesAvailableFilteredUpdateView = (filtered) => {// TODO: REFACTOR MOVE fileAssist TO COMPONENT
-    filesAvailableFiltered.value = [];
-    filesAvailableFiltered.value = filtered;
-}
-const selectFile = (idx) => { // TODO: REFACTOR MOVE fileAssist TO COMPONENT
-    const offset = -fileAssistText.length
-    // console.log("selectFile fileAssistText=" + fileAssistText + ", offset=" + offset);
-    const fileName = filesAvailableFiltered.value[idx].replace('<span style="color: yellow">', '').replace('</span>', '');
-    question.value = insertAtCursor(document.getElementById("textarea-question"), ' @' + fileName + ' ', offset);
-    showFileAssist.value = false;
-}
-
 
 defineExpose({ model, ability, history, question, showHelp });
 onMounted(() => getModels())
@@ -143,11 +77,12 @@ onMounted(() => getModels())
         <div>
             <div>
                 <div class="container">
+                    <FileSelector ref="fileSelector" :question="question" />
                     <ul>
                         <li style="width: 100%">
                             <textarea rows="4" cols="50" v-model="question" class="base-input textarea"
-                                placeholder="Message..." autofocus @keydown="shortCuts" ref="message"
-                                id="textarea-question"></textarea>
+                                placeholder="Message..." autofocus id="textarea-question" ref="message"
+                                @keydown="shortCuts"></textarea>
                         </li>
                         <li>
                             <img src="../assets/chatgpt/send.webp" @click="stream"
@@ -155,15 +90,7 @@ onMounted(() => getModels())
                                 title="Ask AI (ctrl+enter)">
                         </li>
                     </ul>
-                    <!-- TODO: REFACTOR MOVE fileAssist TO COMPONENT -->
-                    <div v-if="showFileAssist" class="fileAssist"
-                        :style="'left: ' + fileAssistLeft + 'px; top: ' + fileAssistTop + 'px;'">
-                        <ul>
-                            <li v-for="(file, idx) in filesAvailableFiltered" :key="idx" @click="selectFile(idx)"
-                                v-html="file" :class="fileSelectedIndex == idx ? 'selected' : ''"></li>
-                        </ul>
-                    </div>
-                    <FileUploader @uploadFiles="form => uploadFiles(form)" ref="fileUploader" v-slot="fileUploaderSlot">
+                    <FileUploader @filesUpload="form => filesUpload(form)" ref="fileUploader" v-slot="fileUploaderSlot">
                         <img class="optionIconSmall" src="../assets/chatgpt/close.webp"
                             @click="fileUploaderSlot.removeFile(index)" alt="Attach folder" title="Attach folder">
                     </FileUploader>
@@ -183,7 +110,7 @@ onMounted(() => getModels())
                     @click="toggleHelp" :class="enableDelete ? '' : 'disabled'">
             </div>
         </div>
-        <div :hidden="hideSettings" style="clear: both; margin-top: 4em">
+        <div :hidden="hideSettings" style="clear: both; margin-top: 0.5em">
             <input type="text" class="base-input input" v-model="ability"
                 placeholder="Artificial intelligence system ability (describe any ability in natural language)"
                 title="Artificial intelligence system ability (describe any ability in natural language)" />
@@ -294,38 +221,5 @@ img.disabled {
     padding-left: 0em;
     width: 100%;
     margin-bottom: 0px;
-}
-
-
-/* TODO: REFACTOR MOVE fileAssist TO COMPONENT */
-.fileAssist { 
-    background-color: rgba(0, 0, 0, 0.9);
-    border-radius: 1.5em;
-    box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
-    position: absolute;
-    color: whitesmoke;
-    z-index: 1000;
-}
-
-.fileAssist ul {
-    display: block;
-    list-style-type: none;
-    padding-left: 0em;
-}
-
-.fileAssist ul li {
-    padding-left: 1em;
-    padding-right: 1em;
-    cursor: pointer;
-    border-radius: 1em;
-}
-
-.fileAssist .fileAssistText {
-    color: yellow;
-    font-weight: bold;
-}
-
-.fileAssist ul li.selected {
-    border: 1px solid whitesmoke;
 }
 </style>

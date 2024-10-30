@@ -1,1 +1,1 @@
-UPLOAD_FOLDER = './uploads/'
+UPLOAD_FOLDER = 'uploads/'

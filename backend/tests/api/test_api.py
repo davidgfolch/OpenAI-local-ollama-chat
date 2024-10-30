@@ -53,7 +53,8 @@ def assertResponseError(res, content, asJson=True):
 # Test cases
 def test_handle_error(client):
     with patch('service.aiService.getModels') as mock:
-        mock.side_effect = ServiceException("Mocked exception", Exception("cause"))
+        mock.side_effect = ServiceException(
+            "Mocked exception", Exception("cause"))
         res = client.get('/api/v1/models')
         assertResponseError(
             res, ["ServiceException: ('Mocked exception', Exception('cause'))"])
@@ -93,6 +94,13 @@ def test_postMessageStream(mocker, client):
                  return_value=mockMsgChunks(3))
     assertResponseOK(client.post('/api/v1/chat-stream', json=chatReq),
                      b'chunk1chunk2chunk3', asJson=False)
+
+
+def test_postMessageStream_exception(client):
+    with patch("service.aiService.preParseParams") as mock:
+        mock.side_effect = ServiceException('test')
+        assertResponseError(client.post('/api/v1/chat-stream', json=chatReq), VALIDATION_ERR_MSG.append('ServiceException: test'))
+        mock.side_effect = None
 
 
 def test_postMessageStream_errRes(mocker, client):
@@ -136,11 +144,17 @@ def test_cancelStreamSignal(mocker, client):
 
 @pytest.mark.parametrize('fileNames', [[], ['test.py']])
 def test_uploadFiles(mocker, client, fileNames):
-    mocker.patch("api.werkzeugUtil.saveUploadFiles", return_value=fileNames)
+    mocker.patch("api.werkzeugUtil.saveFilesUpload", return_value=fileNames)
     data = {'file': (io.BytesIO(b"abcdef"), file) for file in fileNames}
-    res = client.post('/api/v1/upload-files', data=data,
+    res = client.post('/api/v1/files/upload', data=data,
                       content_type='multipart/form-data')
     if len(fileNames) == 0:
         assertResponseError(res, ['No selected file(s)'])
     else:
         assertResponseOK(res, f'File(s) uploaded {fileNames}')
+
+
+def test_getFilesAvailable(client):
+    with patch('util.files.findFilesRecursive') as mock:
+        mock.return_value = []
+        assertResponseOK(client.get('/api/v1/files'), [])

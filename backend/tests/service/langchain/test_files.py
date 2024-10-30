@@ -1,15 +1,17 @@
-import copy
 from pathlib import Path
 from typing import Generator
-import unittest
-from tests.common import USER_DATA
-from service.langchain.files import loadFile, processFiles
+
+import pytest
+
+from constants import UPLOAD_FOLDER
+from service.langchain.files import ERR_DUPLICATED_FILE, loadFile, processFiles
 from service.serviceException import ServiceException
 from langchain_community.document_loaders import TextLoader
 from unittest.mock import patch
 from contextlib import contextmanager
 
 FILE = 'file.txt'
+FILE2 = 'file2.txt'
 FILE_CONTENT = 'Test file content'
 
 
@@ -21,33 +23,30 @@ def mockManager(rglob, loader) -> Generator:
         yield
 
 
-class TestFiles(unittest.TestCase):
-
-    def test_loadFile(self):
-        with mockManager([FILE], [FILE_CONTENT]):
-            result = loadFile(FILE)
-            self.assertEqual(result, FILE_CONTENT)
-
-    def test_loadFile_notFound(self):
-        with self.assertRaises(ServiceException) as ex:
-            loadFile('non_existent_file.txt')
-        self.assertEqual(str(ex.exception),
-                         "non_existent_file.txt not found, upload it first!")
-
-    def test_loadFile_multipleFound(self):
-        with mockManager([FILE, FILE], [FILE_CONTENT, FILE_CONTENT]):
-            with self.assertRaises(ServiceException) as ex:
-                loadFile(FILE)
-            self.assertEqual(
-                str(ex.exception), "Found several file.txt files in upload folder & sub-folders.")
-
-    def test_processFiles(self):
-        userData = copy.deepcopy(USER_DATA)
-        userData.question = '@file.ext @file.ext'
-        with mockManager([FILE], [FILE_CONTENT]):
-            res = processFiles(userData)
-            self.assertEqual(res, [userData.question, [FILE_CONTENT]])
+@pytest.mark.parametrize("mockManagerParams", [({'rglob': [FILE], 'loader': [[FILE_CONTENT]]}),
+                                               ({'rglob': [UPLOAD_FOLDER+FILE], 'loader': [[FILE_CONTENT]]})])
+def test_loadFile(mockManagerParams):
+    with mockManager(**mockManagerParams):
+        res = loadFile(mockManagerParams['rglob'][0])
+        assert res == mockManagerParams['loader'][0]
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_loadFile_notFound():
+    with pytest.raises(ServiceException) as ex:
+        loadFile('non_existent_file.txt')
+    assert str(ex.value) == "non_existent_file.txt not found, upload it first!"
+
+
+def test_loadFile_multipleFound():
+    with mockManager([FILE, FILE], [FILE_CONTENT, FILE_CONTENT]):
+        with pytest.raises(ServiceException) as ex:
+            loadFile(FILE)
+        assert str(ex.value) == ERR_DUPLICATED_FILE.format(FILE)
+
+
+def test_processFiles():
+    with mockManager([FILE], [FILE_CONTENT]):
+        res = processFiles([FILE])
+        assert res == [FILE_CONTENT]
+        res = processFiles([FILE, FILE])
+        assert res == [FILE_CONTENT]

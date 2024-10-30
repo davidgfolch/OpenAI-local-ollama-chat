@@ -1,6 +1,7 @@
 import json
+import re
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.runnables.base import RunnableBindingBase
@@ -89,8 +90,22 @@ def chatInstance(u: UserData) -> RunnableBindingBase:
                                       history_messages_key="history")
 
 
+FILES_REGEX = r'@/?(([a-zA-Z_-]+/)*[a-zA-Z_\-.0-9]+(\.[a-zA-Z]{1,3})?)'
+
+
+def parseAndLoadQuestionFiles(d: UserData):
+    log.info(f"question={d.question}")
+    all = re.findall(FILES_REGEX, d.question)
+    log.info(f"all={all}")
+    files: Set[str] = set(map(lambda matchTuple: matchTuple[0], all))
+    log.info(f"files={files}")
+    found = processFiles(files)
+    input = re.sub(FILES_REGEX, r'\1', d.question)
+    return input if found.count == 0 else [input, found]
+
+
 def mapParams(d: UserData) -> Dict:
-    return {'input': {"history": d.history, "ability": d.ability, "input": processFiles(d)},
+    return {'input': {"history": d.history, "ability": d.ability, "input": parseAndLoadQuestionFiles(d)},
             'config': {"configurable": {"session_id": d.user, "model": d.model}}}
 
 

@@ -30,7 +30,7 @@ const msToTime = (ms) => {
 }
 
 const insertAtCursor = (el, text, offset = 0) => {
-    // console.log("insertAtCursor => element=" + el + " text=" + text + " offset=" + offset);
+    //console.log("insertAtCursor => element=" + el + " text=" + text + " offset=" + offset);
     if (document.selection) { //IE support
         el.focus();
         const sel = document.selection.createRange();

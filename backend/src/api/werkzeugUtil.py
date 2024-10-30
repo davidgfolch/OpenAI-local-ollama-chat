@@ -12,7 +12,7 @@ log = initLog(__file__, logging.DEBUG)
 Request.max_form_parts = 100
 Request.max_content_length = 16 * 1000 * 1000  # 16 megabytes
 
-def saveUploadFiles(request):
+def saveFilesUpload(request):
     files: ImmutableMultiDict = request.files
     fileNames = []
     for (fileName, files) in files.lists():

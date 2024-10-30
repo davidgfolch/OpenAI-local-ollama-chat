@@ -32,7 +32,7 @@ class CustomFormatter(logging.Formatter):
 
 
 def initLog(file: str, level=logging.INFO):
-    name = file.split("/").pop()
+    name = file.split("/src/").pop()
     if (name == "" or name is None):
         name = file
     logger = logging.getLogger(name)
@@ -41,4 +41,6 @@ def initLog(file: str, level=logging.INFO):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    for handler in logger.handlers:
+        print(f"logger Handler for file={file} => {handler}")
     return logger

@@ -34,7 +34,7 @@ conda deactivate # deactivate any active conda environment
 conda activate langchain
 conda env create -f backend/env.yml
 
-# todo: try setting python version
+#todo: try setting python version
 conda create -n tf_env python=3.8 
 ```
 
