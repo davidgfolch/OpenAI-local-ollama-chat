@@ -1,7 +1,10 @@
-<script setup>
+<script lang="ts" setup>
 import { ref, defineExpose, defineEmits, onMounted } from 'vue';
 import { insertAtCursor } from './utils';
 import { apiClient } from './ApiClient.js';
+
+const props = defineProps<{ inputElementId: string}>()
+
 
 const emit = defineEmits(['errorReset', 'handleError']);
 const question = ref('')
@@ -12,6 +15,8 @@ const fileAssistLeft = ref(0)
 const fileAssistTop = ref(0)
 let filesAvailable = []
 const filesAvailableFiltered = ref([])
+const inputElement = null
+
 
 const loadFiles = () => {
     emit('errorReset');
@@ -20,13 +25,13 @@ const loadFiles = () => {
         .catch(e => emit('handleError', e));
 }
 
-const shortCuts = (e) => {
+const shortCuts = (e: KeyboardEvent) => {
     var key = e.key;
     // console.log("key=" + key + " e.ctrlKey=" + e.ctrlKey);
     if (key == '@') {
         filesAvailableFiltered.value = filesAvailable;
-        fileAssistTop.value = e.clientY;
-        fileAssistLeft.value = e.clientX;
+        fileAssistTop.value = inputElement.getBoundingClientRect().top;
+        fileAssistLeft.value = 0;
         showFileAssist.value = true;
         fileSelectedIndex = 0;
         fileAssistText = '@';
@@ -42,8 +47,8 @@ const shortCuts = (e) => {
         } else if (key == 'ArrowUp' || key == 'ArrowLeft') fileSelectedMove(-1);
         else if (key == 'ArrowDown' || key == 'ArrowRight') fileSelectedMove(1);
         else {
-            const matches = key.match(/[a-zA-Z0-9_\-/]{1,1}/gi)
-            if (matches!=null && matches.length == 1) {
+            const matches = key.match(/[.a-zA-Z0-9_\-/]{1,1}/gi)
+            if (matches != null && matches.length == 1) {
                 fileAssistText += key;
                 filterFilesAvailable();
                 return
@@ -52,7 +57,7 @@ const shortCuts = (e) => {
         }
     }
 }
-const fileSelectedMove = (move) => {
+const fileSelectedMove = (move: number) => {
     if (move == 1) {
         if (fileSelectedIndex < filesAvailableFiltered.value.length - 1)
             fileSelectedIndex++;
@@ -63,12 +68,23 @@ const fileSelectedMove = (move) => {
     // console.log("fileSelectedIndex=" + fileSelectedIndex);
     filesAvailableFilteredUpdateView(filesAvailableFiltered.value);
 }
+/**
+ * Filter files list by entered text via regular expression
+ * First: try to filter by exact text match
+ * Second: try to filter by matching text chunks obtained from the text
+ */
 const filterFilesAvailable = () => {
     const text = fileAssistText.toLowerCase().substring(1);
-    const regex = new RegExp('(' + text + ')', 'ig');
-    const filtered = filesAvailable
-        .filter(f => f.toLowerCase().indexOf(text) != -1)
-        .map(f => f.replace(regex, '<span style="color: yellow">$1</span>'));
+    const textChunks = text.match(/[a-z]+/ig)
+    const textRegex = new RegExp('(' + text + ')', 'ig');
+    const textChunksRegex = textChunks ? new RegExp('(' + textChunks.join('.+') + ')', 'gi') : textRegex;
+    const filtered1 = filesAvailable.filter(f => f.toLowerCase().indexOf(text) != -1)
+        .map(f => f.replace(textRegex, '<span style="color: yellow">$1</span>'))
+    const filtered2 = filtered1.length > 10 ? [] : filesAvailable.filter(f => {
+        const matches = f.match(textChunksRegex)
+        return (matches != null && matches.length == 1);
+    }).map(f => f.replace(textChunksRegex, '<span style="color: yellow">$1</span>'))
+    const filtered = filtered1.concat(filtered2);
     if (fileSelectedIndex >= filtered.length) fileSelectedIndex = filtered.length
     filesAvailableFilteredUpdateView(filtered);
 }
@@ -76,16 +92,17 @@ const filesAvailableFilteredUpdateView = (filtered) => {
     filesAvailableFiltered.value = [];
     filesAvailableFiltered.value = filtered;
 }
-const selectFile = (idx) => {
-    const fileName = filesAvailableFiltered.value[idx].replace('<span style="color: yellow">', '').replace('</span>', '');
+const selectFile = (idx: number) => {
+    const fileName = fileAssistText
     const offset = -fileName.length
     console.log("selectFile fileName=" + fileName + ", offset=" + offset);
-    question.value = insertAtCursor(document.getElementById("textarea-question"), ' @' + fileName + ' ', offset);
+    const fullFileNamePath = filesAvailableFiltered.value[idx].replace('<span style="color: yellow">', '').replace('</span>', '');
+    question.value = insertAtCursor(inputElement, ' @' + fullFileNamePath + ' ', offset);
     showFileAssist.value = false;
 }
 
 defineExpose({ shortCuts })
-onMounted(() => loadFiles())
+onMounted(() => {loadFiles(); inputElement = document.getElementById(props.inputElementId);})
 </script>
 
 <template>

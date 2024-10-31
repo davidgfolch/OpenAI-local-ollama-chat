@@ -24,6 +24,7 @@ OPTIONS = {'provide_automatic_options': False}
 
 @app.errorhandler(Exception)
 def handle_error(e: Exception):
+    log.error(f"handle_error exception {e}")
     return setResponseKO(e)
 
 
@@ -106,7 +107,9 @@ def filesUpload():
 
 @app.get('/api/v1/files', **OPTIONS)
 def getFilesAvailable():
-    res: List[PosixPath] = list(map(lambda path: str(path), findFilesRecursive(UPLOAD_FOLDER, '*')))
+    res: List[PosixPath] = list(
+        map(lambda path: str(path).replace(UPLOAD_FOLDER, ''),
+            findFilesRecursive(UPLOAD_FOLDER, '*')))
     log.info(f"files = {res}")
     return setResponseOK(res)
 

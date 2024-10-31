@@ -20,7 +20,7 @@ while [ True ]; do
 
     echo ""
     echo "clear && sudo journalctl -u ollama -f | perl ~/scripts/colorTail.pl \"gpu|cuda\""
-    pause "Press [Enter] (to restart nvidia driver, ollama & nvidia-settings)"
+    pause "Press [Enter] stop ollama & nvidia-settings"
     echo ""
     echo "(Root pasword needed to restart services)"
     echo "Killing nvidia-settings application..."
@@ -29,6 +29,7 @@ while [ True ]; do
     echo "Stoping Ollama service..."
     sudo systemctl stop ollama
     sleep .5
+    pause "Press [Enter] to restart nvidia driver & start ollama & nvidia-settings"
     echo "Restarting nvidia driver..."
     sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
     sleep .5

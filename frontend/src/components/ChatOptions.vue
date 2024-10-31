@@ -1,4 +1,4 @@
-<script setup>
+<script lang="ts" setup>
 import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
 import { apiClient } from './ApiClient.js';
 import FileUploader from './FileUploader.vue'
@@ -19,9 +19,9 @@ const model = ref("");
 const ability = ref("Eres un asistente especializado en ingenieria de software.");
 const question = ref('Genera un ejemplo de código completo con TensorFlow en python.');
 const showHelp = ref(false)
-const fileUploader = ref('');
+const fileUploader = ref<InstanceType<typeof FileUploader> | null>(null);
 const message = ref();
-const fileSelector = ref('');
+const fileSelector = ref<InstanceType<typeof FileSelector> | null>(null);
 
 // Methods
 const stream = () => {
@@ -62,8 +62,8 @@ const filesUpload = (formData) => {
         return false;
     });
 }
-const openDialog = (input) => fileUploader.value.openDialog(input);
-const shortCuts = (e) => {
+const openDialog = (input: HTMLElement) => fileUploader.value?.openDialog(input);
+const shortCuts = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key == 'Enter') stream();
     else fileSelector.value.shortCuts(e);
 }
@@ -77,7 +77,7 @@ onMounted(() => getModels())
         <div>
             <div>
                 <div class="container">
-                    <FileSelector ref="fileSelector" :question="question" />
+                    <FileSelector ref="fileSelector" :question="question" :inputElementId="'textarea-question'" />
                     <ul>
                         <li style="width: 100%">
                             <textarea rows="4" cols="50" v-model="question" class="base-input textarea"

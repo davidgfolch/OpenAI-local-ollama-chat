@@ -1,4 +1,4 @@
-<script setup>
+<script lang="ts" setup>
 import { ref, onMounted, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatHelp from './ChatHelp.vue';
@@ -21,7 +21,7 @@ const loading = ref(false);
 const question = ref('');
 const messages = ref([]);
 const scrollDiv = ref(null);
-const chatError = ref('');
+const chatError = ref(null);
 const chatOptions = ref();
 // Methods
 const highLightCode = () => nextTick().then(() => hljs.highlightAll());
@@ -54,7 +54,7 @@ const loadHistory = () => {
 };
 const mdToHtml = (msg) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
 const messagePush = (q, a, id, metadata) => messages.value.push({ q: mdToHtml(q), a: mdToHtml(a), id: id, metadata: metadata });
-const setAnswer = (answer, resetQuestion) => {
+const setAnswer = (answer: String, resetQuestion: Boolean = false) => {
   const arr = answer.split("#|S|E|P#");
   if (arr.length > 1) {
     currentChunkId = arr[0]
@@ -64,11 +64,11 @@ const setAnswer = (answer, resetQuestion) => {
     const metadataStr = arr[4]
     now = Date.now();
     let metadata = arr.length > 4 ? metadataStr : '{"total_duration": ' + (now - streamTimeStart) + '}'
-    metadata = JSON.parse(metadata)
-    metadata.total_duration = now - streamTimeStart;
-    metadata.model = modelName;
-    metadata.langchainChat = langchainChat;
-    messagePush(question.value, text, currentChunkId, metadata);
+    let metadataJson = JSON.parse(metadata)
+    metadataJson['total_duration'] = now - streamTimeStart;
+    metadataJson['model'] = modelName;
+    metadataJson['langchainChat'] = langchainChat;
+    messagePush(question.value, text, currentChunkId, metadataJson);
   } else {
     messagePush(question.value, answer, '', '');
   }
@@ -76,7 +76,7 @@ const setAnswer = (answer, resetQuestion) => {
   scrollDownChat()
   highLightCode();
 };
-const handleError = (error) => chatError.value.showError(error);
+const handleError = (error: Error | String) => chatError.value.showError(error);
 const resetApiCall = () => {
   scrollDownEnabled = true;
   loading.value = false;

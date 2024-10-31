@@ -3,15 +3,20 @@
 [![backend-build-lint-and-tests](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-build-lint-and-tests.yml/badge.svg)](https://github.com/davidgfolch/OpenAI-local-ollama-chat/actions/workflows/backend-build-lint-and-tests.yml)
 [![Backend coverage](README.md_images/coverage.svg)](backend/README.md#generate-coverage-badge-for-readmemd)
 
-This project implements a local AI chat, with:
+Tech-stack: Vue3 -> Python (langchain/openai) -> Ollama
+
+This project implements a local AI chat, with :
 
 - Response pretty printing: markdown to html & code highlight
 - Backend chat history with persistence (file store)
   - Delete question/answer in file history.
+  - Delete all history.
 - LLM response live streaming: chunked streaming
   - Stop current streaming response.
-- Langchain callbacks logging (with truncated text)
-- Tech-stack: Vue3 -> Python (langchain/openai) -> Ollama
+- Langchain callbacks logging (with truncated text in logs)
+- File uploader
+  - File uploaded to `uploads` folder as files.
+  - Mention file in question to LLM by pressing `@` and choose file from uploaded files assistant.
 
 ## Watch the Youtube demo
 
@@ -68,6 +73,13 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 4. K-shift error (see [Known-issues](Known-issues)):
    1. Continue doesn't generates K-shift error, checkout how.
    2. Option (front/back) to disable passing all history to LLM.
+5. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
+
+    ```log
+    ServiceException: op not found, upload it first!
+    RuntimeError: Error loading uploads/openai-local-ollama-chat
+    IsADirectoryError: [Errno 21] Is a directory: 'uploads/openai-local-ollama-chat'
+    ```
 
 ## Known issues (todo)
 

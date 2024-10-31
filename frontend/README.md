@@ -30,7 +30,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## Libraries used
 
-- Vue3 (framework)
+- Vue3 (framework) with Vite
 - [Axios](https://axios-http.com/docs/intro) http client
   - https://github.com/axios/axios
 - [Showdown](https://github.com/showdownjs/showdown/wiki) markdown parser
