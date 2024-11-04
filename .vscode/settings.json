@@ -78,6 +78,7 @@
         "Ollama",
         "openai",
         "pycache",
+        "pytest",
         "werkzeug"
     ],
     "flake8.args": [

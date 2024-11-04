@@ -3,11 +3,9 @@ import { ref, defineExpose, defineEmits, onMounted } from 'vue';
 import { insertAtCursor } from './utils';
 import { apiClient } from './ApiClient.js';
 
-const props = defineProps<{ inputElementId: string}>()
-
+const props = defineProps<{ inputElement: HTMLTextAreaElement | HTMLInputElement }>()
 
 const emit = defineEmits(['errorReset', 'handleError']);
-const question = ref('')
 const showFileAssist = ref(false)
 let fileAssistText = ''
 let fileSelectedIndex = 0;
@@ -15,7 +13,6 @@ const fileAssistLeft = ref(0)
 const fileAssistTop = ref(0)
 let filesAvailable = []
 const filesAvailableFiltered = ref([])
-const inputElement = null
 
 
 const loadFiles = () => {
@@ -30,8 +27,9 @@ const shortCuts = (e: KeyboardEvent) => {
     // console.log("key=" + key + " e.ctrlKey=" + e.ctrlKey);
     if (key == '@') {
         filesAvailableFiltered.value = filesAvailable;
-        fileAssistTop.value = inputElement.getBoundingClientRect().top;
-        fileAssistLeft.value = 0;
+        const rect = props.inputElement.getBoundingClientRect();
+        fileAssistTop.value = rect.height;
+        fileAssistLeft.value = rect.width / 3;
         showFileAssist.value = true;
         fileSelectedIndex = 0;
         fileAssistText = '@';
@@ -42,8 +40,8 @@ const shortCuts = (e: KeyboardEvent) => {
             else filterFilesAvailable();
         } else if (key == 'Escape') showFileAssist.value = false;
         else if (key == 'Enter') {
-            selectFile(fileSelectedIndex);
             e.preventDefault();
+            return selectFile(fileSelectedIndex);
         } else if (key == 'ArrowUp' || key == 'ArrowLeft') fileSelectedMove(-1);
         else if (key == 'ArrowDown' || key == 'ArrowRight') fileSelectedMove(1);
         else {
@@ -97,12 +95,12 @@ const selectFile = (idx: number) => {
     const offset = -fileName.length
     console.log("selectFile fileName=" + fileName + ", offset=" + offset);
     const fullFileNamePath = filesAvailableFiltered.value[idx].replace('<span style="color: yellow">', '').replace('</span>', '');
-    question.value = insertAtCursor(inputElement, ' @' + fullFileNamePath + ' ', offset);
     showFileAssist.value = false;
+    return insertAtCursor(props.inputElement, ' @' + fullFileNamePath + ' ', offset);
 }
 
-defineExpose({ shortCuts })
-onMounted(() => {loadFiles(); inputElement = document.getElementById(props.inputElementId);})
+defineExpose({ shortCuts, loadFiles })
+onMounted(() => {loadFiles()})
 </script>
 
 <template>

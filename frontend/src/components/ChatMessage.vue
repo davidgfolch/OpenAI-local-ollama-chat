@@ -1,6 +1,6 @@
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue'
-import { msToTime } from './utils.js';
+import { msToTime } from './utils';
 
 const emit = defineEmits(['cancelStream', 'deleteMessage']);
 // Props

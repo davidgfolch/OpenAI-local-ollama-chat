@@ -56,6 +56,7 @@ const filesUpload = (formData) => {
         }
     }).then(() => {
         fileUploader.value.showProgress(total, total);
+        fileSelector.value.loadFiles();
     }).catch(e => {
         fileUploader.value.setShowUploadButton(true);
         emit('handleError', e);
@@ -65,7 +66,10 @@ const filesUpload = (formData) => {
 const openDialog = (input: HTMLElement) => fileUploader.value?.openDialog(input);
 const shortCuts = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key == 'Enter') stream();
-    else fileSelector.value.shortCuts(e);
+    else {
+        const res = fileSelector.value.shortCuts(e);
+        if (res) question.value = res;
+    }
 }
 
 defineExpose({ model, ability, history, question, showHelp });
@@ -77,7 +81,6 @@ onMounted(() => getModels())
         <div>
             <div>
                 <div class="container">
-                    <FileSelector ref="fileSelector" :question="question" :inputElementId="'textarea-question'" />
                     <ul>
                         <li style="width: 100%">
                             <textarea rows="4" cols="50" v-model="question" class="base-input textarea"
@@ -90,9 +93,17 @@ onMounted(() => getModels())
                                 title="Ask AI (ctrl+enter)">
                         </li>
                     </ul>
-                    <FileUploader @filesUpload="form => filesUpload(form)" ref="fileUploader" v-slot="fileUploaderSlot">
-                        <img class="optionIconSmall" src="../assets/chatgpt/close.webp"
-                            @click="fileUploaderSlot.removeFile(index)" alt="Attach folder" title="Attach folder">
+                    <FileSelector ref="fileSelector" :inputElement="message" />
+                    <FileUploader @filesUpload="form => filesUpload(form)" ref="fileUploader">
+                        <template v-slot:loading >
+                            <img class="logo loading" src="../assets/loading.gif" alt="Processing files"
+                                title="Processing files" />
+                        </template>
+                        <template v-slot:removeFile="{ index }">
+                            <img class="optionIconSmall" src="../assets/chatgpt/close.webp"
+                                @click="fileUploader.removeFile(index)" alt="Remove file"
+                                title="Remove file">
+                        </template>
                     </FileUploader>
                     <!--<img class="optionIcon" src="../assets/chatgpt/plus.webp" alt="Add another text" title="Add another text">-->
                 </div>

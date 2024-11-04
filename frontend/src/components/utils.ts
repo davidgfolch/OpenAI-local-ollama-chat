@@ -1,8 +1,8 @@
 import { nextTick } from 'vue';
 
-const scrollDown = (el) => {
+const scrollDown = (el: HTMLElement) => {
     if (el) nextTick().then(() => el.scrollIntoView({ behavior: 'smooth' }));
-    else console.error("Can't scroll down scrollDiv not found!");
+    else console.error("Can't scrollIntoView null element!");
 }
 
 const checkUnclosedCodeBlockMd = (data) => {
@@ -15,13 +15,13 @@ const checkUnclosedCodeBlockMd = (data) => {
     return data
 }
 
-const msToTime = (ms) => {
-    const total_seconds = parseInt(Math.floor(ms / 1000));
-    const total_minutes = parseInt(Math.floor(total_seconds / 60));
-    const total_hours = parseInt(Math.floor(total_minutes / 60));
-    const seconds = parseInt(total_seconds % 60);
-    const minutes = parseInt(total_minutes % 60);
-    const hours = parseInt(total_hours % 24);//   if (seconds < 60) return seconds + " Sec";
+const msToTime = (ms: number) => {
+    const total_seconds = parseInt(Math.floor(ms / 1000).toFixed(0));
+    const total_minutes = parseInt(Math.floor(total_seconds / 60).toFixed(0));
+    const total_hours = parseInt(Math.floor(total_minutes / 60).toFixed(0));
+    const seconds = parseInt((total_seconds % 60).toFixed(0));
+    const minutes = parseInt((total_minutes % 60).toFixed(0));
+    const hours = parseInt((total_hours % 24).toFixed(0));//   if (seconds < 60) return seconds + " Sec";
     if (hours > 0)
         return hours + ":" + minutes + ":" + seconds;
     else if (minutes > 0)
@@ -29,16 +29,20 @@ const msToTime = (ms) => {
     return (seconds < 10 ? '0' : '') + seconds + " seg."
 }
 
-const insertAtCursor = (el, text, offset = 0) => {
+const insertAtCursor = (el: HTMLTextAreaElement | HTMLInputElement, text: string, offset = 0) => {
     //console.log("insertAtCursor => element=" + el + " text=" + text + " offset=" + offset);
     if (document.selection) { //IE support
+        console.log("insertAtCursor IE document.selection=" + document.selection);
         el.focus();
         const sel = document.selection.createRange();
+        console.log("insertAtCursor IE sel.text=" + sel.text);
         sel.text = text;
-    } else if (el.selectionStart || el.selectionStart == '0') { //MOZILLA and others
+    } else if (el.selectionStart || el.selectionStart == 0) { //MOZILLA and others
+        console.log("insertAtCursor MOZILLA and others el.selectionStart=" + el.selectionStart + ' el.selectionEnd=' + el.selectionEnd);
         const startPos = el.selectionStart + offset;
         const endPos = el.selectionEnd;
         text = el.value.substring(0, startPos) + text + el.value.substring(endPos, el.value.length)
+        console.log("insertAtCursor el.value=" + el.value);
         el.value = text;
     } else {
         el.value += text;

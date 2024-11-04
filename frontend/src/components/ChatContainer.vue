@@ -6,7 +6,7 @@ import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
 import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
 import hljs from 'highlight.js';
-import { checkUnclosedCodeBlockMd, scrollDown } from './utils.js';
+import { scrollDown, checkUnclosedCodeBlockMd } from './utils';
 import { showdown } from "vue-showdown";
 
 // Vars
