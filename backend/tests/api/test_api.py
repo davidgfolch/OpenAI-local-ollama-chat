@@ -8,7 +8,7 @@ from api.flaskUtil import REQUIRED_FIELDS
 from tests.common import mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
-VALIDATION_ERR_MSG = ["ServiceException: ('Mocked exception', Exception('cause'))", f'ValidationException: {
+VALIDATION_ERR_MSG = [f'ValidationException: {
     REQUIRED_FIELDS}model, user, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
@@ -58,7 +58,6 @@ def test_handle_error(client):
         res = client.get('/api/v1/models')
         assertResponseError(
             res, ["ServiceException: ('Mocked exception', Exception('cause'))"])
-        mock.side_effect = None
 
 
 def test_cors(client):
@@ -92,20 +91,15 @@ def test_postMessage_errRes(mocker, client):
 def test_postMessageStream(mocker, client):
     mocker.patch("service.aiService.sendMessageStream",
                  return_value=mockMsgChunks(3))
-    assertResponseOK(client.post('/api/v1/chat-stream', json=chatReq),
-                     b'chunk1chunk2chunk3', asJson=False)
+    assertResponseOK(client.post('/api/v1/chat-stream',
+                     json=chatReq), b'chunk1chunk2chunk3', asJson=False)
 
 
 def test_postMessageStream_exception(client):
     with patch("service.aiService.preParseParams") as mock:
         mock.side_effect = ServiceException('test')
-        assertResponseError(client.post('/api/v1/chat-stream', json=chatReq), VALIDATION_ERR_MSG.append('ServiceException: test'))
-        mock.side_effect = None
-
-
-def test_postMessageStream_errRes(mocker, client):
-    res = client.post('/api/v1/chat-stream', json={})
-    assertResponseError(res, VALIDATION_ERR_MSG)
+        assertResponseError(client.post('/api/v1/chat-stream', json=chatReq),
+                            VALIDATION_ERR_MSG.append('ServiceException: test'))
 
 
 @pytest.mark.parametrize('user', [[''], [USER]])

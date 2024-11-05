@@ -58,10 +58,11 @@ const showProgress = (pLoaded: number, pTotal: number) => {
     loaded = pLoaded
     total = pTotal
     percentCompleted = Math.round((loaded * 100) / total)
+    loadedDivStyle.value = 'width: '+percentCompleted+'%';
     if (pLoaded == pTotal) {
         files.value = [];
+        setTimeout(() => total = 0, 2000);
     }
-    loadedDivStyle.value = 'width: ' + percentCompleted + '%;';
 }
 const getFileSize = (size: number): string => {
     if (size > 0) {
@@ -124,7 +125,7 @@ defineExpose({ openDialog, setShowUploadButton, showProgress, removeFile });
   border-radius: 1.5em;
   box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.7);
   position: relative;
-  margin-bottom: 1.5em;
+  margin-bottom: 0.5em;
 }
 
 ul {
@@ -176,6 +177,7 @@ input[type=file] {
 
 .progress-wrapper {
     width: 100%;
+    margin-bottom: 1.5em;
 }
 
 .progress-bar {
