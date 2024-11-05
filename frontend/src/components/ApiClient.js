@@ -33,7 +33,8 @@ const processDownloadProgress = (progressEvent, errorCallbackFnc, successCallbac
   }
   if (!eventObj) return;
   var dataChunk = eventObj.response;
-  successCallback(dataChunk)
+  if (dataChunk != '')
+    successCallback(dataChunk)
 }
 
 export { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG };

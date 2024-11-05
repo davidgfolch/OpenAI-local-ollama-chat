@@ -46,11 +46,13 @@ const getMetadata = () => {
                 :class="rotateIfCollapsed()" alt="Collapse message" title="Collapse message">
         </div>
         <span v-html="props.msg.a" :class="msgClass()"></span>
-        <span v-if="props.msg.metadata" v-html="getMetadata()" style="font-size: small;"></span>
-        <span v-if="props.msg.metadata & props.msg.metadata.langchainChat" style="font-size: x-small;">
-            &nbsp;ChatType: {{ props.msg.metadata.langchainChat }}
-        </span>
-        <span v-if="props.msg.id" style="font-size: x-small;">&nbsp;StreamId: {{ props.msg.id }}</span>
+        <p>
+            <span v-if="props.msg.metadata" v-html="getMetadata()" style="font-size: small;"></span>
+            <span v-if="props.msg.metadata & props.msg.metadata.langchainChat" style="font-size: x-small;">
+                &nbsp;ChatType: {{ props.msg.metadata.langchainChat }}
+            </span>
+            <span v-if="props.msg.id" style="font-size: x-small;">&nbsp;StreamId: {{ props.msg.id }}</span>
+        </p>
     </li>
 </template>
 

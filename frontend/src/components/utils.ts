@@ -1,14 +1,9 @@
 import { nextTick } from 'vue';
 
-const scrollDown = (el: HTMLElement) => {
-    if (el) nextTick().then(() => el.scrollIntoView({ behavior: 'smooth' }));
-    else console.error("Can't scrollIntoView null element!");
-}
-
-const checkUnclosedCodeBlockMd = (data) => {
+const checkUnclosedCodeBlockMd = (data: string) => {
     const codePos = data.lastIndexOf("```");
     if (codePos != -1) {
-        const tail = data.substr(codePos - 3)
+        const tail = data.substring(codePos - 3)
         if (tail.match(/```[a-zA-Z]+/gm))
             return data + '\n```'
     }
@@ -50,4 +45,4 @@ const insertAtCursor = (el: HTMLTextAreaElement | HTMLInputElement, text: string
     return el.value;
 }
 
-export { scrollDown, checkUnclosedCodeBlockMd, msToTime, insertAtCursor };
+export { checkUnclosedCodeBlockMd, msToTime, insertAtCursor }

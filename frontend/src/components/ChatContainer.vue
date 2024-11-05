@@ -1,19 +1,20 @@
 <script lang="ts" setup>
-import { ref, onMounted, defineExpose, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, defineExpose, nextTick } from 'vue';
 import ChatMessage from './ChatMessage.vue';
 import ChatHelp from './ChatHelp.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
+import { loadHistoryMapper, answerMetadataMapper } from './ChatContainerUtil';
 import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
 import hljs from 'highlight.js';
-import { scrollDown, checkUnclosedCodeBlockMd } from './utils';
+import { checkUnclosedCodeBlockMd } from './utils';
 import { showdown } from "vue-showdown";
 
 // Vars
 const mdConverter = new showdown.Converter();
 let apiCliController = null; //https://axios-http.com/docs/cancellation
 let currentChunkId = '';
-let now = 0;
+let automaticScrollDown = false;
 let streamTimeStart = Date.now();
 // Reactive data
 const user = ref('localUser');
@@ -27,75 +28,64 @@ const chatOptions = ref();
 const highLightCode = () => nextTick().then(() => hljs.highlightAll());
 const errorReset = () => chatError.value.reset();
 var scrollDownEnabled = true;
-const scrollDownChat = () => { if (scrollDownEnabled) scrollDown(scrollDiv.value); }
+var lastScroll = 0;
+const scrollDownChat = () => {
+  if (scrollDownEnabled) {
+    if (scrollDiv.value)
+      nextTick().then(() => {
+        automaticScrollDown = true
+        scrollDiv.value.scrollIntoView({ behavior: 'smooth' })
+        automaticScrollDown = false
+      })
+    else console.error("Can't scrollIntoView null element!");
+  }
+}
 const loadHistory = () => {
-  let q = null, a = null, id = null, metadata = null;
   loading.value = true;
   apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
     if (res.data.response.length === 0) {
       messages.value = [];
       return;
     }
-    res.data.response.forEach((msg) => {
-      if (msg.q) q = msg.q;
-      if (msg.a) {
-        a = msg.a;
-        metadata = msg.metadata;
-        id = msg.id;
-      }
-      if (a != null && q != null) {
-        messagePush(q, a, id, JSON.parse(metadata));
-        scrollDownChat()
-        highLightCode();
-        q = null, a = null;
-      }
-    });
+    loadHistoryMapper(res, (q: string, a: string, id: string, metadata: any) => {
+      messagePush(q, a, id, metadata);
+      scrollDownChat()
+      highLightCode();
+    })
+
   }).catch(handleError).finally(resetApiCall);
-};
-const mdToHtml = (msg) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
-const messagePush = (q, a, id, metadata) => messages.value.push({ q: mdToHtml(q), a: mdToHtml(a), id: id, metadata: metadata });
-const setAnswer = (answer: String, resetQuestion: Boolean = false) => {
-  const arr = answer.split("#|S|E|P#");
-  if (arr.length > 1) {
-    currentChunkId = arr[0]
-    const modelName = arr[1]
-    const langchainChat = arr[2]
-    const text = arr[3]
-    const metadataStr = arr[4]
-    now = Date.now();
-    let metadata = arr.length > 4 ? metadataStr : '{"total_duration": ' + (now - streamTimeStart) + '}'
-    let metadataJson = JSON.parse(metadata)
-    metadataJson['total_duration'] = now - streamTimeStart;
-    metadataJson['model'] = modelName;
-    metadataJson['langchainChat'] = langchainChat;
-    messagePush(question.value, text, currentChunkId, metadataJson);
-  } else {
-    messagePush(question.value, answer, '', '');
-  }
-  if (resetQuestion) question.value = '';
-  scrollDownChat()
+}
+const mdToHtml = (msg: string) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
+const messagePush = (q: string, a: string, id: string, metadata: any) =>
+  messages.value.push({ q: mdToHtml(q), a: mdToHtml(a), id: id, metadata: metadata });
+const setAnswer = (answer: string, resetQuestion: Boolean = false) => {
+  automaticScrollDown = true
+  let res: any = answerMetadataMapper(answer, streamTimeStart)
+  currentChunkId = res.currentChunkId
+  messagePush(question.value, res.text, currentChunkId, res.metadataJson)
+  if (resetQuestion) question.value = ''
   highLightCode();
-};
+  scrollDownChat()
+}
 const handleError = (error: Error | String) => chatError.value.showError(error);
 const resetApiCall = () => {
   scrollDownEnabled = true;
   loading.value = false;
   scrollDownChat()
-};
+}
 const errorCallbackFnc = () => {
   messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
-const stream = async (q) => {
+const stream = async (q: string) => {
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true;
   currentChunkId = '';
   streamTimeStart = Date.now();
-  now = Date.now();
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
-  scrollDownEnabled = false;
+  scrollDownEnabled = true;
   const options = chatOptions.value;
   const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
   apiCliController = new AbortController();
@@ -105,19 +95,15 @@ const stream = async (q) => {
     onDownloadProgress: (progressEvent) =>
       processDownloadProgress(progressEvent,
         () => errorCallbackFnc(),
-        (dataChunk) => {
-          if (dataChunk != '') {
-            messages.value.pop();
-            setAnswer(dataChunk);
-          }
+        (dataChunk: string) => {
+          messages.value.pop();
+          setAnswer(dataChunk);
         })
   }).then(() => question.value = '')
     .catch(e => {
       cancelled = e == AXIOS_CONTROLLER_ABORT_MSG;
-      if (!cancelled)
-        messages.value.pop()
-      let err = cancelled ? 'Stream request cancelled by user' : e;
-      handleError(err);
+      if (!cancelled) messages.value.pop()
+      handleError(cancelled ? 'Stream request cancelled by user' : e);
     }).finally(() => {
       if (!cancelled && messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
         errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
@@ -128,7 +114,7 @@ const messagesReset = () => {
   messages.value = [];
   nextTick(() => loadHistory());
 };
-const deleteMessage = (index) => {
+const deleteMessage = (index: number) => {
   errorReset();
   apiClient.get(`/api/v1/chat/delete/${user.value}/${index}`)
     .then(() => messages.value.splice(index, 1))
@@ -146,7 +132,18 @@ const cancelStream = () => {
       scrollDownChat();
     });
 }
-onMounted(() => loadHistory());
+const handleScroll = (event: UIEvent) => {
+  const scroll = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop
+  if (lastScroll > scroll)
+    scrollDownEnabled = false
+  else scrollDownEnabled = true
+  lastScroll = scroll
+}
+onMounted(() => {
+  loadHistory()
+  window.addEventListener('scroll', handleScroll)
+});
+onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStream, deleteMessage });
 </script>
 
@@ -186,9 +183,6 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
     transform: scaleY(0);
   }
 
-  /* 50% {
-    transform: scaleY(1.25);
-  } */
   100% {
     transform: scaleY(1);
   }

@@ -63,7 +63,7 @@ const filesUpload = (formData) => {
         return false;
     });
 }
-const openDialog = (input: HTMLElement) => fileUploader.value?.openDialog(input);
+const openDialog = (input: string) => fileUploader.value?.openDialog(input);
 const shortCuts = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key == 'Enter') stream();
     else {
