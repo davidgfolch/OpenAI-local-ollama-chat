@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import Any, Dict
+from typing import Any
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.outputs import LLMResult
 from langchain_core.messages import BaseMessage
@@ -11,7 +11,7 @@ from langchain_core.documents import Document
 from util.truncateStrings import TruncateStrings
 from util.logUtil import initLog
 
-log = initLog(__file__, logging.DEBUG)
+log = initLog(__file__, logging.INFO)
 
 
 def truncate(o):
@@ -32,9 +32,9 @@ class CallbackHandler(BaseCallbackHandler):
     def on_llm_end(self, response: LLMResult, **kwargs) -> None:
         log.debug(f"on_llm_end ==> response={truncate(response)}")
 
-    def on_chain_start(self, serialized: Dict[str, Any], inputs: Dict[str, Any], **kwargs) -> None:
+    def on_chain_start(self, serialized: dict[str, Any], inputs: dict[str, Any], **kwargs) -> None:
         log.debug(f"on_chain_start ==> serialized={
                   truncate(serialized)}, inputs={truncate(inputs)}")
 
-    def on_chain_end(self, outputs: Dict[str, Any], **kwargs) -> None:
+    def on_chain_end(self, outputs: dict[str, Any], **kwargs) -> None:
         log.debug(f"on_chain_end ==> outputs={truncate(outputs)}")

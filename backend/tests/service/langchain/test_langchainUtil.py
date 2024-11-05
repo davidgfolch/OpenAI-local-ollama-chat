@@ -4,8 +4,8 @@ from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
-from tests.common import USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
-from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, stream, withModel, checkChunkError, store_folder
+from tests.common import QUESTION, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
+from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError, STORE_FOLDER
 
 
 class TestLangchainUtil(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestLangchainUtil(unittest.TestCase):
         m_history.return_value = self.mock_history
         history = get_session_history("testUserX")
         m_history.assert_called_once_with(
-            file_path=f"{store_folder}testUserX.json", encoding="utf-8")
+            file_path=f"{STORE_FOLDER}testUserX.json", encoding="utf-8")
         self.assertEqual(history, self.mock_history)
 
     @patch(langchainUtil+'store', new_callable=dict)
@@ -76,7 +76,7 @@ class TestLangchainUtil(unittest.TestCase):
         delete_messages(USER, [0])
         assert self.mock_history.messages == []
         m_history.assert_called_once_with(
-            file_path=f"{store_folder}testUser.json", encoding="utf-8")
+            file_path=f"{STORE_FOLDER}testUser.json", encoding="utf-8")
         delete_messages(USER, [0])
         delete_messages(USER)
 
@@ -103,6 +103,9 @@ class TestLangchainUtil(unittest.TestCase):
             checkChunkError(mock)
         self.assertEqual(str(context.exception),
                          ERROR_STREAM_CHUNK+finishReason)
+
+    def test_parseAndLoadQuestionFiles(self):
+        self.assertEqual(QUESTION, parseAndLoadQuestionFiles(QUESTION))
 
 
 if __name__ == '__main__':

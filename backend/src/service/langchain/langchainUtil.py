@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 from typing import Dict, List, Set
+from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.runnables.base import RunnableBindingBase
@@ -25,12 +26,12 @@ CALLBACKS = [CallbackHandler(), CallbackHandlerAsync()]
 ERROR_STREAM_CHUNK = 'Error in stream chunk finish_reason is not stop, reason: '
 
 defaultModel = "llama3.2:latest"  # "deepseek-coder-v2:16b"
-store_folder = "./langchain.store/"
+STORE_FOLDER = "./langchain.store/"
 store = {}
 
 
-def getFilePath(session_id: str):
-    return f"{store_folder}{session_id}.json"
+def getFilePath(user: str):
+    return f"{STORE_FOLDER}{user}.json"
 
 
 def get_session_history(user: str) -> FileChatMessageHistory:
@@ -61,7 +62,7 @@ def withModel(u: UserData) -> RunnableBindingBase:
         u.model = defaultModel
     m = u.model.strip()
     if u.chatInstance and u.model == u.chatInstanceModel:
-        log.info(f"Using same model: '{defaultModel}'")
+        log.info(f"Using same chat instance: '{defaultModel}'")
         return u.chatInstance
     log.info(f"New chat instance with model: {m}")
     u.model = m
@@ -93,19 +94,16 @@ def chatInstance(u: UserData) -> RunnableBindingBase:
 FILES_REGEX = r'@/?(([a-zA-Z_-]+/)*[a-zA-Z_\-.0-9]+(\.[a-zA-Z]{1,3})?)'
 
 
-def parseAndLoadQuestionFiles(d: UserData):
-    log.info(f"question={d.question}")
-    all = re.findall(FILES_REGEX, d.question)
-    log.info(f"all={all}")
+def parseAndLoadQuestionFiles(question):
+    all = re.findall(FILES_REGEX, question)
     files: Set[str] = set(map(lambda matchTuple: matchTuple[0], all))
-    log.info(f"files={files}")
-    found = processFiles(files)
-    input = re.sub(FILES_REGEX, r'\1', d.question)
-    return input if found.count == 0 else [input, found]
+    found: List[Document] = processFiles(files)
+    input = re.sub(FILES_REGEX, r'\1', question)
+    return input if len(found) == 0 else [input, found]
 
 
 def mapParams(d: UserData) -> Dict:
-    return {'input': {"history": d.history, "ability": d.ability, "input": parseAndLoadQuestionFiles(d)},
+    return {'input': {"history": d.history, "ability": d.ability, "input": parseAndLoadQuestionFiles(d.question)},
             'config': {"configurable": {"session_id": d.user, "model": d.model}}}
 
 
