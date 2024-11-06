@@ -1,7 +1,21 @@
 import { AxiosResponse } from "axios";
+import hljs from 'highlight.js';
+import { nextTick } from 'vue';
 
+// hljs.configure(hljs.)
+export const highLightCode = (elementId: string = null) =>
+    nextTick().then(() => {
+        if (elementId) {
+            highlightElementById('question-' + elementId)
+            highlightElementById('answer-' + elementId)
+        } else hljs.highlightAll()
+    })
 
-const loadHistoryMapper = (res: AxiosResponse, callback: Function) => {
+const highlightElementById = (elementId: string) =>
+    document.querySelectorAll('#' + elementId + ' > span > pre > code:not([data-highlighted=yes])')
+        .forEach(e => hljs.highlightElement(e))
+
+export const loadHistoryMapper = (res: AxiosResponse, callback: Function) => {
     let q = null, a = null, id = null, metadata = null;
     res.data.response.forEach((msg: any) => {
         if (msg.q) q = msg.q;
@@ -17,7 +31,7 @@ const loadHistoryMapper = (res: AxiosResponse, callback: Function) => {
     });
 }
 
-const answerMetadataMapper = (answer: string, streamTimeStart: number) => {
+export const answerMetadataMapper = (answer: string, streamTimeStart: number) => {
     const arr = answer.split("#|S|E|P#")
     if (arr.length == 1)
         return { text: answer, currentChunkId: '', metadataJson: '' }
@@ -35,8 +49,6 @@ const answerMetadataMapper = (answer: string, streamTimeStart: number) => {
     return { text: text, currentChunkId: currentChunkId, metadataJson: metadataJson }
 }
 
-const createBodyParams = (ops, question: string, user: string) => {
+export const createBodyParams = (ops, question: string, user: string) => {
     return { model: ops.model, temperature: ops.temperature, user: user, question: question, history: ops.history, ability: ops.ability };
 }
-
-export { loadHistoryMapper, answerMetadataMapper, createBodyParams }

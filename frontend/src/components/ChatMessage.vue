@@ -28,11 +28,11 @@ const getMetadata = () => {
 </script>
 
 <template>
-    <li class="message right">
-        <img class="logo" src="../assets/chatgpt/user.webp" alt="User question" title="User question">
+    <li class="message right" :id="'question-'+props.msg.id">
+        <img class="logo" src="../assets/chatgpt/user2.webp" alt="User question" title="User question">
         <span v-html="props.msg.q"></span>
     </li>
-    <li class="message left">
+    <li class="message left"  :id="'answer-'+props.msg.id">
         <img class="logo" src="../assets/chatgpt/ai.webp" :style="lastAndLoading() ? 'filter: brightness(50%)' : ''"
             alt="AI response" title="AI response">
         <img class="logo loading" src="../assets/loading.gif" v-if="lastAndLoading()" alt="Waiting for AI response"

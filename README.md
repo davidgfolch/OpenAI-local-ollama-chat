@@ -67,9 +67,9 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 
 ## TODO
 
-1. Langchain PR for FileChatMessageHistory delete_message.
-2. Upload file or folder to give context to llm (embeddings, agents, RAG??).
-3. Multiple question scheduler or in parallel.
+1. Multiple question scheduler or in parallel.
+2. Export questions & answers.
+3. Collapse all responses.
 4. K-shift error (see [Known-issues](Known-issues)):
    1. Continue doesn't generates K-shift error, checkout how.
    2. Option (front/back) to disable passing all history to LLM.

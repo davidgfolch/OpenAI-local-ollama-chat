@@ -4,9 +4,8 @@ import ChatMessage from './ChatMessage.vue';
 import ChatHelp from './ChatHelp.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
-import { loadHistoryMapper, answerMetadataMapper, createBodyParams } from './ChatContainerUtil';
+import { loadHistoryMapper, answerMetadataMapper, createBodyParams, highLightCode } from './ChatContainerUtil';
 import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
-import hljs from 'highlight.js';
 import { checkUnclosedCodeBlockMd } from './utils';
 import { showdown } from "vue-showdown";
 
@@ -25,7 +24,6 @@ const scrollDiv = ref(null);
 const chatError = ref(null);
 const chatOptions = ref();
 // Methods
-const highLightCode = () => nextTick().then(() => hljs.highlightAll());
 const errorReset = () => chatError.value.reset();
 var scrollDownEnabled = true;
 var lastScroll = 0;
@@ -50,7 +48,7 @@ const loadHistory = () => {
     loadHistoryMapper(res, (q: string, a: string, id: string, metadata: any) => {
       messagePush(q, a, id, metadata);
       scrollDownChat()
-      highLightCode();
+      highLightCode(id);
     })
 
   }).catch(handleError).finally(resetApiCall);
@@ -64,7 +62,7 @@ const setAnswer = (answer: string, resetQuestion: Boolean = false) => {
   currentChunkId = res.currentChunkId
   messagePush(question.value, res.text, currentChunkId, res.metadataJson)
   if (resetQuestion) question.value = ''
-  highLightCode();
+  highLightCode(currentChunkId);
   scrollDownChat()
 }
 const handleError = (error: Error | String) => chatError.value.showError(error);
