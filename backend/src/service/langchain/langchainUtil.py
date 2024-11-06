@@ -74,10 +74,10 @@ def withModel(u: UserData) -> RunnableBindingBase:
 def chatInstance(u: UserData) -> RunnableBindingBase:
     if u.chatType == ChatOllama:
         log.info(f"chatInstance ChatOllama with hostArgs={hostArgs}")
-        llm = ChatOllama(model=u.model, **hostArgs)
+        llm = ChatOllama(model=u.model, temperature=u.temperature, **hostArgs)
     else:
         log.info(f"chatInstance ChatOpenAI with hostArgs={hostArgs}")
-        llm = ChatOpenAI(model=u.model, **hostArgs)
+        llm = ChatOpenAI(model=u.model, temperature=u.temperature, **hostArgs)
     u.chatInstanceModel = u.model
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{ability}"),
@@ -128,7 +128,7 @@ def generateLastChunk(chunk: AIMessageChunk):
 
 
 def mapUserData(r: ChatRequest):
-    return UserData(user=r.user, model=r.model, ability=r.ability,
+    return UserData(user=r.user, model=r.model, temperature=r.temperature, ability=r.ability,
                     history=r.history, question=r.question, chatType=defaultChatType)
 
 

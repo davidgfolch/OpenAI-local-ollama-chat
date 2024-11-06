@@ -1,5 +1,6 @@
 import { AxiosResponse } from "axios";
 
+
 const loadHistoryMapper = (res: AxiosResponse, callback: Function) => {
     let q = null, a = null, id = null, metadata = null;
     res.data.response.forEach((msg: any) => {
@@ -19,7 +20,7 @@ const loadHistoryMapper = (res: AxiosResponse, callback: Function) => {
 const answerMetadataMapper = (answer: string, streamTimeStart: number) => {
     const arr = answer.split("#|S|E|P#")
     if (arr.length == 1)
-        return { text: answer, currentChunkId:'', metadataJson: '' }
+        return { text: answer, currentChunkId: '', metadataJson: '' }
     const currentChunkId = arr[0]
     const modelName = arr[1]
     const langchainChat = arr[2]
@@ -34,4 +35,8 @@ const answerMetadataMapper = (answer: string, streamTimeStart: number) => {
     return { text: text, currentChunkId: currentChunkId, metadataJson: metadataJson }
 }
 
-export { loadHistoryMapper, answerMetadataMapper }
+const createBodyParams = (ops, question: string, user: string) => {
+    return { model: ops.model, temperature: ops.temperature, user: user, question: question, history: ops.history, ability: ops.ability };
+}
+
+export { loadHistoryMapper, answerMetadataMapper, createBodyParams }

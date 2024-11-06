@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
-from tests.common import QUESTION, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
+from tests.common import QUESTION, TEMPERATURE, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
 from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError, STORE_FOLDER
 
 
@@ -39,7 +39,7 @@ class TestLangchainUtil(unittest.TestCase):
         mock_prompt = MagicMock()
         m_ChatPromptTemplate.from_messages.return_value = mock_prompt
         chat_instance = chatInstance(USER_DATA)
-        mock_ChatOpenAI.assert_called_once_with(model=defaultModel, **{})
+        mock_ChatOpenAI.assert_called_once_with(model=defaultModel, temperature=TEMPERATURE, **{})
         chain = mock_prompt | mock_llm
         chain = chain.with_config(callbacks=CALLBACKS)
         m_history.assert_called_once_with(

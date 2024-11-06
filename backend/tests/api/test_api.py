@@ -9,7 +9,7 @@ from tests.common import mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
 VALIDATION_ERR_MSG = [f'ValidationException: {
-    REQUIRED_FIELDS}model, user, question, history, ability']
+    REQUIRED_FIELDS}model, user, temperature, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
 USER = "testUser"

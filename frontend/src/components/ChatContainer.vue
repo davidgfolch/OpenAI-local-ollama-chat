@@ -4,7 +4,7 @@ import ChatMessage from './ChatMessage.vue';
 import ChatHelp from './ChatHelp.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
-import { loadHistoryMapper, answerMetadataMapper } from './ChatContainerUtil';
+import { loadHistoryMapper, answerMetadataMapper, createBodyParams } from './ChatContainerUtil';
 import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
 import hljs from 'highlight.js';
 import { checkUnclosedCodeBlockMd } from './utils';
@@ -86,11 +86,9 @@ const stream = async (q: string) => {
   errorReset();
   setAnswer('<p>Waiting for response...</p>');
   scrollDownEnabled = true;
-  const options = chatOptions.value;
-  const body = { model: options.model, user: user.value, question: question.value, history: options.history, ability: options.ability };
   apiCliController = new AbortController();
   let cancelled = false;
-  apiClient.post('/api/v1/chat-stream', body, {
+  apiClient.post('/api/v1/chat-stream', createBodyParams(chatOptions.value, question.value, user.value), {
     signal: apiCliController.signal,
     onDownloadProgress: (progressEvent) =>
       processDownloadProgress(progressEvent,

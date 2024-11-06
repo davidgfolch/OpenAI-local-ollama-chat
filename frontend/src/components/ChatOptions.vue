@@ -16,6 +16,7 @@ const hideSettings = ref(true);
 const history = ref("My history");
 const models = ref([]);
 const model = ref("");
+const temperature = ref(0);
 const ability = ref("Eres un asistente especializado en ingenieria de software.");
 const question = ref('Genera un ejemplo de código completo con TensorFlow en python.');
 const showHelp = ref(false)
@@ -72,7 +73,7 @@ const shortCuts = (e: KeyboardEvent) => {
     }
 }
 
-defineExpose({ model, ability, history, question, showHelp });
+defineExpose({ model, temperature, ability, history, question, showHelp });
 onMounted(() => getModels())
 </script>
 
@@ -95,14 +96,13 @@ onMounted(() => getModels())
                     </ul>
                     <FileSelector ref="fileSelector" :inputElement="message" />
                     <FileUploader @filesUpload="form => filesUpload(form)" ref="fileUploader">
-                        <template v-slot:loading >
+                        <template v-slot:loading>
                             <img class="logo loading" src="../assets/loading.gif" alt="Processing files"
                                 title="Processing files" />
                         </template>
                         <template v-slot:removeFile="{ index }">
                             <img class="optionIconSmall" src="../assets/chatgpt/close.webp"
-                                @click="fileUploader.removeFile(index)" alt="Remove file"
-                                title="Remove file">
+                                @click="fileUploader.removeFile(index)" alt="Remove file" title="Remove file">
                         </template>
                     </FileUploader>
                     <!--<img class="optionIcon" src="../assets/chatgpt/plus.webp" alt="Add another text" title="Add another text">-->
@@ -122,20 +122,18 @@ onMounted(() => getModels())
             </div>
         </div>
         <div :hidden="hideSettings" style="clear: both; margin-top: 0.5em">
-            <input type="text" class="base-input input" v-model="ability"
+            <input type="text" class="input" v-model="ability"
                 placeholder="Artificial intelligence system ability (describe any ability in natural language)"
                 title="Artificial intelligence system ability (describe any ability in natural language)" />
         </div>
         <div :hidden="hideSettings">
-            <input type="text" class="base-input input" v-model="history" placeholder="Current chat history"
-                title="Current chat history" />
-        </div>
-        <div :hidden="hideSettings">
             <select v-model="model" id="model" name="model" placeholder="Select model" title="Select model"
-                v-if="models" class="base-input input">
+                v-if="models">
                 <option value="">Select llm model...</option>
                 <option v-for="m in models" :key="m" :value="m">{{ m }}</option>
             </select>
+            <input type="number" v-model="temperature" placeholder="Model temperature" title="Model temperature" />
+            <input type="text" v-model="history" placeholder="Current chat history" title="Current chat history" />
         </div>
     </div>
 </template>
@@ -158,7 +156,9 @@ onMounted(() => getModels())
     display: block;
 }
 
-.base-input {
+input,
+textarea,
+select {
     background-color: black;
     color: white;
     font-size: 16px;
@@ -171,6 +171,11 @@ onMounted(() => getModels())
 
 .input {
     width: 92%;
+}
+
+select:not(.input),
+input:not(.input) {
+    margin-right: 1em;
 }
 
 .textarea {
