@@ -17,8 +17,18 @@ const history = ref("My history");
 const models = ref([]);
 const model = ref("");
 const temperature = ref(0);
-const ability = ref("Eres un asistente especializado en ingenieria de software.");
-const question = ref('Genera un ejemplo de código completo con TensorFlow en python.');
+const ability = ref("Eres un asistente especializado en ingenieria de software.  Generas codigo de calidad siguiendo los principios de desarrollo de software best practices como: SOLID, Clean Code, YAGNI, KISS, DRY, etc");
+const question = ref(`Genera un ejemplo de código completo con TensorFlow en python.
+
+Las respuesta debe incluir:
+- un script de instalación para las librerias necesarias (sin comentarios añadidos, y sin nombre de archivo).
+- un nombre de archivo antes de cada bloque de código y con el siguiente formato: 'File: nombre.extension'.
+
+Los bloques de código generados deben seguir las siguientes directrices:
+- incluir siempre el tipo de codigo generado sólo en la cabecera de codigo markdown.
+- evitar los comentarios evidentes, pero generando comentarios explicativos.
+- evitar saltos de linea innecesarios.
+`);
 const showHelp = ref(false)
 const fileUploader = ref<InstanceType<typeof FileUploader> | null>(null);
 const message = ref();
@@ -84,9 +94,9 @@ onMounted(() => getModels())
                 <div class="container">
                     <ul>
                         <li style="width: 100%">
-                            <textarea rows="4" cols="50" v-model="question" class="base-input textarea"
-                                placeholder="Message..." autofocus id="textarea-question" ref="message"
-                                @keydown="shortCuts"></textarea>
+                            <textarea v-model="question" :rows="question.split('\n').length" :cols="80"
+                                class="base-input textarea" placeholder="Message..." autofocus id="textarea-question"
+                                ref="message" @keydown="shortCuts"></textarea>
                         </li>
                         <li>
                             <img src="../assets/chatgpt/send.webp" @click="stream"
@@ -183,7 +193,7 @@ input:not(.input) {
 }
 
 textarea {
-    margin-bottom: 0px;
+    margin-top: 0em;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -237,5 +247,6 @@ img.disabled {
     padding-left: 0em;
     width: 100%;
     margin-bottom: 0px;
+    margin-top: 0px;
 }
 </style>

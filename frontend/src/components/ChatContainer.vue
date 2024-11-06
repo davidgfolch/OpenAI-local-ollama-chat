@@ -130,9 +130,10 @@ const cancelStream = () => {
 }
 const handleScroll = (event: UIEvent) => {
   const scroll = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop
-  if (lastScroll > scroll)
+  const scrolledBottom = Math.abs(document.body.scrollHeight - document.body.scrollTop - document.body.clientHeight) < 1
+  if (scroll < lastScroll)
     scrollDownEnabled = false
-  else scrollDownEnabled = true
+  else if (scrolledBottom) scrollDownEnabled = true
   lastScroll = scroll
 }
 onMounted(() => {

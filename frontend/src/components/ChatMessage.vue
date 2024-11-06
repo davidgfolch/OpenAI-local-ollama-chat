@@ -62,7 +62,6 @@ const getMetadata = () => {
     border-radius: 1.5em;
     box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.5);
     position: relative;
-    margin-bottom: 30px;
 }
 
 .collapsed {
@@ -81,13 +80,15 @@ const getMetadata = () => {
 
 .message.left {
     padding: 0em 1em 0em 4em;
-    background-color: rgba(0, 150, 0, 0.5);
+    background-color: rgba(0, 60, 0, 0.8);
+    margin-bottom: 1em;
 }
 
 .message.right {
     align-self: flex-end;
     padding: 0em 4em 0em 1.5em;
-    background-color: rgba(0, 0, 150, 0.5);
+    background-color: rgba(0, 0, 60, 0.8);
+    margin-bottom: 0.5em;
 }
 
 li span {
@@ -131,7 +132,12 @@ li span {
 
 pre {
     overflow: auto;
-    max-width: 90em;
     display: inline-block !important;
+}
+
+.syntaxhighlighter {
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    max-width: 80em;
 }
 </style>
