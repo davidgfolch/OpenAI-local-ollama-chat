@@ -1,12 +1,13 @@
 from pathlib import PosixPath
 from typing import List
-from flask import Flask, request
+from flask import Flask, request, send_file
 import logging
 from api import mapper
 from api.werkzeugUtil import saveFilesUpload
 from constants import UPLOAD_FOLDER
 import service.aiService as aiService
 from api.flaskUtil import EVENT_STREAM_CHUNKED_HEADERS, setResponseKO, setResponseOK, corsHeaders, getReqParams
+from service.langchain.historyExport import exportHistory
 from util.files import findFilesRecursive
 from util.logUtil import initLog
 from model.model import ChatRequest
@@ -16,8 +17,8 @@ from model.model import ChatRequest
 app = Flask("api.api", root_path="/")
 log = initLog(__file__, logging.DEBUG)
 
-RES_DELETED_USER_X_HISTORY = "deleted user {0} history"
-RES_DELETED_USER_X_HISTORY_INDEX_X = "deleted user {0} history index {1}"
+RES_DELETED_USER_X_HISTORY = "deleted user {0} history {1}"
+RES_DELETED_USER_X_HISTORY_INDEX_X = "deleted user {0} history {1} index {2}"
 RES_STREAM_CANCELLED_FOR_USER_X = "stream cancelled for user {0}"
 OPTIONS = {'provide_automatic_options': False}
 
@@ -67,18 +68,18 @@ def postMessageStream():
     return generate(), EVENT_STREAM_CHUNKED_HEADERS
 
 
-@app.get('/api/v1/chat/<string:user>', **OPTIONS)
-def getMessages(user):
-    msgs = [mapper.listMapper(m) for m in aiService.getMessages(user)]
+@app.get('/api/v1/chat/<string:user>/<string:history>', **OPTIONS)
+def getMessages(user, history):
+    msgs = [mapper.listMapper(m) for m in aiService.getMessages(user, history)]
     log.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)
 
 
 # TODO: app.delete('/api/v1/chat/<string:user>') dont work CORS
-@app.get('/api/v1/chat/delete/<string:user>', **OPTIONS)
-def deleteMessages(user):
-    aiService.deleteMessages(user)
-    return setResponseOK(RES_DELETED_USER_X_HISTORY.format(user))
+@app.get('/api/v1/chat/delete/<string:user>/<string:history>', **OPTIONS)
+def deleteMessages(user, history):
+    aiService.deleteMessages(user, history)
+    return setResponseOK(RES_DELETED_USER_X_HISTORY.format(user, history))
 
 
 @app.get('/api/v1/chat/delete/<string:user>/<int:index>', **OPTIONS)
@@ -112,6 +113,12 @@ def getFilesAvailable():
             findFilesRecursive(UPLOAD_FOLDER, '*')))
     log.info(f"files = {res}")
     return setResponseOK(res)
+
+
+@app.get('/api/v1/export/<string:user>/<string:history>', **OPTIONS)
+def getExportHistory(user, history):
+    file = exportHistory(user, history)
+    return corsHeaders(send_file(file, download_name=f'{user}_{history}.zip')) # as_attachment=True
 
 
 def run():

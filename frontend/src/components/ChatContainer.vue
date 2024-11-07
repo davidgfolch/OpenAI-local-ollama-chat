@@ -5,7 +5,7 @@ import ChatHelp from './ChatHelp.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
 import { loadHistoryMapper, answerMetadataMapper, createBodyParams, highLightCode } from './ChatContainerUtil';
-import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient.js';
+import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient';
 import { checkUnclosedCodeBlockMd } from './utils';
 import { showdown } from "vue-showdown";
 
@@ -40,7 +40,7 @@ const scrollDownChat = () => {
 }
 const loadHistory = () => {
   loading.value = true;
-  apiClient.get(`/api/v1/chat/${user.value}`).then(res => {
+  apiClient.get(`/api/v1/chat/${user.value}/${chatOptions.value.history}`).then(res => {
     if (res.data.response.length === 0) {
       messages.value = [];
       return;
@@ -102,7 +102,7 @@ const stream = async (q: string) => {
       handleError(cancelled ? 'Stream request cancelled by user' : e);
     }).finally(() => {
       if (!cancelled && messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
-        errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.js -> processDownloadProgress() -> progressEvent.loaded == 0
+        errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.ts -> processDownloadProgress() -> progressEvent.loaded == 0
       resetApiCall();
     });
 };
@@ -112,7 +112,7 @@ const messagesReset = () => {
 };
 const deleteMessage = (index: number) => {
   errorReset();
-  apiClient.get(`/api/v1/chat/delete/${user.value}/${index}`)
+  apiClient.get(`/api/v1/chat/delete/${user.value}/${chatOptions.value.history}/${index}`)
     .then(() => messages.value.splice(index, 1))
     .catch(e => {
       handleError(e);

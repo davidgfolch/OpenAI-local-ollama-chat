@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 const server = 'http://127.0.0.1:5000';
 // Create an Axios instance
@@ -35,6 +35,19 @@ const processDownloadProgress = (progressEvent, errorCallbackFnc, successCallbac
   var dataChunk = eventObj.response;
   if (dataChunk != '')
     successCallback(dataChunk)
+}
+
+
+export const openDownloadedFile = (res: AxiosResponse, name: string) => {
+    // document.open(URL.createObjectURL(new Blob([res.data], { type: 'application/zip' })))
+    const type = res.headers['content-type']
+    const blob = new Blob([res.data], { type: type, encoding: 'UTF-8' })
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+    link.download = name //res.headers['Content-Disposition'].split('filename=')[1]
+    link.click()
+    link.remove()
+    // return window.open(res.data, '_blank');
 }
 
 export { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG };

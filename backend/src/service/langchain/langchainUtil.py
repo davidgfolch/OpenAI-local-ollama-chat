@@ -30,31 +30,32 @@ STORE_FOLDER = "./langchain.store/"
 store = {}
 
 
-def getFilePath(user: str):
-    return f"{STORE_FOLDER}{user}.json"
+def getFilePath(user: str, history: str, extension='.json'):
+    return f"{STORE_FOLDER}{user}_{history}{extension}"
 
 
-def get_session_history(user: str) -> FileChatMessageHistory:
-    if user not in store:
-        store[user] = FileChatMessageHistory(  # ChatMessageHistory()
-            file_path=getFilePath(user), encoding="utf-8")
-    return store[user]
+def get_session_history(user: str, history: str) -> FileChatMessageHistory:
+    name = user+'_'+history
+    if name not in store:
+        store[name] = FileChatMessageHistory(  # ChatMessageHistory()
+            file_path=getFilePath(user, history), encoding="utf-8")
+    return store[name]
 
 
-def delete_messages(user: str, index: List[int] = None):
+def delete_messages(user: str, history: str, index: List[int] = None):
     if index:
         log.info(f"delete_messages pop index={index}")
-        msgs = get_session_history(user).messages
+        msgs = get_session_history(user, history).messages
         for i in index:
             try:
                 msgs.pop(i)
             except IndexError:
                 log.warning("Trying to delete non existent index")
         msgs = messages_to_dict(msgs)
-        Path(getFilePath(user)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
+        Path(getFilePath(user, history)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
             json.dumps(msgs, ensure_ascii=True), encoding="utf-8")
         return
-    get_session_history(user).clear()
+    get_session_history(user, history).clear()
 
 
 def withModel(u: UserData) -> RunnableBindingBase:

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref, defineProps, defineEmits, defineExpose } from 'vue';
-import { apiClient } from './ApiClient.js';
+import { apiClient, openDownloadedFile } from './ApiClient';
 import FileUploader from './FileUploader.vue'
 import FileSelector from './FileSelector.vue'
 
@@ -42,7 +42,7 @@ const stream = () => {
 const deleteChat = () => {
     if (!props.enableDelete) return;
     emit('errorReset');
-    apiClient.get(`/api/v1/chat/delete/${props.user}`)
+    apiClient.get(`/api/v1/chat/delete/${props.user}/${history.value}`)
         .then(() => emit('messagesReset'))
         .catch(e => emit('handleError', e));
 }
@@ -81,6 +81,12 @@ const shortCuts = (e: KeyboardEvent) => {
         const res = fileSelector.value.shortCuts(e);
         if (res) question.value = res;
     }
+}
+const exportHistory = () => {
+    apiClient.get(`/api/v1/export/${props.user}/${history.value}`, {
+        responseType: 'blob'  // important
+    }).then(res => openDownloadedFile(res, `${props.user}_${history.value}.zip`))
+        .catch(e => emit('handleError', e))
 }
 
 defineExpose({ model, temperature, ability, history, question, showHelp });
@@ -144,6 +150,7 @@ onMounted(() => getModels())
             </select>
             <input type="number" v-model="temperature" placeholder="Model temperature" title="Model temperature" />
             <input type="text" v-model="history" placeholder="Current chat history" title="Current chat history" />
+            <button @click="exportHistory">Export...</button>
         </div>
     </div>
 </template>

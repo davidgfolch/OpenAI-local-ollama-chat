@@ -76,9 +76,9 @@ def sendMessageStream(req: ChatRequest, preParsedParams: Dict):
         raise ServiceException(ERROR_LANGCHAIN_SEND_CHAT_MESSAGE) from e
 
 
-def getMessages(user: str):  # TODO: parameterize session_id, history
+def getMessages(user: str, history: str):
     log.info(f"User {user} list...")
-    res = get_session_history(user)
+    res = get_session_history(user, history)
     messages: list[BaseMessage] = res.messages
     log.debug(f"IA returns messages {messages}")
     res = []
@@ -93,10 +93,10 @@ def getMessages(user: str):  # TODO: parameterize session_id, history
     return res
 
 
-def deleteMessages(user: str, index: int = None):
+def deleteMessages(user: str, history: str, index: int = None):
     if index is not None:
         log.info(f"deleteMessages user={user} index={index*2}")
-        delete_messages(user, [index*2, index*2])
+        delete_messages(user, history, [index*2, index*2])
         return
     log.info(f"deleteMessages user={user}")
-    delete_messages(user)
+    delete_messages(user, history)

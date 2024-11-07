@@ -1,4 +1,3 @@
-import { nextTick } from 'vue';
 
 const checkUnclosedCodeBlockMd = (data: string) => {
     const codePos = data.lastIndexOf("```");

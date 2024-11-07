@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, defineExpose, defineEmits, onMounted } from 'vue';
 import { insertAtCursor } from './utils';
-import { apiClient } from './ApiClient.js';
+import { apiClient } from './ApiClient';
 
 const props = defineProps<{ inputElement: HTMLTextAreaElement | HTMLInputElement }>()
 
