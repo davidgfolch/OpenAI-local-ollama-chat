@@ -118,7 +118,7 @@ def getFilesAvailable():
 @app.get('/api/v1/export/<string:user>/<string:history>', **OPTIONS)
 def getExportHistory(user, history):
     file = exportHistory(user, history)
-    return corsHeaders(send_file(file, download_name=f'{user}_{history}.zip')) # as_attachment=True
+    return corsHeaders(send_file(file, download_name=f'{user}_{history}.zip'))  # as_attachment=True
 
 
 def run():

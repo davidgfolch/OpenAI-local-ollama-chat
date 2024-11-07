@@ -8,6 +8,7 @@ Tech-stack: Vue3 -> Python (langchain/openai) -> Ollama
 This project implements a local AI chat, with :
 
 - Response pretty printing: markdown to html & code highlight
+  - Formatted response for code blocks (through ability prompt).
 - Backend chat history with persistence (file store)
   - Delete question/answer in file history.
   - Delete all history.
@@ -17,6 +18,9 @@ This project implements a local AI chat, with :
 - File uploader
   - File uploaded to `uploads` folder as files.
   - Mention file in question to LLM by pressing `@` and choose file from uploaded files assistant.
+- Full conversation history export markdown:
+  - generating a downloadable zip file
+  - extracting code blocks into linked files in the README.md
 
 ## Watch the Youtube demo
 
@@ -68,12 +72,11 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 ## TODO
 
 1. Multiple question scheduler or in parallel.
-2. Export questions & answers.
-3. Collapse all responses.
-4. K-shift error (see [Known-issues](Known-issues)):
+2. Collapse all responses.
+3. K-shift error (see [Known-issues](Known-issues)):
    1. Continue doesn't generates K-shift error, checkout how.
    2. Option (front/back) to disable passing all history to LLM.
-5. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
+4. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
 
     ```log
     ServiceException: op not found, upload it first!

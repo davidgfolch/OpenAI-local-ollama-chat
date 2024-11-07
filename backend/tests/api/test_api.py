@@ -149,3 +149,9 @@ def test_getFilesAvailable(client):
     with patch('util.files.findFilesRecursive') as mock:
         mock.return_value = []
         assertResponseOK(client.get('/api/v1/files'), [])
+
+
+def test_getExportHistory(mocker, client):
+    mocker.patch("service.langchain.historyExport.exportHistory",
+                 return_value=None)
+    assertResponseError(client.get(f'/api/v1/export/{USER}/{HISTORY}'), '')  # internal fileNotFound
