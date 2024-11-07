@@ -59,8 +59,7 @@ class TestHistoryExport(unittest.TestCase):
     @patch(f'{SUT_PREFIX}.createFolder')
     def test_moveCodeBlocksToFiles(self, mock_create_folder):
         zip_mock = MagicMock(spec=zipfile.ZipFile)
-        content = f'Sample content with *File: test_code.py*\n```python\n{
-            FILE_CONTENT}```'
+        content = f'Sample content with *File: test_code.py*\n```python\n{FILE_CONTENT}```'
         result = _moveCodeBlocksToFiles(
             zip_mock, OUT_DIR, ANSWER_DIR, content, "human")
         self.assertIn("[test_code.py]", result)

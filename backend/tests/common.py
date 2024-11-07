@@ -5,6 +5,7 @@ from service.langchain.langchainUtil import defaultModel, mapUserData
 USER = "testUser"
 QUESTION = "question"
 HISTORY = "testHistory"
+SESSION = USER+'_'+HISTORY
 TEMPERATURE = 0.7
 CHAT_REQUEST = ChatRequest(defaultModel, USER, TEMPERATURE, QUESTION, HISTORY, 'ability')
 CHAT_REQUEST_NEW_MODEL = ChatRequest('testNewModel', USER, TEMPERATURE, QUESTION, HISTORY, 'ability')

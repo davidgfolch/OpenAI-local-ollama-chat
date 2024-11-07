@@ -16,13 +16,14 @@ log = initLog(__file__)
 
 
 def exportHistory(user: str, history: str) -> Path:
-    log.info(f'loading history={getFilePath(user, history)}')
-    outDir = sanitize_filepath(getFilePath(user, history, ''))+'/'
-    userHistoryDir = sanitize_filepath(getFilePath(user, history, ''))
+    session = user+'_'+history
+    log.info(f'loading history={getFilePath(session)}')
+    outDir = sanitize_filepath(getFilePath(session, ''))+'/'
+    userHistoryDir = sanitize_filepath(getFilePath(session, ''))
     createFolder(outDir)
     zipFile = userHistoryDir+'.zip'
     userHistoryDir = userHistoryDir+'/'
-    with open(getFilePath(user, history)) as history:
+    with open(getFilePath(session)) as history:
         historyItems: Dict = json.load(history)
         if historyItems:
             readme = outDir+'README.md'
@@ -52,6 +53,8 @@ def _answerDir(type: str, answerDir, content) -> str:
 
 
 FLAGS = re.IGNORECASE | re.MULTILINE
+PATTERN_EJEMPLO_CODE = re.compile(
+    r'[*]+([^*]+)[*]+\n+[`]{3}[a-z-_]+\n+([^`]+)[`]{3}', FLAGS)
 PATTERN_FILE_FILENAME_CODE = re.compile(
     r'[*]+File: +([a-z_-]+[.][a-z]{1,3})[*]+\n+[`]{3}[a-z-_]+\n+([^`]+)[`]{3}', FLAGS)
 PATTERN_FILENAME_CODE = re.compile(
@@ -64,6 +67,8 @@ def _moveCodeBlocksToFiles(zip: zipfile.ZipFile, userHistoryDir: str, answerDir:
                          answerDir, content, type)
     content = _byPattern(PATTERN_FILENAME_CODE, zip, userHistoryDir,
                          answerDir, content, type)
+    content = _byPattern(PATTERN_EJEMPLO_CODE, zip, userHistoryDir,
+                         answerDir, content, type)
     return content
 
 
@@ -75,7 +80,8 @@ def _byPattern(pattern: re.Pattern, zip: zipfile.ZipFile, userHistoryDir: str, a
         if len(fileContent.split('\n')) >= MIN_LINES:
             log.info(f'content match to file {fileName}')
             createFolder(userHistoryDir+'/'+answerDir)
-            newFilePath = userHistoryDir+'/'+answerDir+fileName
+            newFilePath = sanitize_filepath(
+                userHistoryDir+'/'+answerDir+fileName)
             with open(newFilePath, 'w') as f:
                 log.info(f'history file {newFilePath}')
                 f.write(f"{fileContent}")
@@ -94,5 +100,6 @@ def cleanFuture(outDir: str, zipFile: str, interval=10):
         log.info(f'cleaning export folder {outDir} in thread {current_thread}')
         shutil.rmtree('./'+outDir)
         os.remove(zipFile)
-    log.info(f'cleaning export in 10secs folder {outDir} in thread {current_thread}')
+    log.info(f'cleaning export in 10secs folder {
+             outDir} in thread {current_thread}')
     Timer(interval=interval, function=clean, args=(outDir, zipFile)).start()

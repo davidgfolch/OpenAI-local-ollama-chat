@@ -24,28 +24,37 @@ log = initLog(__file__)
 
 CALLBACKS = [CallbackHandler(), CallbackHandlerAsync()]
 ERROR_STREAM_CHUNK = 'Error in stream chunk finish_reason is not stop, reason: '
+ABILITY_FORMAT = """
+En el caso que se pidan ejemplos de código:
+    - las respuesta debe incluir:
+        - un script de instalación para las librerias necesarias (sin comentarios añadidos, y sin nombre de archivo).
+        - un nombre de archivo antes de cada bloque de código y con el siguiente formato: 'File: nombre.extension'.
+    - los bloques de código generados deben seguir las siguientes directrices:
+        - incluir siempre el tipo de codigo generado sólo en la cabecera de codigo markdown.
+        - evitar los comentarios evidentes, pero generando comentarios explicativos.
+        - evitar saltos de linea innecesarios."""
 
 defaultModel = "llama3.2:latest"  # "deepseek-coder-v2:16b"
 STORE_FOLDER = "./langchain.store/"
 store = {}
 
 
-def getFilePath(user: str, history: str, extension='.json'):
-    return f"{STORE_FOLDER}{user}_{history}{extension}"
+def getFilePath(session: str, extension='.json'):
+    return f"{STORE_FOLDER}{session}{extension}"
 
 
-def get_session_history(user: str, history: str) -> FileChatMessageHistory:
-    name = user+'_'+history
+def get_session_history(name: str) -> FileChatMessageHistory:
     if name not in store:
         store[name] = FileChatMessageHistory(  # ChatMessageHistory()
-            file_path=getFilePath(user, history), encoding="utf-8")
+            file_path=getFilePath(name), encoding="utf-8")
     return store[name]
 
 
 def delete_messages(user: str, history: str, index: List[int] = None):
+    session = user+'_'+history
     if index:
         log.info(f"delete_messages pop index={index}")
-        msgs = get_session_history(user, history).messages
+        msgs = get_session_history(session).messages
         for i in index:
             try:
                 msgs.pop(i)
@@ -55,7 +64,7 @@ def delete_messages(user: str, history: str, index: List[int] = None):
         Path(getFilePath(user, history)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
             json.dumps(msgs, ensure_ascii=True), encoding="utf-8")
         return
-    get_session_history(user, history).clear()
+    get_session_history(session).clear()
 
 
 def withModel(u: UserData) -> RunnableBindingBase:
@@ -70,7 +79,6 @@ def withModel(u: UserData) -> RunnableBindingBase:
     u.chatInstance = chatInstance(u)
     u.chatInstanceModel = m
     return u.chatInstance
-
 
 def chatInstance(u: UserData) -> RunnableBindingBase:
     if u.chatType == ChatOllama:
@@ -104,7 +112,7 @@ def parseAndLoadQuestionFiles(question):
 
 
 def mapParams(d: UserData) -> Dict:
-    return {'input': {"history": d.history, "ability": d.ability, "input": parseAndLoadQuestionFiles(d.question)},
+    return {'input': {"history": d.history, "ability": d.ability + ABILITY_FORMAT, "input": parseAndLoadQuestionFiles(d.question)},
             'config': {"configurable": {"session_id": d.user, "model": d.model}}}
 
 

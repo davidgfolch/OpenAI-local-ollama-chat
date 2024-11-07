@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
-from tests.common import HISTORY, QUESTION, TEMPERATURE, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
+from tests.common import HISTORY, QUESTION, SESSION, TEMPERATURE, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
 from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, getFilePath, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 
@@ -18,12 +18,12 @@ class TestLangchainUtil(unittest.TestCase):
     def test_get_session_history(self, MockFileChatMessageHistory):
         # Caso cuando el historial de sesión no está en el almacenamiento
         with patch.dict(f'{self.langchainUtil}store', {}, clear=True) as store:
-            session_history = get_session_history(USER, HISTORY)
+            session_history = get_session_history(SESSION)
             self.assertIsInstance(session_history, MagicMock)
             self.assertIn(f"{USER}_{HISTORY}", store)
         # Caso cuando el historial de sesión ya está en el almacenamiento
         with patch.dict(f'{self.langchainUtil}store', {f"{USER}_{HISTORY}": "existing_history"}, clear=True):
-            session_history = get_session_history(USER, HISTORY)
+            session_history = get_session_history(SESSION)
             self.assertEqual(session_history, "existing_history")
 
     @patch(langchainUtil+'ChatOpenAI')
@@ -74,7 +74,7 @@ class TestLangchainUtil(unittest.TestCase):
         delete_messages(USER, HISTORY, [0])
         assert self.mock_history.messages == []
         m_history.assert_called_once_with(
-            file_path=f"{getFilePath(USER, HISTORY)}", encoding="utf-8")
+            file_path=f"{getFilePath(SESSION)}", encoding="utf-8")
         delete_messages(USER, HISTORY, [0])
         delete_messages(USER, HISTORY)
 
