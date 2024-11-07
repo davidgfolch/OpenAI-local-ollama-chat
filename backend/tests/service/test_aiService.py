@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
-from tests.common import CHAT_REQUEST, USER, mockMsgFirstChunk, mockMsgChunk, mockMsgChunks
+from tests.common import CHAT_REQUEST, HISTORY, USER, mockMsgFirstChunk, mockMsgChunk, mockMsgChunks
 from service import aiService
 
 
@@ -57,7 +57,8 @@ def test_sendMessageStream():
         chunks = list(generator)
         assert chunks[0] == mockMsgFirstChunk()
         for n in range(0, items):
-            assert chunks[n+1] == mockMsgChunk(content=f"chunk{n+1}", metadata=n == items-1)
+            assert chunks[n+1] == mockMsgChunk(
+                content=f"chunk{n+1}", metadata=n == items-1)
 
 
 def test_sendMessageStream_cancel():
@@ -85,19 +86,19 @@ def test_getMessages():
         msgs = [HumanMessage("question"),
                 AIMessage("answer", response_metadata={'model_name': 'testModelName'}, id="testId")]
         mock_history.return_value.messages = msgs
-        messages = aiService.getMessages(USER)
+        messages = aiService.getMessages(USER, HISTORY)
         assert messages == [{'q': 'question'},
                             {'a': 'answer', 'metadata': '{"model": "testModelName"}', 'id': 'testId'}]
-        mock_history.assert_called_once_with(USER)
+        mock_history.assert_called_once_with(USER, HISTORY)
 
 
 def test_deleteMessages():
     with patch('service.aiService.delete_messages') as mock:
-        aiService.deleteMessages(USER)
-        mock.assert_called_once_with(USER)
+        aiService.deleteMessages(USER, HISTORY)
+        mock.assert_called_once_with(USER, HISTORY)
 
 
 def test_deleteMessages_w_index():
     with patch('service.aiService.delete_messages') as mock:
-        aiService.deleteMessages(USER, 1)
-        mock.assert_called_once_with(USER, [2, 2])
+        aiService.deleteMessages(USER, HISTORY, 1)
+        mock.assert_called_once_with(USER, HISTORY, [2, 2])

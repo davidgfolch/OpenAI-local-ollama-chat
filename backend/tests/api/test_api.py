@@ -5,14 +5,13 @@ import jsons
 from unittest.mock import patch
 from api.api import RES_DELETED_USER_X_HISTORY, RES_DELETED_USER_X_HISTORY_INDEX_X, RES_STREAM_CANCELLED_FOR_USER_X, app
 from api.flaskUtil import REQUIRED_FIELDS
-from tests.common import mockMsgChunks, CHAT_REQUEST
+from tests.common import HISTORY, USER, mockMsgChunks, CHAT_REQUEST
 from service.serviceException import ServiceException
 
 VALIDATION_ERR_MSG = [f'ValidationException: {
     REQUIRED_FIELDS}model, user, temperature, question, history, ability']
 
 chatReq = jsons.dump(CHAT_REQUEST)
-USER = "testUser"
 
 
 @pytest.fixture
@@ -102,17 +101,15 @@ def test_postMessageStream_exception(client):
                             VALIDATION_ERR_MSG.append('ServiceException: test'))
 
 
-@pytest.mark.parametrize('user', [[''], [USER]])
-def test_getMessages(mocker, client, user):
+@pytest.mark.parametrize('user,history', [['', ''], [USER, HISTORY]])
+def test_getMessages(mocker, client, user, history):
     if not user == '':
         mocker.patch("service.aiService.getMessages", return_value=[
             {'q': 'testQuestion'}, {'a': '# test markdown response'}])
-    res = client.get('/api/v1/chat/'+USER)
+    res = client.get(f'/api/v1/chat/{user}/{history}')
     if user == '':
-        assertResponseError(res,  # no user param (query path)
-                            ["ServiceException: ('Mocked exception', Exception('cause'))",
-                             'ValidationException: Required fields not informed: model, user, question, history, ability',
-                             'MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
+        assertResponseError(res,  # no params (query path)
+                            ['MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
     else:
         assertResponseOK(res, [{'q': 'testQuestion'}, {
                          'a': '# test markdown response', 'id': '', 'metadata': ''}])
@@ -120,14 +117,14 @@ def test_getMessages(mocker, client, user):
 
 def test_deleteMessages(mocker, client):
     mocker.patch("service.aiService.deleteMessages", return_value=None)
-    assertResponseOK(client.get('/api/v1/chat/delete/'+USER),
-                     RES_DELETED_USER_X_HISTORY.format(USER))
+    assertResponseOK(client.get(f'/api/v1/chat/delete/{USER}/{HISTORY}'),
+                     RES_DELETED_USER_X_HISTORY.format(USER, HISTORY))
 
 
 def test_deleteMessage(mocker, client):
     mocker.patch("service.aiService.deleteMessages", return_value=None)
-    assertResponseOK(client.get(f'/api/v1/chat/delete/{USER}/1'),
-                     RES_DELETED_USER_X_HISTORY_INDEX_X.format(USER, 1))
+    assertResponseOK(client.get(f'/api/v1/chat/delete/{USER}/{HISTORY}/1'),
+                     RES_DELETED_USER_X_HISTORY_INDEX_X.format(USER, HISTORY, 1))
 
 
 def test_cancelStreamSignal(mocker, client):

@@ -82,11 +82,11 @@ def deleteMessages(user, history):
     return setResponseOK(RES_DELETED_USER_X_HISTORY.format(user, history))
 
 
-@app.get('/api/v1/chat/delete/<string:user>/<int:index>', **OPTIONS)
-def deleteMessage(user, index):
-    log.info(f"api deleteMessage user={user}, index={index}")
-    aiService.deleteMessages(user, index)
-    return setResponseOK(RES_DELETED_USER_X_HISTORY_INDEX_X.format(user, index))
+@app.get('/api/v1/chat/delete/<string:user>/<string:history>/<int:index>', **OPTIONS)
+def deleteMessage(user, history, index):
+    log.info(f"api deleteMessage user={user}, history={history} index={index}")
+    aiService.deleteMessages(user, history, index)
+    return setResponseOK(RES_DELETED_USER_X_HISTORY_INDEX_X.format(user, history, index))
 
 
 @app.get('/api/v1/chat/cancel/<string:user>', **OPTIONS)

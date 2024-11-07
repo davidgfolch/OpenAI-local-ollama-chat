@@ -34,9 +34,9 @@ def exportHistory(user: str, history: str) -> Path:
                         log.info(f'history key {item}')
                         content: str = item['data']['content']
                         type: str = item['data']['type']
-                        answerDir = __answerDir(type, answerDir, content)
+                        answerDir = _answerDir(type, answerDir, content)
                         log.info(f'history CONTENT {content}')
-                        readmeWriter.write(__moveCodeBlocksToFiles(
+                        readmeWriter.write(_moveCodeBlocksToFiles(
                             zip, userHistoryDir, answerDir, content, type))
                 zip.write(outDir+'README.md', userHistoryDir+'README.md')
     log.info(f"returning {zipFile}")
@@ -44,33 +44,35 @@ def exportHistory(user: str, history: str) -> Path:
     return Path(zipFile).absolute()
 
 
-def __answerDir(type: str, answerDir, content) -> str:
+def _answerDir(type: str, answerDir, content) -> str:
     if type == 'human':
         answerDir = sanitize_filepath(
             content.split('\n')[0].split('.')[0]) + '/'
     return answerDir
 
 
-def __moveCodeBlocksToFiles(zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str, type: str) -> str:
-    pattern = re.compile(
-        r'[*]+File: +([a-z_-]+[.][a-z]{1,3})[*]+\n+[`]{3}[a-z-_]+\n+([^`]+)[`]{3}',
-        re.IGNORECASE | re.MULTILINE)
-    content = __byPattern(pattern, zip, userHistoryDir,
-                          answerDir, content, type)
-    pattern = re.compile(
-        r'[*]+([a-z_-]+[.][a-z]{1,3})[*]+: *\n+[`]{3}[a-z-_]+\n+([^`]+)[`]{3}',
-        re.IGNORECASE | re.MULTILINE)
-    content = __byPattern(pattern, zip, userHistoryDir,
-                          answerDir, content, type)
+FLAGS = re.IGNORECASE | re.MULTILINE
+PATTERN_FILE_FILENAME_CODE = re.compile(
+    r'[*]+File: +([a-z_-]+[.][a-z]{1,3})[*]+\n+[`]{3}[a-z-_]+\n+([^`]+)[`]{3}', FLAGS)
+PATTERN_FILENAME_CODE = re.compile(
+    r'[*]+([a-z_-]+[.][a-z]{1,3})[*]+: *\n+[`]{3}[a-z-_]+\n+([^`]+)[`]{3}', FLAGS)
+MIN_LINES = 5
+
+
+def _moveCodeBlocksToFiles(zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str, type: str) -> str:
+    content = _byPattern(PATTERN_FILE_FILENAME_CODE, zip, userHistoryDir,
+                         answerDir, content, type)
+    content = _byPattern(PATTERN_FILENAME_CODE, zip, userHistoryDir,
+                         answerDir, content, type)
     return content
 
 
-def __byPattern(pattern: re.Pattern, zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str, type: str) -> str:
+def _byPattern(pattern: re.Pattern, zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str, type: str) -> str:
     for fileNamesAndContents in re.finditer(pattern, content):
         log.info(f'fileNamesAndContents {fileNamesAndContents}')
         fileName = fileNamesAndContents.groups()[0]
         fileContent = fileNamesAndContents.groups()[1]
-        if len(fileContent.split('\n')) > 4:
+        if len(fileContent.split('\n')) >= MIN_LINES:
             log.info(f'content match to file {fileName}')
             createFolder(userHistoryDir+'/'+answerDir)
             newFilePath = userHistoryDir+'/'+answerDir+fileName
@@ -87,11 +89,10 @@ def __byPattern(pattern: re.Pattern, zip: zipfile.ZipFile, userHistoryDir: str, 
     return prefix + content
 
 
-def cleanFuture(outDir: str, zipFile: str):
+def cleanFuture(outDir: str, zipFile: str, interval=10):
     def clean(outDir: str, zipFile: str):
         log.info(f'cleaning export folder {outDir} in thread {current_thread}')
         shutil.rmtree('./'+outDir)
         os.remove(zipFile)
-    log.info(f'cleaning export in 10secs folder {
-             outDir} in thread {current_thread}')
-    Timer(interval=10, function=clean, args=(outDir, zipFile)).start()
+    log.info(f'cleaning export in 10secs folder {outDir} in thread {current_thread}')
+    Timer(interval=interval, function=clean, args=(outDir, zipFile)).start()
