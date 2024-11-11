@@ -4,6 +4,7 @@
 <template>
     <li class="help">
         <h2>Welcome to Ollama local chat!</h2>
+        <p>This help is scrollable, please scroll down to see it all.</p>
         <h3>Start asking anything to your preferred LLM.</h3>
         <p>Just write the message in the box below and send it clicking the send button (or Ctrl+Enter).<br />
             A stream request/response will start & text will be displayed as soon as chunks are transmitted from backend
@@ -23,13 +24,25 @@
             You can delete ALL messages history by clicking the trash <img class="optionIcon"
                 src="../assets/chatgpt/trash.webp" /> icon below the textbox.
         </p>
+        <h3>Advanced prompts</h3>
+        <h4>Multiple requests parametrization</h4>
+        <p>The frontend allows to trigger several questions (sequentially) to the LLM.  You only need to provide a {variable} in the question & set the variable values in a single line.</p>
+            <pre style="border: 1px solid black">
+            <code>
+    Genera un ejemplo de código completo con {variable} en python.
+
+    variable=Django, Flask, NumPy, Pandas, Matplotlib, Scikit-learn, Requests
+            </code>
+        </pre>
         <h3>Options</h3>
         <p>Show/hide the options by clicking the gear <img class="optionIcon" src="../assets/chatgpt/settings.webp" />
             icon in the message.</p>
         <ul>
             <li>Ability: you can change the ability of the backend LLM</li>
-            <li>History: you can change the history of the backend LLM</li>
             <li>Model: you can choose the backend model from the ones available in Ollama.</li>
+            <li>Temperature: choose model temperature (0 -> more predictable, 0.9 -> more creativity).</li>
+            <li>History: you can change the history of the backend LLM</li>
+            <li>Export: export history from langchain json format to a base README.md markdown file.  Moves each response code blocks into a organized folder & files. Returning a ZIP file.</li>
         </ul>
     </li>
 </template>

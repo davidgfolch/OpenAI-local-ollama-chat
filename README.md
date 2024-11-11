@@ -18,9 +18,17 @@ This project implements a local AI chat, with :
 - File uploader
   - File uploaded to `uploads` folder as files.
   - Mention file in question to LLM by pressing `@` and choose file from uploaded files assistant.
-- Full conversation history export markdown:
+- Full conversation history export:
   - generating a downloadable zip file
-  - extracting code blocks into linked files in the README.md
+  - extracting code blocks into linked files in the README.md (organized each response in a different folder)
+  ![Export example](README.md_images/export_example.png)
+- Advanced prompts
+  - Multiple requests parametrization:
+    - The frontend allows to trigger several questions (sequentially) to the LLM.  You only need to provide a {variable} in the question & set the variable values in a single line, f.ex.:
+
+          Generate a full example code with {variable} in python.
+
+          variable=Django, Flask, NumPy, Pandas, Matplotlib,Scikit-learn, Requests
 
 ## Watch the Youtube demo
 
@@ -71,18 +79,19 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 
 ## TODO
 
-1. Multiple question scheduler or in parallel.
-2. Collapse all responses.
-3. K-shift error (see [Known-issues](Known-issues)):
-   1. Continue doesn't generates K-shift error, checkout how.
-   2. Option (front/back) to disable passing all history to LLM.
-4. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
+1. Collapse all responses.
+2. Histories endpoint & selector
+3. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
 
     ```log
     ServiceException: op not found, upload it first!
     RuntimeError: Error loading uploads/openai-local-ollama-chat
     IsADirectoryError: [Errno 21] Is a directory: 'uploads/openai-local-ollama-chat'
     ```
+
+4. K-shift error (see [Known-issues](Known-issues)):
+   1. Continue doesn't generates K-shift error, checkout how.
+   2. Option (front/back) to disable passing all history to LLM.
 
 ## Known issues (todo)
 
