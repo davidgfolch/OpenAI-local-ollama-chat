@@ -15,6 +15,7 @@ from model.model import ChatRequest
 from service.host import hostArgs, defaultChatType
 from service.langchain.files import processFiles
 from service.langchain.model import UserData
+from service.serviceException import ServiceException
 from util.logUtil import initLog
 from .callbackHandler import CallbackHandler
 from .callbackHandlerAsync import CallbackHandlerAsync
@@ -24,11 +25,15 @@ log = initLog(__file__)
 
 CALLBACKS = [CallbackHandler(), CallbackHandlerAsync()]
 ERROR_STREAM_CHUNK = 'Error in stream chunk finish_reason is not stop, reason: '
+
+# NOTE: ABILITY_FORMAT, if you change the format historyExport.py is affected (regular expressions)
 ABILITY_FORMAT = """
-En el caso que se pidan ejemplos de código:
-    - las respuesta debe incluir:
-        - un script de instalación para las librerias necesarias (sin comentarios añadidos, y sin nombre de archivo).
-        - un nombre de archivo antes de cada bloque de código y con el siguiente formato: 'File: nombre.extension'.
+
+IMPORTANTE:
+- Antes de cada bloque de código generar un nombre de archivo con su extension.
+- No repetir bloques de código, usar parametrización.
+
+En el caso de generar bloques de de código las respuesta debe incluir un script de instalación para las librerias necesarias (sin comentarios añadidos, y sin nombre de archivo).
     - los bloques de código generados deben seguir las siguientes directrices:
         - incluir siempre el tipo de codigo generado sólo en la cabecera de codigo markdown.
         - evitar los comentarios evidentes, pero generando comentarios explicativos.
@@ -43,15 +48,27 @@ def getFilePath(session: str, extension='.json'):
     return f"{STORE_FOLDER}{session}{extension}"
 
 
+def getSessionHistoryName(user: str, history: str) -> str:
+    if len(user) == 0:
+        raise ServiceException('User not specified')
+    if len(history) == 0:
+        raise ServiceException('History not specified')
+    return user+'_'+history
+
+
 def get_session_history(name: str) -> FileChatMessageHistory:
+    log.debug(f'get_session_history name={name}')
     if name not in store:
+        log.debug(f'new get_session_history for name={name}')
+        if name.find('_') == -1:
+            raise ServiceException(f'Invalid history name={name}')
         store[name] = FileChatMessageHistory(  # ChatMessageHistory()
             file_path=getFilePath(name), encoding="utf-8")
     return store[name]
 
 
 def delete_messages(user: str, history: str, index: List[int] = None):
-    session = user+'_'+history
+    session = getSessionHistoryName(user, history)
     if index:
         log.info(f"delete_messages pop index={index}")
         msgs = get_session_history(session).messages
@@ -61,7 +78,7 @@ def delete_messages(user: str, history: str, index: List[int] = None):
             except IndexError:
                 log.warning("Trying to delete non existent index")
         msgs = messages_to_dict(msgs)
-        Path(getFilePath(user, history)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
+        Path(getFilePath(session)).write_text(  # see implementation in langchain_community.chat_message_histories.file.FileChatMessageHistory
             json.dumps(msgs, ensure_ascii=True), encoding="utf-8")
         return
     get_session_history(session).clear()
@@ -79,6 +96,7 @@ def withModel(u: UserData) -> RunnableBindingBase:
     u.chatInstance = chatInstance(u)
     u.chatInstanceModel = m
     return u.chatInstance
+
 
 def chatInstance(u: UserData) -> RunnableBindingBase:
     if u.chatType == ChatOllama:
@@ -111,9 +129,23 @@ def parseAndLoadQuestionFiles(question):
     return input if len(found) == 0 else [input, found]
 
 
+def mapUserData(r: ChatRequest):
+    return UserData(user=r.user, model=r.model, temperature=r.temperature, ability=r.ability,
+                    history=r.history, question=r.question, chatType=defaultChatType)
+
+
 def mapParams(d: UserData) -> Dict:
-    return {'input': {"history": d.history, "ability": d.ability + ABILITY_FORMAT, "input": parseAndLoadQuestionFiles(d.question)},
-            'config': {"configurable": {"session_id": d.user, "model": d.model}}}
+    return {
+        'input': {"history": getSessionHistoryName(d.user, d.history),
+                  "ability": d.ability + ABILITY_FORMAT,
+                  "input": parseAndLoadQuestionFiles(d.question)},
+        'config': {
+            "configurable": {
+                "session_id": getSessionHistoryName(d.user, d.history),
+                "model": d.model
+            }
+        }
+    }
 
 
 def invoke(d: UserData):
@@ -134,11 +166,6 @@ def generateLastChunk(chunk: AIMessageChunk):
     # OpenAI {'finish_reason': 'stop', 'model_name': 'deepseek-coder-v2:16b', 'system_fingerprint': 'fp_ollama'}
     if chunk.response_metadata:  # Only the last chunk comes with metadata
         return AIMessageChunk("#|S|E|P#" + json.dumps(chunk.response_metadata))
-
-
-def mapUserData(r: ChatRequest):
-    return UserData(user=r.user, model=r.model, temperature=r.temperature, ability=r.ability,
-                    history=r.history, question=r.question, chatType=defaultChatType)
 
 
 def checkChunkError(chunk: AIMessageChunk):

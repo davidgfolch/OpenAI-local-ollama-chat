@@ -24,19 +24,14 @@ const msToTime = (ms: number) => {
 }
 
 const insertAtCursor = (el: HTMLTextAreaElement | HTMLInputElement, text: string, offset = 0) => {
-    //console.log("insertAtCursor => element=" + el + " text=" + text + " offset=" + offset);
     if (document.selection) { //IE support
-        console.log("insertAtCursor IE document.selection=" + document.selection);
         el.focus();
         const sel = document.selection.createRange();
-        console.log("insertAtCursor IE sel.text=" + sel.text);
         sel.text = text;
     } else if (el.selectionStart || el.selectionStart == 0) { //MOZILLA and others
-        console.log("insertAtCursor MOZILLA and others el.selectionStart=" + el.selectionStart + ' el.selectionEnd=' + el.selectionEnd);
         const startPos = el.selectionStart + offset;
         const endPos = el.selectionEnd;
         text = el.value.substring(0, startPos) + text + el.value.substring(endPos, el.value.length)
-        console.log("insertAtCursor el.value=" + el.value);
         el.value = text;
     } else {
         el.value += text;

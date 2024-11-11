@@ -1,11 +1,11 @@
 from langchain_core.messages import AIMessageChunk
 from model.model import ChatRequest
-from service.langchain.langchainUtil import defaultModel, mapUserData
+from service.langchain.langchainUtil import defaultModel, getSessionHistoryName, mapUserData
 
 USER = "testUser"
 QUESTION = "question"
 HISTORY = "testHistory"
-SESSION = USER+'_'+HISTORY
+SESSION = getSessionHistoryName(USER, HISTORY)
 TEMPERATURE = 0.7
 CHAT_REQUEST = ChatRequest(defaultModel, USER, TEMPERATURE, QUESTION, HISTORY, 'ability')
 CHAT_REQUEST_NEW_MODEL = ChatRequest('testNewModel', USER, TEMPERATURE, QUESTION, HISTORY, 'ability')

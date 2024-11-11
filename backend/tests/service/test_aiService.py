@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
+from service.langchain.langchainUtil import getSessionHistoryName
 from tests.common import CHAT_REQUEST, HISTORY, USER, mockMsgFirstChunk, mockMsgChunk, mockMsgChunks
 from service import aiService
 
@@ -86,10 +87,10 @@ def test_getMessages():
         msgs = [HumanMessage("question"),
                 AIMessage("answer", response_metadata={'model_name': 'testModelName'}, id="testId")]
         mock_history.return_value.messages = msgs
-        messages = aiService.getMessages(USER, HISTORY)
+        messages = aiService.loadHistory(USER, HISTORY)
         assert messages == [{'q': 'question'},
                             {'a': 'answer', 'metadata': '{"model": "testModelName"}', 'id': 'testId'}]
-        mock_history.assert_called_once_with(USER, HISTORY)
+        mock_history.assert_called_once_with(getSessionHistoryName(USER, HISTORY))
 
 
 def test_deleteMessages():

@@ -75,35 +75,57 @@ const errorCallbackFnc = () => {
   messages.value.pop();
   handleError("Stream chat response was empty.  Did you start ollama service?  Checkout backend logs.");
 }
+const streamMultiple = async (q: string) => {
+  const variable = q.match(/\{([a-z]+)\}/i)[1];
+  const matcher = q.match(variable + ' *= *(.*)')
+  if (matcher == null) {
+    handleError('Invalid variable value format: variable found ' + variable + ', but did not found ´' + variable + '´=x,y,z')
+    return
+  }
+  const values = matcher[1].split(',')
+  const regex = new RegExp(" *" + variable + " *= *.+\n?", 'igm');
+  q = q.replaceAll(regex, '')
+  streamTrigger(q, variable, values.reverse())
+}
+const streamTrigger = (q: string, variable: string, values: string[]) => {
+  if (!loading.value) {
+    const value = values[values.length-1]
+    values.pop()
+    const regex = new RegExp("\{" + variable + "\}", 'igm');
+    const cq = q.replaceAll(regex, value.trim())
+    stream(cq)
+  }
+  if (values.length > 0) setTimeout(() => streamTrigger(q, variable, values), 2000)
+}
 const stream = async (q: string) => {
   question.value = q
   if (question.value.trim() == '') return
-  loading.value = true;
-  currentChunkId = '';
-  streamTimeStart = Date.now();
-  errorReset();
-  setAnswer('<p>Waiting for response...</p>');
-  scrollDownEnabled = true;
-  apiCliController = new AbortController();
-  let cancelled = false;
+  loading.value = true
+  currentChunkId = ''
+  streamTimeStart = Date.now()
+  errorReset()
+  setAnswer('<p>Waiting for response...</p>')
+  scrollDownEnabled = true
+  apiCliController = new AbortController()
+  let cancelled = false
   apiClient.post('/api/v1/chat-stream', createBodyParams(chatOptions.value, question.value, user.value), {
     signal: apiCliController.signal,
     onDownloadProgress: (progressEvent) =>
       processDownloadProgress(progressEvent,
         () => errorCallbackFnc(),
         (dataChunk: string) => {
-          messages.value.pop();
-          setAnswer(dataChunk);
+          messages.value.pop()
+          setAnswer(dataChunk)
         })
   }).then(() => question.value = '')
     .catch(e => {
-      cancelled = e == AXIOS_CONTROLLER_ABORT_MSG;
+      cancelled = e == AXIOS_CONTROLLER_ABORT_MSG
       if (!cancelled) messages.value.pop()
-      handleError(cancelled ? 'Stream request cancelled by user' : e);
+      handleError(cancelled ? 'Stream request cancelled by user' : e)
     }).finally(() => {
       if (!cancelled && messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
-        errorCallbackFnc(); //TODO: chrome don't pass through ApiClient.ts -> processDownloadProgress() -> progressEvent.loaded == 0
-      resetApiCall();
+        errorCallbackFnc() //TODO: chrome don't pass through ApiClient.ts -> processDownloadProgress() -> progressEvent.loaded == 0
+      resetApiCall()
     });
 };
 const messagesReset = () => {
@@ -129,11 +151,16 @@ const cancelStream = () => {
     });
 }
 const handleScroll = (event: UIEvent) => {
+  const viewHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
   const scroll = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop
+  console.log('handleScroll scroll='+scroll+' scrollHeight='+document.body.scrollHeight+' scrollTop='+document.body.scrollTop+' clientHeight='+document.body.clientHeight+
+    'viewHeight='+viewHeight+' calculation '+(document.body.scrollHeight-scroll-viewHeight)
+  )
   const scrolledBottom = Math.abs(document.body.scrollHeight - document.body.scrollTop - document.body.clientHeight) < 1
-  if (scroll < lastScroll)
-    scrollDownEnabled = false
-  else if (scrolledBottom) scrollDownEnabled = true
+  // if (scroll < lastScroll)
+  //   scrollDownEnabled = false
+  // else if (document.body.scrollHeight-scroll-viewHeight < viewHeight/2) scrollDownEnabled = true
+  scrollDownEnabled = document.body.scrollHeight-scroll-viewHeight < viewHeight/2
   lastScroll = scroll
 }
 onMounted(() => {
@@ -141,7 +168,7 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
 });
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
-defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, cancelStream, deleteMessage });
+defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat, stream, streamMultiple, cancelStream, deleteMessage });
 </script>
 
 
@@ -159,7 +186,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   <ChatOptions :question="question" :loading="loading" :user="user" :view-settings="false"
     :enable-delete="messages.length > 0" @error-reset="errorReset()" @handle-error="e => handleError(e)"
     @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat"
-    @stream="q => stream(q)" ref="chatOptions" />
+    @stream="q => stream(q)" @stream-multiple="q => streamMultiple(q)" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 

@@ -24,7 +24,6 @@ const loadFiles = () => {
 
 const shortCuts = (e: KeyboardEvent) => {
     var key = e.key;
-    // console.log("key=" + key + " e.ctrlKey=" + e.ctrlKey);
     if (key == '@') {
         filesAvailableFiltered.value = filesAvailable;
         const rect = props.inputElement.getBoundingClientRect();
@@ -63,7 +62,6 @@ const fileSelectedMove = (move: number) => {
         if (fileSelectedIndex > 0)
             fileSelectedIndex--;
     }
-    // console.log("fileSelectedIndex=" + fileSelectedIndex);
     filesAvailableFilteredUpdateView(filesAvailableFiltered.value);
 }
 /**
@@ -93,7 +91,6 @@ const filesAvailableFilteredUpdateView = (filtered) => {
 const selectFile = (idx: number) => {
     const fileName = fileAssistText
     const offset = -fileName.length
-    console.log("selectFile fileName=" + fileName + ", offset=" + offset);
     const fullFileNamePath = filesAvailableFiltered.value[idx].replace('<span style="color: yellow">', '').replace('</span>', '');
     showFileAssist.value = false;
     return insertAtCursor(props.inputElement, ' @' + fullFileNamePath + ' ', offset);

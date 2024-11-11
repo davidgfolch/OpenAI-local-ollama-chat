@@ -11,12 +11,10 @@ let percentCompleted: number = 0;
 const openDialog = (picker) => {
     const element = document.getElementById(picker);
     element.addEventListener("change", (event) => {
-        // console.log("change event => event.target.files.length=" + event.target.files.length);
         const allFiles: Array<File> = event.target.files;
         const filteredFiles: Array<File> = []
         for (const file of allFiles) {
             if (!/(\/.git|\/node_modules\/|\/assets\/|\/public\/|\/uploads\/|\/__pycache__|\/.pytest_cache|\/\.[a-zA-Z0-9-_])/.test(file.webkitRelativePath)) { // includes file name
-                // console.log("file=>" + file.webkitRelativePath);
                 filteredFiles.push(file);
                 showUploadButton.value = true;
             }
@@ -40,13 +38,10 @@ const removeFile = (index: number) => {
 const addFilesToFormData = () => {
     showLoading.value = true
     const formData = new FormData();
-    // console.log("addFiles files.length=" + files.value.length);
     files.value.forEach(f => {
-        // console.log("file=" + JSON.stringify(f));
         formData.append(String(f), f);
     });
     showLoading.value = false
-    // console.log("formData=" + formData);
     return formData;
 }
 const filesUpload = () => {

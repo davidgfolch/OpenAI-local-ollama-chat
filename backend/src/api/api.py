@@ -69,8 +69,8 @@ def postMessageStream():
 
 
 @app.get('/api/v1/chat/<string:user>/<string:history>', **OPTIONS)
-def getMessages(user, history):
-    msgs = [mapper.listMapper(m) for m in aiService.getMessages(user, history)]
+def loadHistory(user, history):
+    msgs = [mapper.listMapper(m) for m in aiService.loadHistory(user, history)]
     log.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)
 

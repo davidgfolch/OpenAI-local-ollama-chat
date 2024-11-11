@@ -4,7 +4,7 @@ import { apiClient, openDownloadedFile } from './ApiClient';
 import FileUploader from './FileUploader.vue'
 import FileSelector from './FileSelector.vue'
 
-const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream']);
+const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream', 'streamMultiple']);
 // Props
 const props = defineProps({
     user: String,
@@ -16,19 +16,11 @@ const hideSettings = ref(true);
 const history = ref("My history");
 const models = ref([]);
 const model = ref("");
-const temperature = ref(0);
-const ability = ref("Eres un asistente especializado en ingenieria de software.  Generas codigo de calidad siguiendo los principios de desarrollo de software best practices como: SOLID, Clean Code, YAGNI, KISS, DRY, etc");
-const question = ref(`Genera un ejemplo de código completo con TensorFlow en python.
+const temperature = ref(0.7);
+const ability = ref("Eres un asistente especializado en ingenieria de software.  Generas codigo de calidad siguiendo los principios de desarrollo de software (best practices) como: SOLID, Clean Code, YAGNI: you aint gonna need it, KISS: keep it simple stupid, DRY: don't repeat yourself");
+const question = ref(`Genera un ejemplo de código completo con {variable} en python.
 
-Las respuesta debe incluir:
-- un script de instalación para las librerias necesarias (sin comentarios añadidos, y sin nombre de archivo).
-- un nombre de archivo antes de cada bloque de código y con el siguiente formato: 'File: nombre.extension'.
-
-Los bloques de código generados deben seguir las siguientes directrices:
-- incluir siempre el tipo de codigo generado sólo en la cabecera de codigo markdown.
-- evitar los comentarios evidentes, pero generando comentarios explicativos.
-- evitar saltos de linea innecesarios.
-`);
+variable=Django, Flask, NumPy, Pandas, Matplotlib, Scikit-learn, Requests, BeautifulSoup, Pygame, Cython, TensorFlow, Keras, PyTorch, OpenCV, scikit-image, Pillow, Sanic, FastAPI, Tornado, Twisted, cryptography, PyNaCl, OpenSSL, SSL/TLS, PyCrypto, Pycryptodome, Hashlib, HMAC, SHA-256, MD5, os, sys, pathlib, shutil, tempfile, filecmp, mimetypes, gzip, bz2, tarfile`);
 const showHelp = ref(false)
 const fileUploader = ref<InstanceType<typeof FileUploader> | null>(null);
 const message = ref();
@@ -37,7 +29,11 @@ const fileSelector = ref<InstanceType<typeof FileSelector> | null>(null);
 // Methods
 const stream = () => {
     if (props.loading) return;
-    emit('stream', question.value);
+    if (question.value.match(/\{[a-z]+\}/i)) {
+        emit('streamMultiple', question.value);
+    } else {
+        emit('stream', question.value);
+    }
 }
 const deleteChat = () => {
     if (!props.enableDelete) return;

@@ -12,7 +12,8 @@
         <p>Upload files and/or folders clicking <img class="optionIcon" src="../assets/chatgpt/file.webp" /> and <img
                 class="optionIcon" src="../assets/chatgpt/folder.webp" />.</p>
         <p>Mention any file with @ prefix in the question to be added as embed file to LLM.<br />
-            Uploaded files assistant will show you the matching files as you write, use &DownArrowUpArrow; to move in list and &#8626;
+            Uploaded files assistant will show you the matching files as you write, use &DownArrowUpArrow; to move in
+            list and &#8626;
             to select.</p>
         <h3>Manage messages</h3>
         <p>You can stop and delete an ongoing question request/response stream by clicking the trash <img
@@ -41,6 +42,12 @@
     border: 0px;
     border-radius: 1.5em;
     box-shadow: 0em 0em 0.5em 0.5em rgba(255, 255, 255, 0.5);
+    max-height: 20em;
+    overflow-y: scroll;
+    /* -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: top, bottom; */
 }
 
 .optionIcon {

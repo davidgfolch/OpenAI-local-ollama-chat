@@ -102,9 +102,9 @@ def test_postMessageStream_exception(client):
 
 
 @pytest.mark.parametrize('user,history', [['', ''], [USER, HISTORY]])
-def test_getMessages(mocker, client, user, history):
+def test_loadHistory(mocker, client, user, history):
     if not user == '':
-        mocker.patch("service.aiService.getMessages", return_value=[
+        mocker.patch("service.aiService.loadHistory", return_value=[
             {'q': 'testQuestion'}, {'a': '# test markdown response'}])
     res = client.get(f'/api/v1/chat/{user}/{history}')
     if user == '':

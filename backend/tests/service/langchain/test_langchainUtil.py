@@ -3,8 +3,9 @@ import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
+from service.serviceException import ServiceException
 from tests.common import HISTORY, QUESTION, SESSION, TEMPERATURE, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
-from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, getFilePath, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError
+from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, getFilePath, getSessionHistoryName, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 
 
@@ -104,6 +105,12 @@ class TestLangchainUtil(unittest.TestCase):
 
     def test_parseAndLoadQuestionFiles(self):
         self.assertEqual(QUESTION, parseAndLoadQuestionFiles(QUESTION))
+
+    def test_getSessionHistoryName(self):
+        with self.assertRaises(ServiceException):
+            getSessionHistoryName('', '')
+        with self.assertRaises(ServiceException):
+            getSessionHistoryName(USER, '')
 
 
 if __name__ == '__main__':

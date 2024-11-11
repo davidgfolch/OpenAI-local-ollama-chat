@@ -4,7 +4,7 @@ from langchain_core.chat_history import BaseMessage
 from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
-from service.langchain.langchainUtil import checkChunkError, delete_messages, generateFirstChunk, generateLastChunk, get_session_history, mapParams, mapUserData, invoke, stream
+from service.langchain.langchainUtil import checkChunkError, delete_messages, generateFirstChunk, generateLastChunk, get_session_history, getSessionHistoryName, mapParams, mapUserData, invoke, stream
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog
@@ -76,9 +76,10 @@ def sendMessageStream(req: ChatRequest, preParsedParams: Dict):
         raise ServiceException(ERROR_LANGCHAIN_SEND_CHAT_MESSAGE) from e
 
 
-def getMessages(user: str, history: str):
-    log.info(f"User {user} list...")
-    res = get_session_history(user, history)
+def loadHistory(user: str, history: str):
+    session = getSessionHistoryName(user, history)
+    log.info(f"loadHistory {session}...")
+    res = get_session_history(session)
     messages: list[BaseMessage] = res.messages
     log.debug(f"IA returns messages {messages}")
     res = []
@@ -95,8 +96,9 @@ def getMessages(user: str, history: str):
 
 def deleteMessages(user: str, history: str, index: int = None):
     if index is not None:
-        log.info(f"deleteMessages user={user} index={index*2}")
+        log.info(f"deleteMessages session={
+                 getSessionHistoryName(user, history)} index={index*2}")
         delete_messages(user, history, [index*2, index*2])
         return
-    log.info(f"deleteMessages user={user}")
+    log.info(f"deleteMessages session={getSessionHistoryName(user, history)}")
     delete_messages(user, history)
