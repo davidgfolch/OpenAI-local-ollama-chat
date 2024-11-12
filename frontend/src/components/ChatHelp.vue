@@ -17,6 +17,7 @@
             list and &#8626;
             to select.</p>
         <h3>Manage messages</h3>
+        <p>Chat history: You can select existing in the input list or create new one just typing it.</p>
         <p>You can stop and delete an ongoing question request/response stream by clicking the trash <img
                 class="optionIcon" src="../assets/chatgpt/trash.webp" /> icon in the message.<br />
             You can delete a message (question/answer) by clicking the trash <img class="optionIcon"

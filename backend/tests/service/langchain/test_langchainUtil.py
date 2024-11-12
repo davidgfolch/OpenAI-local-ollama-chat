@@ -1,11 +1,12 @@
 import copy
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 from service.serviceException import ServiceException
-from tests.common import HISTORY, QUESTION, SESSION, TEMPERATURE, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST
-from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, defaultModel, delete_messages, get_session_history, chatInstance, getFilePath, getSessionHistoryName, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError
+from tests.common import HISTORY, QUESTION, SESSION, TEMPERATURE, USER, USER_DATA, mockMsgChunk, CHAT_REQUEST, mockMsgChunks, mockMsgFirstChunk
+from service.langchain.langchainUtil import CALLBACKS, ERROR_STREAM_CHUNK, DEFAULT_MODEL, delete_messages, get_session_history, chatInstance, getFilePath, getSessionHistoryName, getUserHistories, invoke, mapParams, parseAndLoadQuestionFiles, stream, withModel, checkChunkError
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 
 
@@ -18,12 +19,12 @@ class TestLangchainUtil(unittest.TestCase):
     @patch(f"{langchainUtil}FileChatMessageHistory")
     def test_get_session_history(self, MockFileChatMessageHistory):
         # Caso cuando el historial de sesión no está en el almacenamiento
-        with patch.dict(f'{self.langchainUtil}store', {}, clear=True) as store:
+        with patch.dict(f'{self.langchainUtil}STORE', {}, clear=True) as store:
             session_history = get_session_history(SESSION)
             self.assertIsInstance(session_history, MagicMock)
             self.assertIn(f"{USER}_{HISTORY}", store)
         # Caso cuando el historial de sesión ya está en el almacenamiento
-        with patch.dict(f'{self.langchainUtil}store', {f"{USER}_{HISTORY}": "existing_history"}, clear=True):
+        with patch.dict(f'{self.langchainUtil}STORE', {f"{USER}_{HISTORY}": "existing_history"}, clear=True):
             session_history = get_session_history(SESSION)
             self.assertEqual(session_history, "existing_history")
 
@@ -38,15 +39,15 @@ class TestLangchainUtil(unittest.TestCase):
         m_ChatPromptTemplate.from_messages.return_value = mock_prompt
         chat_instance = chatInstance(USER_DATA)
         mock_ChatOpenAI.assert_called_once_with(
-            model=defaultModel, temperature=TEMPERATURE, **{})
+            model=DEFAULT_MODEL, temperature=TEMPERATURE, **{})
         chain = mock_prompt | mock_llm
         chain = chain.with_config(callbacks=CALLBACKS)
         m_history.assert_called_once_with(
             chain, get_session_history, input_messages_key="input", history_messages_key="history")
         self.assertEqual(chat_instance, m_history.return_value)
-        # test chatType = ChatOllama
-        USER_DATA.chatType = ChatOllama
-        chat_instance = chatInstance(USER_DATA)
+        userData = copy.deepcopy(USER_DATA)
+        userData.chatType = ChatOllama
+        chat_instance = chatInstance(userData)
         self.assertEqual(chat_instance, m_history.return_value)
 
     @patch(langchainUtil+'withModel')
@@ -61,12 +62,19 @@ class TestLangchainUtil(unittest.TestCase):
     @patch(langchainUtil+'withModel')
     def test_stream(self, mock_model):
         mock_chat = MagicMock()
+        items = 4
+        mock_chat.stream.return_value = list(mockMsgChunks(items, metadataChunk=True))
         mock_model.return_value = mock_chat
         preParsedParams = mapParams(USER_DATA)
-        result = stream(CHAT_REQUEST, preParsedParams)
-        mock_model.assert_called_once_with(CHAT_REQUEST)
+        generator = stream(USER_DATA, preParsedParams)
+        chunks = list(generator)
+        mock_model.assert_called_once_with(USER_DATA)
         mock_chat.stream.assert_called_once_with(**mapParams(CHAT_REQUEST))
-        self.assertEqual(result, mock_chat.stream.return_value)
+        assert chunks[0] == mockMsgFirstChunk()
+        for n in range(0, items):
+            assert chunks[n+1] == mockMsgChunk(
+                content=f"chunk{n+1}", metadata=n == items-1)
+        # self.assertEqual(result, mock_chat.stream.return_value)
 
     @patch(langchainUtil+'FileChatMessageHistory')
     def test_delete_messages(self, m_history):
@@ -85,7 +93,7 @@ class TestLangchainUtil(unittest.TestCase):
         userData.model = ''
         withModel(userData)
         mock_chatInstance.assert_called_once()
-        assert userData.model == defaultModel
+        assert userData.model == DEFAULT_MODEL
         withModel(userData)
         mock_chatInstance.assert_called_once()
 
@@ -111,6 +119,11 @@ class TestLangchainUtil(unittest.TestCase):
             getSessionHistoryName('', '')
         with self.assertRaises(ServiceException):
             getSessionHistoryName(USER, '')
+
+    def test_getUserHistories(self):
+        with patch(f'{self.langchainUtil}findFilesRecursive') as mock:
+            mock.return_value = []
+            assert getUserHistories(USER, os.path.getmtime) == []
 
 
 if __name__ == '__main__':

@@ -1,10 +1,11 @@
 import logging
+import os
 from typing import Dict
 from langchain_core.chat_history import BaseMessage
 from langchain_core.messages import AIMessage, HumanMessage
 
 from service.host import baseUrl
-from service.langchain.langchainUtil import checkChunkError, delete_messages, generateFirstChunk, generateLastChunk, get_session_history, getSessionHistoryName, mapParams, mapUserData, invoke, stream
+from service.langchain.langchainUtil import delete_messages, get_session_history, getSessionHistoryName, getUserHistories, mapParams, mapUserData, invoke, stream
 from model.model import ChatRequest
 import service.openaiUtil as openaiUtil
 from util.logUtil import initLog
@@ -58,25 +59,22 @@ def preParseParams(r: ChatRequest):
 def sendMessageStream(req: ChatRequest, preParsedParams: Dict):
     log.info(f"sendMessageStream to {req.model}: {req.question}")
     try:
-        first = True
         userData = mapUserData(req)
         for chunk in stream(userData, preParsedParams):
             if isCancelStreamSignal(req):
                 break
-            if first:
-                first = False
-                yield generateFirstChunk(chunk.id, userData)
             yield chunk
-            last = generateLastChunk(chunk)
-            if last:
-                yield last
-            log.debug(f"Received chunk={chunk}")
-            checkChunkError(chunk)
     except Exception as e:
         raise ServiceException(ERROR_LANGCHAIN_SEND_CHAT_MESSAGE) from e
 
 
+def listUserHistories(user: str):
+    return getUserHistories(user, os.path.getmtime)
+
+
 def loadHistory(user: str, history: str):
+    if not user or not history:
+        raise ServiceException('User and History must be informed to load history messages')
     session = getSessionHistoryName(user, history)
     log.info(f"loadHistory {session}...")
     res = get_session_history(session)

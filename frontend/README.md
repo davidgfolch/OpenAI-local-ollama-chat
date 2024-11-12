@@ -9,7 +9,7 @@ yarn install
 ### Compiles and hot-reloads for development
 
 ```bash
-yarn serve
+yarn dev
 ```
 
 ### Compiles and minifies for production
@@ -30,7 +30,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## Libraries used
 
-- Vue3 (framework) with Vite
+- Vue3 (framework) with Vite plugin
 - [Axios](https://axios-http.com/docs/intro) http client
   - https://github.com/axios/axios
 - [Showdown](https://github.com/showdownjs/showdown/wiki) markdown parser

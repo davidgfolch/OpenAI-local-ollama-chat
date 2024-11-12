@@ -4,7 +4,7 @@ import { apiClient, openDownloadedFile } from './ApiClient';
 import FileUploader from './FileUploader.vue'
 import FileSelector from './FileSelector.vue'
 
-const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream', 'streamMultiple']);
+const emit = defineEmits(['errorReset', 'setAnswer', 'messagesReset', 'scrollDownChat', 'handleError', 'stream', 'streamMultiple', 'loadHistory']);
 // Props
 const props = defineProps({
     user: String,
@@ -13,7 +13,8 @@ const props = defineProps({
 });
 // Reactive data
 const hideSettings = ref(true);
-const history = ref("My history");
+const history = ref('defaultHistory');
+const histories = ref([]);
 const models = ref([]);
 const model = ref("");
 const temperature = ref(0.7);
@@ -42,6 +43,23 @@ const deleteChat = () => {
         .then(() => emit('messagesReset'))
         .catch(e => emit('handleError', e));
 }
+const loadHistories = () => {
+    const promise = apiClient.get(`/api/v1/chat/history/${props.user}`)
+    promise.then(res => {
+        if (res.data.response.length === 0) {
+            histories.value = []
+            return
+        }
+        histories.value = res.data.response
+        if (!history.value && histories.value)
+            history.value = histories.value[0]
+    }).catch(e => emit('handleError', e))
+    return promise
+}
+const loadHistory = () => {
+    emit('loadHistory');
+}
+
 const getModels = () => {
     emit('errorReset');
     apiClient.get('/api/v1/models')
@@ -85,7 +103,7 @@ const exportHistory = () => {
         .catch(e => emit('handleError', e))
 }
 
-defineExpose({ model, temperature, ability, history, question, showHelp });
+defineExpose({ model, temperature, ability, loadHistories, history, question, showHelp });
 onMounted(() => getModels())
 </script>
 
@@ -144,9 +162,15 @@ onMounted(() => getModels())
                 <option value="">Select llm model...</option>
                 <option v-for="m in models" :key="m" :value="m">{{ m }}</option>
             </select>
-            <input type="number" v-model="temperature" placeholder="Model temperature" title="Model temperature" />
-            <input type="text" v-model="history" placeholder="Current chat history" title="Current chat history" />
-            <button @click="exportHistory">Export...</button>
+            <input type="number" v-model="temperature" placeholder="Model temperature" title="Model temperature"
+                size="2" />
+            <input type="text" v-model="history" placeholder="Chat history" title="Current chat history"
+                list="histories" />
+            <datalist id="histories">
+                <option v-for="h in histories" :key="h" :value="h">{{ h }}</option>
+            </datalist>
+            <button @click="loadHistory">Load history</button>
+            <button @click="exportHistory">Export history...</button>
         </div>
     </div>
 </template>

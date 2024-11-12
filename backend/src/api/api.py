@@ -68,8 +68,17 @@ def postMessageStream():
     return generate(), EVENT_STREAM_CHUNKED_HEADERS
 
 
-@app.get('/api/v1/chat/<string:user>/<string:history>', **OPTIONS)
+@app.get('/api/v1/chat/history/<string:user>', **OPTIONS)
+def listUserHistories(user):
+    log.info(f"listUserHistories user={user}")
+    res = aiService.listUserHistories(user)
+    log.info(f"listUserHistories user={user} -> {res}")
+    return setResponseOK(res)
+
+
+@app.get('/api/v1/chat/history/<string:user>/<string:history>', **OPTIONS)
 def loadHistory(user, history):
+    log.info(f"loadHistory user={user} & history={history}")
     msgs = [mapper.listMapper(m) for m in aiService.loadHistory(user, history)]
     log.info(f"mapped messages {msgs}")
     return setResponseOK(msgs)

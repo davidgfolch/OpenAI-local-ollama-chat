@@ -55,16 +55,18 @@ def processHistoryItems(session, zip, historyItems, userHistoryDir, readme):
         readmeWriter.write('\n')
 
 
+# TODO: decouple model implementation from historyExport, this impl. is for llama3.2
 def _cleanMarkdown(md: str) -> str:
+    """remove markdown lint warnings"""
     md = re.sub(r'[*]+Código de ejemplo:?[*]+', '', md, FLAGS)  # remove repetitive "header"
     md = re.sub(r'[*]+Instalación de las librerías:?[*]+', '', md, FLAGS)  # remove repetitive "header"
-    md = re.sub(r'[^\n][\n]```([a-z]+)', r'\n\n```\1', md, FLAGS)
-    md = re.sub(r'```\n(?!=\n)', r'```\n\n', md, FLAGS)
+    md = re.sub(r'[^\n][\n]```([a-z]+)', r'\n\n```\1', md, FLAGS)  # add blank line after code block
+    md = re.sub(r'```\n(?!=\n)', r'```\n\n', md, FLAGS)  # add blank line after code block
     md = re.sub(r'\n[*]{2}([^*]+)[*]{2}\s?\n', r'\n### \1\n\n', md, FLAGS)  # replaces **(.*)** by ### .*
-    md = re.sub(r'\n[*]   ', '\n* ', md, FLAGS)  # replaces *   xxx by * xxx
+    md = re.sub(r'\n[*]   ', '\n* ', md, FLAGS)  # replaces list spaces (*   xxx by * xxx)
     md = re.sub(r'(\n+[#]+ +)[*]{2}([^*]+)[*]{2}(\s?\n)', r'\1\2\3', md, FLAGS)  # remove ** from titles
-    md = re.sub(r'(\n[#]+ +.+)[.:!]+\n', r'\1\n', md, FLAGS)
-    md = re.sub(r'[\n]{3,}', r'\n\n', md, FLAGS)
+    md = re.sub(r'(\n[#]+ +.+)[.:!]+\n', r'\1\n', md, FLAGS)  # removes punctuation on titles .:!
+    md = re.sub(r'[\n]{3,}', r'\n\n', md, FLAGS)  # replaces more than 3 empty lines by only 2
     md = re.sub(r'(?<=\b)([a-z]{3,5}://[a-z][a-z0-9_-]+(:\d{1,5}|\.[a-z]{2,10})(/[a-z][a-z0-9_-]+)*(/)?)(?=\b)', r' <\1> ', md, FLAGS)   # http://localhost:8000/ -> <http://localhost:8000/>
     return md
 

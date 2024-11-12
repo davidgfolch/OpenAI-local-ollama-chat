@@ -39,18 +39,21 @@ const scrollDownChat = () => {
   }
 }
 const loadHistory = () => {
-  loading.value = true;
-  apiClient.get(`/api/v1/chat/${user.value}/${chatOptions.value.history}`).then(res => {
+  if (!chatOptions.value.history) {
+    handleError('Could not load history messages, select current history in options fields.')
+    return
+  }
+  loading.value = true
+  apiClient.get(`/api/v1/chat/history/${user.value}/${chatOptions.value.history}`).then(res => {
     if (res.data.response.length === 0) {
-      messages.value = [];
-      return;
+      messages.value = []
+      return
     }
     loadHistoryMapper(res, (q: string, a: string, id: string, metadata: any) => {
-      messagePush(q, a, id, metadata);
+      messagePush(q, a, id, metadata)
       scrollDownChat()
-      highLightCode(id);
+      highLightCode(id)
     })
-
   }).catch(handleError).finally(resetApiCall);
 }
 const mdToHtml = (msg: string) => mdConverter.makeHtml(checkUnclosedCodeBlockMd(msg));
@@ -89,7 +92,7 @@ const streamMultiple = async (q: string) => {
 }
 const streamTrigger = (q: string, variable: string, values: string[]) => {
   if (!loading.value) {
-    const value = values[values.length-1]
+    const value = values[values.length - 1]
     values.pop()
     const regex = new RegExp("\{" + variable + "\}", 'igm');
     const cq = q.replaceAll(regex, value.trim())
@@ -126,20 +129,20 @@ const stream = async (q: string) => {
       if (!cancelled && messages.value.length > 0 && messages.value[messages.value.length - 1]['a'] == '<p>Waiting for response...</p>')
         errorCallbackFnc() //TODO: chrome don't pass through ApiClient.ts -> processDownloadProgress() -> progressEvent.loaded == 0
       resetApiCall()
-    });
+    })
 };
 const messagesReset = () => {
-  messages.value = [];
-  nextTick(() => loadHistory());
-};
+  messages.value = []
+  nextTick(() => loadHistory())
+}
 const deleteMessage = (index: number) => {
-  errorReset();
+  errorReset()
   apiClient.get(`/api/v1/chat/delete/${user.value}/${chatOptions.value.history}/${index}`)
     .then(() => messages.value.splice(index, 1))
     .catch(e => {
-      handleError(e);
-      scrollDownChat();
-    });
+      handleError(e)
+      scrollDownChat()
+    })
 }
 const cancelStream = () => {
   errorReset();
@@ -153,18 +156,21 @@ const cancelStream = () => {
 const handleScroll = (event: UIEvent) => {
   const viewHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
   const scroll = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop
-  console.log('handleScroll scroll='+scroll+' scrollHeight='+document.body.scrollHeight+' scrollTop='+document.body.scrollTop+' clientHeight='+document.body.clientHeight+
-    'viewHeight='+viewHeight+' calculation '+(document.body.scrollHeight-scroll-viewHeight)
-  )
+  // console.log('handleScroll scroll='+scroll+' scrollHeight='+document.body.scrollHeight+' scrollTop='+document.body.scrollTop+' clientHeight='+document.body.clientHeight+
+  //   'viewHeight='+viewHeight+' calculation '+(document.body.scrollHeight-scroll-viewHeight)
+  // )
   const scrolledBottom = Math.abs(document.body.scrollHeight - document.body.scrollTop - document.body.clientHeight) < 1
   // if (scroll < lastScroll)
   //   scrollDownEnabled = false
   // else if (document.body.scrollHeight-scroll-viewHeight < viewHeight/2) scrollDownEnabled = true
-  scrollDownEnabled = document.body.scrollHeight-scroll-viewHeight < viewHeight/2
+  scrollDownEnabled = document.body.scrollHeight - scroll - viewHeight < viewHeight / 2
   lastScroll = scroll
 }
 onMounted(() => {
-  loadHistory()
+  chatOptions.value.loadHistories()
+    .then(() => nextTick(() => {
+      loadHistory()
+    }))
   window.addEventListener('scroll', handleScroll)
 });
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
@@ -186,7 +192,7 @@ defineExpose({ errorReset, setAnswer, messagesReset, handleError, scrollDownChat
   <ChatOptions :question="question" :loading="loading" :user="user" :view-settings="false"
     :enable-delete="messages.length > 0" @error-reset="errorReset()" @handle-error="e => handleError(e)"
     @set-answer="a => setAnswer(a)" @messages-reset="messagesReset()" @scroll-down-chat="scrollDownChat"
-    @stream="q => stream(q)" @stream-multiple="q => streamMultiple(q)" ref="chatOptions" />
+    @stream="q => stream(q)" @stream-multiple="q => streamMultiple(q)" @load-history="loadHistory" ref="chatOptions" />
   <div ref="scrollDiv" class="scrollDiv"></div>
 </template>
 

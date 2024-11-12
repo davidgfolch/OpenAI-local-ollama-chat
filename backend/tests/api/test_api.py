@@ -106,7 +106,7 @@ def test_loadHistory(mocker, client, user, history):
     if not user == '':
         mocker.patch("service.aiService.loadHistory", return_value=[
             {'q': 'testQuestion'}, {'a': '# test markdown response'}])
-    res = client.get(f'/api/v1/chat/{user}/{history}')
+    res = client.get(f'/api/v1/chat/history/{user}/{history}')
     if user == '':
         assertResponseError(res,  # no params (query path)
                             ['MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
@@ -154,4 +154,10 @@ def test_getFilesAvailable(client):
 def test_getExportHistory(mocker, client):
     mocker.patch("service.langchain.historyExport.exportHistory",
                  return_value=None)
-    assertResponseError(client.get(f'/api/v1/export/{USER}/{HISTORY}'), '')  # internal fileNotFound
+    # internal fileNotFound
+    assertResponseError(client.get(f'/api/v1/export/{USER}/{HISTORY}'), '')
+
+
+def test_listUserHistories(mocker, client):
+    mocker.patch("service.aiService.listUserHistories", return_value=[])
+    assertResponseOK(client.get(f'/api/v1/chat/history/{USER}'), [])

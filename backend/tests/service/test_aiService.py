@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, AIMessageChunk
 from service.langchain.langchainUtil import getSessionHistoryName
-from tests.common import CHAT_REQUEST, HISTORY, USER, mockMsgFirstChunk, mockMsgChunk, mockMsgChunks
+from tests.common import CHAT_REQUEST, HISTORY, USER, mockMsgChunk, mockMsgChunks
 from service import aiService
 
 
@@ -56,10 +56,10 @@ def test_sendMessageStream():
         preParsedParams = aiService.preParseParams(CHAT_REQUEST)
         generator = aiService.sendMessageStream(CHAT_REQUEST, preParsedParams)
         chunks = list(generator)
-        assert chunks[0] == mockMsgFirstChunk()
-        for n in range(0, items):
+        assert chunks[0] == AIMessageChunk(content='chunk1', additional_kwargs={}, response_metadata={}, id='testId')
+        for n in range(0, items-1):
             assert chunks[n+1] == mockMsgChunk(
-                content=f"chunk{n+1}", metadata=n == items-1)
+                content=f"chunk{n+2}", metadata=n == items-2)
 
 
 def test_sendMessageStream_cancel():
@@ -103,3 +103,7 @@ def test_deleteMessages_w_index():
     with patch('service.aiService.delete_messages') as mock:
         aiService.deleteMessages(USER, HISTORY, 1)
         mock.assert_called_once_with(USER, HISTORY, [2, 2])
+
+def test_listUserHistories():
+    with patch('service.aiService.getUserHistories', return_value=[]):
+        assert aiService.listUserHistories(USER) == []
