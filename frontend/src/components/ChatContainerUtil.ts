@@ -52,3 +52,10 @@ export const answerMetadataMapper = (answer: string, streamTimeStart: number) =>
 export const createBodyParams = (ops, question: string, user: string) => {
     return { model: ops.model, temperature: ops.temperature, user: user, question: question, history: ops.history, ability: ops.ability };
 }
+
+export const checkHistoryName = (name: string) => {
+    if (!name) 
+        return 'Could not load history messages, select current history in options fields.'
+    if (name.match('[/:]'))
+        return 'Invalid history name, should be like: '+name.replaceAll(/\/|:/g,'-')
+}

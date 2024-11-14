@@ -4,7 +4,7 @@ import ChatMessage from './ChatMessage.vue';
 import ChatHelp from './ChatHelp.vue';
 import ChatError from './ChatError.vue';
 import ChatOptions from './ChatOptions.vue';
-import { loadHistoryMapper, answerMetadataMapper, createBodyParams, highLightCode } from './ChatContainerUtil';
+import { loadHistoryMapper, answerMetadataMapper, createBodyParams, highLightCode, checkHistoryName } from './ChatContainerUtil';
 import { apiClient, processDownloadProgress, AXIOS_CONTROLLER_ABORT_MSG } from './ApiClient';
 import { checkUnclosedCodeBlockMd } from './utils';
 import { showdown } from "vue-showdown";
@@ -40,8 +40,9 @@ const scrollDownChat = () => {
   }
 }
 const loadHistory = () => {
-  if (!chatOptions.value.history) {
-    handleError('Could not load history messages, select current history in options fields.')
+  const error = checkHistoryName(chatOptions.value.history)
+  if (error) {
+    handleError(error)
     return
   }
   loading.value = true

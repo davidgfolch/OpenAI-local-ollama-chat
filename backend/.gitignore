@@ -1,4 +1,5 @@
 test/__pycache__
+test_export_output/**
 .coverage
 aiMessage.md
 langchain.store/*.json

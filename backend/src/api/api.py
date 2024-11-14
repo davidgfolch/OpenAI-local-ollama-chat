@@ -2,12 +2,15 @@ from pathlib import PosixPath
 from typing import List
 from flask import Flask, request, send_file
 import logging
+from pathvalidate import sanitize_filepath
+
 from api import mapper
 from api.werkzeugUtil import saveFilesUpload
 from constants import UPLOAD_FOLDER
 import service.aiService as aiService
 from api.flaskUtil import EVENT_STREAM_CHUNKED_HEADERS, setResponseKO, setResponseOK, corsHeaders, getReqParams
 from service.langchain.historyExport import exportHistory
+from service.serviceException import ServiceException
 from util.files import findFilesRecursive
 from util.logUtil import initLog
 from model.model import ChatRequest
@@ -77,7 +80,9 @@ def listUserHistories(user):
 
 
 @app.get('/api/v1/chat/history/<string:user>/<string:history>', **OPTIONS)
-def loadHistory(user, history):
+def loadHistory(user: str, history: str):
+    if history != sanitize_filepath(history):
+        raise ServiceException(f'Invalid history name, should be: {sanitize_filepath(history)}')
     log.info(f"loadHistory user={user} & history={history}")
     msgs = [mapper.listMapper(m) for m in aiService.loadHistory(user, history)]
     log.info(f"mapped messages {msgs}")

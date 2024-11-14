@@ -1,4 +1,5 @@
 import io
+from pathvalidate import sanitize_filepath
 import pytest
 import json
 import jsons
@@ -101,7 +102,7 @@ def test_postMessageStream_exception(client):
                             VALIDATION_ERR_MSG.append('ServiceException: test'))
 
 
-@pytest.mark.parametrize('user,history', [['', ''], [USER, HISTORY]])
+@pytest.mark.parametrize('user,history', [['', ''], [USER, HISTORY], [USER, 'INVALID:HISTORYNAME']])
 def test_loadHistory(mocker, client, user, history):
     if not user == '':
         mocker.patch("service.aiService.loadHistory", return_value=[
@@ -110,9 +111,12 @@ def test_loadHistory(mocker, client, user, history):
     if user == '':
         assertResponseError(res,  # no params (query path)
                             ['MethodNotAllowed: 405 Method Not Allowed: The method is not allowed for the requested URL.'])
-    else:
+    elif history == HISTORY:
         assertResponseOK(res, [{'q': 'testQuestion'}, {
                          'a': '# test markdown response', 'id': '', 'metadata': ''}])
+    else:
+        assertResponseError(res, [f'ServiceException: Invalid history name, should be: {
+                            sanitize_filepath(history)}'])
 
 
 def test_deleteMessages(mocker, client):

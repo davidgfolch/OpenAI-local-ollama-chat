@@ -84,15 +84,14 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
    1. Options: model, history, question.
    2. Save generation time in history metadata.
 2. Allow multiple question separated by ------------------- f.ex.
-3. Ability as text area to put ability format (now harcoded in langchainUtil.py)
-4. Collapse all responses.
-5. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
+3. Collapse all responses.
+4. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
 
         ServiceException: op not found, upload it first!
         RuntimeError: Error loading uploads/openai-local-ollama-chat
         IsADirectoryError: [Errno 21] Is a directory: 'uploads/openai-local-ollama-chat'
 
-6. K-shift error (see [Known-issues](Known-issues)):
+5. K-shift error (see [Known-issues](Known-issues)):
    1. Continue doesn't generates K-shift error, checkout how.
    2. Option (front/back) to disable passing all history to LLM.
 
