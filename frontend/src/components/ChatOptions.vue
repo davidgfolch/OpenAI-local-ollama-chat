@@ -13,13 +13,14 @@ const props = defineProps({
 });
 // Reactive data
 const hideSettings = ref(true);
-const history = ref('defaultHistory');
+const history = ref('qwen2.5-coder-7b');
 const histories = ref([]);
 const models = ref([]);
 const model = ref("");
 const temperature = ref(0.7);
 const ability = ref("Eres un asistente especializado en ingenieria de software.  Generas codigo de calidad siguiendo los principios de desarrollo de software (best practices) como: SOLID, Clean Code, YAGNI: you aint gonna need it, KISS: keep it simple stupid, DRY: don't repeat yourself");
-const question = ref(`Genera un ejemplo de código completo con {variable} en python.
+// const question = ref(`Genera un ejemplo de código completo con {variable} en python.
+const question = ref(`Genera ejemplos completos de código con {variable} en python.
 
 variable=Django, Flask, NumPy, Pandas, Matplotlib, Scikit-learn, Requests, BeautifulSoup, Pygame, Cython, TensorFlow, Keras, PyTorch, OpenCV, scikit-image, Pillow, Sanic, FastAPI, Tornado, Twisted, cryptography, PyNaCl, OpenSSL, SSL/TLS, PyCrypto, Pycryptodome, Hashlib, HMAC, SHA-256, MD5, os, sys, pathlib, shutil, tempfile, filecmp, mimetypes, gzip, bz2, tarfile`);
 const showHelp = ref(false)

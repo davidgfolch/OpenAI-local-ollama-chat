@@ -27,6 +27,7 @@ const chatOptions = ref();
 const errorReset = () => chatError.value.reset();
 var scrollDownEnabled = true;
 var lastScroll = 0;
+let cancelled = false
 const scrollDownChat = () => {
   if (scrollDownEnabled) {
     if (scrollDiv.value)
@@ -45,8 +46,8 @@ const loadHistory = () => {
   }
   loading.value = true
   apiClient.get(`/api/v1/chat/history/${user.value}/${chatOptions.value.history}`).then(res => {
+    messages.value = []
     if (res.data.response.length === 0) {
-      messages.value = []
       return
     }
     loadHistoryMapper(res, (q: string, a: string, id: string, metadata: any) => {
@@ -91,6 +92,10 @@ const streamMultiple = async (q: string) => {
   streamTrigger(q, variable, values.reverse())
 }
 const streamTrigger = (q: string, variable: string, values: string[]) => {
+  if (cancelled) {
+    setTimeout(() => cancelled = false, 2000)
+    return
+  }
   if (!loading.value) {
     const value = values[values.length - 1]
     values.pop()
@@ -101,6 +106,7 @@ const streamTrigger = (q: string, variable: string, values: string[]) => {
   if (values.length > 0) setTimeout(() => streamTrigger(q, variable, values), 2000)
 }
 const stream = async (q: string) => {
+  cancelled = false
   question.value = q
   if (question.value.trim() == '') return
   loading.value = true
@@ -110,7 +116,6 @@ const stream = async (q: string) => {
   setAnswer('<p>Waiting for response...</p>')
   scrollDownEnabled = true
   apiCliController = new AbortController()
-  let cancelled = false
   apiClient.post('/api/v1/chat-stream', createBodyParams(chatOptions.value, question.value, user.value), {
     signal: apiCliController.signal,
     onDownloadProgress: (progressEvent) =>

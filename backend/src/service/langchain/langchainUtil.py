@@ -15,6 +15,7 @@ from model.model import ChatRequest
 from service.host import hostArgs, DEFAULT_CHAT_TYPE
 from service.langchain.files import processFiles
 from service.langchain.model import UserData
+from service.langchain.prompByModel import ABILITY_FORMAT, getSpecifications
 from service.serviceException import ServiceException
 from util.files import findFilesRecursive
 from util.logUtil import initLog
@@ -26,21 +27,7 @@ log = initLog(__file__)
 
 CALLBACKS = [CallbackHandler(), CallbackHandlerAsync()]
 ERROR_STREAM_CHUNK = 'Error in stream chunk finish_reason is not stop, reason: '
-
-# NOTE: ABILITY_FORMAT, if you change the format historyExport.py is affected (regular expressions)
-ABILITY_FORMAT = """
-
-IMPORTANTE:
-- Antes de cada bloque de código generar un nombre de archivo con su extension.
-- No repetir bloques de código, usar parametrización.
-
-En el caso de generar bloques de de código las respuesta debe incluir un script de instalación para las librerias necesarias (sin comentarios añadidos, y sin nombre de archivo).
-    - los bloques de código generados deben seguir las siguientes directrices:
-        - incluir siempre el tipo de codigo generado sólo en la cabecera de codigo markdown.
-        - evitar los comentarios evidentes, pero generando comentarios explicativos.
-        - evitar saltos de linea innecesarios."""
-
-DEFAULT_MODEL = "qwen2.5-coder:7b"  # llama3.2:latest  deepseek-coder-v2:16b
+DEFAULT_MODEL = 'qwen2.5-coder:7b'  # llama3.2:latest  deepseek-coder-v2:16b
 STORE_FOLDER = "./langchain.store/"
 HISTORY_NAME_SEPARATOR = '_'
 LAMBDA_PATH_TO_HISTORY_STR: Callable[[Path], str] = lambda p: p.name.split(HISTORY_NAME_SEPARATOR)[1].replace('.json', '')
@@ -60,11 +47,11 @@ def getSessionHistoryName(user: str, history: str) -> str:
 
 
 def get_session_history(name: str) -> FileChatMessageHistory:
+    if name.find(HISTORY_NAME_SEPARATOR) == -1:
+        raise ServiceException(f'Invalid history name={name}')
     log.debug(f'get_session_history name={name}')
     if name not in STORE:
         log.debug(f'new get_session_history for name={name}')
-        if name.find(HISTORY_NAME_SEPARATOR) == -1:
-            raise ServiceException(f'Invalid history name={name}')
         STORE[name] = FileChatMessageHistory(  # ChatMessageHistory()
             file_path=getFilePath(name), encoding="utf-8")
     return STORE[name]
@@ -146,7 +133,7 @@ def mapUserData(r: ChatRequest):
 def mapParams(d: UserData) -> Dict:
     return {
         'input': {"history": getSessionHistoryName(d.user, d.history),
-                  "ability": d.ability + ABILITY_FORMAT,
+                  "ability": d.ability + getSpecifications(d.model)[ABILITY_FORMAT],
                   "input": parseAndLoadQuestionFiles(d.question)},
         'config': {
             "configurable": {

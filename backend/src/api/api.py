@@ -127,12 +127,12 @@ def getFilesAvailable():
 @app.get('/api/v1/export/<string:user>/<string:history>', **OPTIONS)
 def getExportHistory(user, history):
     file = exportHistory(user, history)
-    return corsHeaders(send_file(file, download_name=f'{user}_{history}.zip'))  # as_attachment=True
+    return corsHeaders(send_file(file, download_name=f'{user}_{history}.zip'))
 
 
-def run():
+def run():  # pragma: no cover
     app.run(debug=True)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     run()

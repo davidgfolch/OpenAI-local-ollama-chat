@@ -12,6 +12,7 @@ This project implements a local AI chat, with :
 - Backend chat history with persistence (file store)
   - Delete question/answer in file history.
   - Delete all history.
+  - User history selector.
 - LLM response live streaming: chunked streaming
   - Stop current streaming response.
 - Langchain callbacks logging (with truncated text in logs)
@@ -79,17 +80,19 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 
 ## TODO
 
-1. Collapse all responses.
-2. Histories endpoint & selector
-3. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
+1. User persistence
+   1. Options: model, history, question.
+   2. Save generation time in history metadata.
+2. Allow multiple question separated by ------------------- f.ex.
+3. Ability as text area to put ability format (now harcoded in langchainUtil.py)
+4. Collapse all responses.
+5. Prompt: `@openai-local-ollama-chat Explicame el proyecto`
 
-    ```log
-    ServiceException: op not found, upload it first!
-    RuntimeError: Error loading uploads/openai-local-ollama-chat
-    IsADirectoryError: [Errno 21] Is a directory: 'uploads/openai-local-ollama-chat'
-    ```
+        ServiceException: op not found, upload it first!
+        RuntimeError: Error loading uploads/openai-local-ollama-chat
+        IsADirectoryError: [Errno 21] Is a directory: 'uploads/openai-local-ollama-chat'
 
-4. K-shift error (see [Known-issues](Known-issues)):
+6. K-shift error (see [Known-issues](Known-issues)):
    1. Continue doesn't generates K-shift error, checkout how.
    2. Option (front/back) to disable passing all history to LLM.
 
@@ -99,12 +102,10 @@ See respective README.md docs: [backend](backend/README.md) & [frontend](fronten
 
 When context gets bigger and can't fit into VRAM (after several q/a f.ex.), Ollama throws the following error because Deepseek2 does not support K-shift
 
-```log
-ollama[17132]: /go/src/github.com/ollama/ollama/llm/llama.cpp/src/llama.cpp:15110: Deepseek2 does not support K-shift
-ollama[17132]: Could not attach to process.  If your uid matches the uid of the target
-ollama[17132]: process, check the setting of /proc/sys/kernel/yama/ptrace_scope, or try
-ollama[17132]: again as the root user.  For more details, see /etc/sysctl.d/10-ptrace.conf
-ollama[17132]: ptrace: Inappropriate ioctl for device.
-ollama[17132]: No stack.
-ollama[17132]: The program is not being run.
-```
+    ollama[17132]: /go/src/github.com/ollama/ollama/llm/llama.cpp/src/llama.cpp:15110: Deepseek2 does not support K-shift
+    ollama[17132]: Could not attach to process.  If your uid matches the uid of the target
+    ollama[17132]: process, check the setting of /proc/sys/kernel/yama/ptrace_scope, or try
+    ollama[17132]: again as the root user.  For more details, see /etc/sysctl.d/10-ptrace.conf
+    ollama[17132]: ptrace: Inappropriate ioctl for device.
+    ollama[17132]: No stack.
+    ollama[17132]: The program is not being run.

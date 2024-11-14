@@ -18,15 +18,18 @@ class TestLangchainUtil(unittest.TestCase):
 
     @patch(f"{langchainUtil}FileChatMessageHistory")
     def test_get_session_history(self, MockFileChatMessageHistory):
-        # Caso cuando el historial de sesión no está en el almacenamiento
+        # NO session in store
         with patch.dict(f'{self.langchainUtil}STORE', {}, clear=True) as store:
             session_history = get_session_history(SESSION)
             self.assertIsInstance(session_history, MagicMock)
             self.assertIn(f"{USER}_{HISTORY}", store)
-        # Caso cuando el historial de sesión ya está en el almacenamiento
+        # Session in store
         with patch.dict(f'{self.langchainUtil}STORE', {f"{USER}_{HISTORY}": "existing_history"}, clear=True):
             session_history = get_session_history(SESSION)
             self.assertEqual(session_history, "existing_history")
+        # Invalid session
+        with self.assertRaises(Exception):
+            get_session_history('invalidSessionName')
 
     @patch(langchainUtil+'ChatOpenAI')
     @patch(langchainUtil+'hostArgs', new={})

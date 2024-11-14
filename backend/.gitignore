@@ -2,6 +2,9 @@ test/__pycache__
 .coverage
 aiMessage.md
 langchain.store/*.json
+langchain.store/**
 __pycache__/*
+__pycache__/**
+**/__pycache__/**
 **/__pycache__/*
 uploads/*

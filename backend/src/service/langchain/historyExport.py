@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from threading import Timer, current_thread
+from threading import Timer
 import json
 import os
 from pathlib import Path
@@ -12,9 +12,11 @@ import zipfile
 import urllib
 from unidecode import unidecode
 from service.langchain.langchainUtil import getFilePath, getSessionHistoryName
+from service.langchain.prompByModel import ANSWER_TITLE_FROM_QUESTION, cleanMarkdown, getFilenameCodePattern, getSpecifications
 from util.files import createFolder
 from util.logUtil import initLog
 
+FILE_CONTENT_MIN_LINES = 1
 log = initLog(__file__, logging.DEBUG)
 
 
@@ -43,60 +45,46 @@ def exportHistory(user: str, history: str) -> Path:
 def processHistoryItems(session, zip, historyItems, userHistoryDir, readme):
     with open(readme, 'w') as readmeWriter:
         readmeWriter.write(f'# openai-local-ollama-chat history {getFilePath(session)}\n\nExport date: {datetime.now().strftime("%Y-%b-%d %X")}')
+        question = ''
         for item in historyItems:
             content: str = item['data']['content']
             type: str = item['data']['type']
-            if not type == 'human':
-                answerDir = _answerDir(content)
+            log.info(f'processHistoryItems data = {json.dumps(item)}')
+            if type == 'human':
+                question = content
+            else:
+                model = item['data']['response_metadata']['model_name']
+                specs = getSpecifications(model)
                 log.debug(f'history CONTENT {content}')
-                newContent = _moveCodeBlocksToFiles(zip, userHistoryDir, answerDir, content, type)
-                newContent = _cleanMarkdown(newContent)
+                if specs.get(ANSWER_TITLE_FROM_QUESTION, False):
+                    content = question + '\n\n' + content
+                answerDir = _answerDir(specs, content)
+                newContent = _moveCodeBlocksToFiles(specs, zip, userHistoryDir, answerDir, content)
+                newContent = cleanMarkdown(model, newContent)
                 readmeWriter.write(newContent)
         readmeWriter.write('\n')
 
 
-# TODO: decouple model implementation from historyExport, this impl. is for llama3.2
-def _cleanMarkdown(md: str) -> str:
-    """remove markdown lint warnings"""
-    md = re.sub(r'[*]+Código de ejemplo:?[*]+', '', md, FLAGS)  # remove repetitive "header"
-    md = re.sub(r'[*]+Instalación de las librerías:?[*]+', '', md, FLAGS)  # remove repetitive "header"
-    md = re.sub(r'[^\n][\n]```([a-z]+)', r'\n\n```\1', md, FLAGS)  # add blank line after code block
-    md = re.sub(r'```\n(?!=\n)', r'```\n\n', md, FLAGS)  # add blank line after code block
-    md = re.sub(r'\n[*]{2}([^*]+)[*]{2}\s?\n', r'\n### \1\n\n', md, FLAGS)  # replaces **(.*)** by ### .*
-    md = re.sub(r'\n[*]   ', '\n* ', md, FLAGS)  # replaces list spaces (*   xxx by * xxx)
-    md = re.sub(r'(\n+[#]+ +)[*]{2}([^*]+)[*]{2}(\s?\n)', r'\1\2\3', md, FLAGS)  # remove ** from titles
-    md = re.sub(r'(\n[#]+ +.+)[.:!]+\n', r'\1\n', md, FLAGS)  # removes punctuation on titles .:!
-    md = re.sub(r'[\n]{3,}', r'\n\n', md, FLAGS)  # replaces more than 3 empty lines by only 2
-    md = re.sub(r'(?<=\b)([a-z]{3,5}://[a-z][a-z0-9_-]+(:\d{1,5}|\.[a-z]{2,10})(/[a-z][a-z0-9_-]+)*(/)?)(?=\b)', r' <\1> ', md, FLAGS)   # http://localhost:8000/ -> <http://localhost:8000/>
-    return md
-
-
-def _answerDir(content) -> str:
+def _answerDir(specs: Dict, content) -> str:
     dir: str = content.split('\n')[0].split('.')[0]
-    return sanitize_filepath(dir) + '/'
+    log.info(f'answerDir specs {specs} ')
+    # if specs.get(ANSWER_DIR_REGEX, ''):
+    #     regex: list = specs[ANSWER_DIR_REGEX]
+    #     log.info(f'answerDir applying {ANSWER_DIR_REGEX} found -> {regex}')
+    #     log.info(f'answerDir current dir is {dir}')
+    #     dir = re.sub(re.compile(regex), r'\1', dir)
+    #     log.info(f'answerDir dir is {dir}')
+    return sanitize_filepath(dir[0].upper()+dir[1:]) + '/'
 
 
-FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
-PATTERN_FILE_NAME = '([a-z_-]+[.][a-z]{1,3})'
-PATTERN_CODE_BLOCK = '[`]{3}[a-z_-]+ *\n+ *((?!```).*\n)+[`]{3}'
-VALID_FOLDER_FILE_CHARS = '[a-zá-úà-ùä-ûñç_]+[a-zá-úà-ùä-ûñç0-9_-]*'
-PATTERN_FILENAME_CODE = re.compile('[*`]+((' + VALID_FOLDER_FILE_CHARS + '/)*' + VALID_FOLDER_FILE_CHARS +
-                                   '([.][a-z]{1,4})+)[`:*]+[^\n]*\n+^```[a-z-_]*\\s*\n(.*?)(?=^```)```', FLAGS)
-MIN_LINES = 1
-
-
-def _moveCodeBlocksToFiles(zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str, type: str) -> str:
-    content = _byPattern(PATTERN_FILENAME_CODE, zip, userHistoryDir, answerDir, content, type)
-    return content
-
-
-def _byPattern(pattern: re.Pattern, zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str, type: str) -> str:
+def _moveCodeBlocksToFiles(specs: Dict, zip: zipfile.ZipFile, userHistoryDir: str, answerDir: str, content: str) -> str:
+    pattern = getFilenameCodePattern(specs)
     for fileNamesAndContents in re.finditer(pattern, content):
-        fileNameOriginal = fileNamesAndContents.groups()[0]
+        fileNameOriginal = fileNamesAndContents.group('fileName')
         fileName = unidecode(fileNameOriginal)
-        fileContent = fileNamesAndContents.groups()[3]
+        fileContent = fileNamesAndContents.group('content')
         log.debug(f'fileNames: {fileName} content: {fileContent}')
-        if fileName and fileContent and len(fileContent.split('\n')) >= MIN_LINES:
+        if fileName and fileContent and len(fileContent.split('\n')) >= FILE_CONTENT_MIN_LINES:
             log.debug(f'content match to file {fileName}')
             newFilePath = sanitize_filepath(userHistoryDir+'/'+answerDir+fileName)
             createFolder(os.path.dirname(newFilePath))
@@ -106,7 +94,7 @@ def _byPattern(pattern: re.Pattern, zip: zipfile.ZipFile, userHistoryDir: str, a
             zip.write(newFilePath, userHistoryDir+'/'+answerDir + fileName)
             mdDirFile = urllib.parse.quote(answerDir + fileName, safe='/', encoding=None, errors=None)
             content = re.sub(pattern, f'[{fileName}]({mdDirFile})\n', content, 1)
-    prefix = '' if content.startswith('\n## ') else '\n\n## '
+    prefix = '\n\n' if content.startswith('##') else '\n\n## '
     return prefix + content
 
 
