@@ -5,7 +5,3 @@ exclude = .git/*,__pycache__
 max-complexity = 10
 
 # https://flake8.pycqa.org/en/latest/user/options.html#options-list
-
-[pycodestyle]  #autopep8 https://github.com/hhatto/autopep8?tab=readme-ov-file
-max_line_length = 120
-ignore = E501
